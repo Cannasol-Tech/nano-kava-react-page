@@ -23,22 +23,65 @@ import {
   Moon
 } from 'lucide-react';
 
-// Theme configuration
+// Theme configuration - Single source of truth for all colors
 const themes = {
   dark: {
+    // Backgrounds
     bg: 'bg-slate-950',
     bgSecondary: 'bg-slate-900/50',
-    bgCard: 'bg-slate-800/80',
-    bgCardHover: 'bg-slate-800/60',
+    bgCard: 'bg-gradient-to-br from-slate-800/80 to-slate-900/80',
+    bgCardSolid: 'bg-gradient-to-br from-slate-800/60 to-slate-900/60',
+    bgCardAlt: 'bg-slate-800/40',
+    bgCardStats: 'bg-gradient-to-br from-slate-800/90 to-slate-900/90',
     bgNav: 'bg-slate-950/80',
+    bgHero: 'bg-gradient-to-b from-slate-950 via-slate-900 to-slate-950',
+    bgInput: 'bg-slate-800/60',
+    bgBadge: 'bg-slate-800/60',
+    bgPill: 'bg-gradient-to-r from-slate-800/60 to-slate-800/40',
+    bgIconBox: 'bg-gradient-to-br from-emerald-500/20 to-teal-500/20',
+    bgHighlight: 'bg-emerald-500/10',
+    bgHighlightBorder: 'bg-gradient-to-r from-emerald-500/10 to-teal-500/10 border-emerald-500/20',
+    bgError: 'bg-red-500/10',
+    bgErrorIcon: 'bg-red-500/20',
+    bgButton: 'bg-slate-700/50',
+    
+    // Text
     text: 'text-white',
     textSecondary: 'text-slate-400',
     textMuted: 'text-slate-500',
+    textError: 'text-red-400',
+    errorDot: 'bg-red-400',
+    
+    // Borders
     border: 'border-slate-800',
     borderCard: 'border-slate-700/50',
+    borderInput: 'border-slate-700',
+    borderHighlight: 'border-emerald-500/20',
+    borderScroll: 'border-slate-600',
+    borderCta: 'border-emerald-500/20',
+    
+    // Accents
     accent: 'from-emerald-500 to-teal-500',
     accentText: 'text-emerald-400',
+    accentGradient: 'from-emerald-400 via-teal-400 to-cyan-400',
+    accentGradientAlt: 'from-emerald-400 to-teal-400',
+    heroGradient: 'from-emerald-300 via-teal-300 to-cyan-300',
+    
+    // Shadows
+    shadow: '',
+    shadowCard: '',
+    shadowXl: '',
+    
+    // Toggle button
+    toggleBg: 'bg-slate-800',
+    toggleText: 'text-yellow-400',
+    toggleMenuBg: 'bg-slate-800/60',
+    toggleMenuBorder: 'border-slate-700/50',
+    
+    // Logo
     logo: '/cannasol-logo.png',
+    
+    // Gradient orbs
     gradientOrbs: {
       emerald: 'bg-emerald-500/15',
       teal: 'bg-teal-500/15',
@@ -46,23 +89,66 @@ const themes = {
     }
   },
   light: {
-    bg: 'bg-slate-50',
-    bgSecondary: 'bg-white',
+    // Backgrounds
+    bg: 'bg-white',
+    bgSecondary: 'bg-slate-50',
     bgCard: 'bg-white',
-    bgCardHover: 'bg-slate-50',
-    bgNav: 'bg-white/90',
+    bgCardSolid: 'bg-white',
+    bgCardAlt: 'bg-white',
+    bgCardStats: 'bg-white',
+    bgNav: 'bg-white/95',
+    bgHero: 'bg-gradient-to-b from-white via-slate-50 to-white',
+    bgInput: 'bg-slate-100',
+    bgBadge: 'bg-white/80',
+    bgPill: 'bg-white',
+    bgIconBox: 'bg-emerald-100',
+    bgHighlight: 'bg-emerald-100',
+    bgHighlightBorder: 'bg-emerald-100 border-emerald-200',
+    bgError: 'bg-red-100',
+    bgErrorIcon: 'bg-red-100',
+    bgButton: 'bg-slate-100',
+    
+    // Text
     text: 'text-slate-900',
     textSecondary: 'text-slate-600',
     textMuted: 'text-slate-500',
+    textError: 'text-red-600',
+    errorDot: 'bg-red-500',
+    
+    // Borders
     border: 'border-slate-200',
     borderCard: 'border-slate-200',
-    accent: 'from-emerald-600 to-cyan-600',
+    borderInput: 'border-slate-300',
+    borderHighlight: 'border-emerald-200',
+    borderScroll: 'border-slate-400',
+    borderCta: 'border-emerald-200',
+    
+    // Accents
+    accent: 'from-emerald-500 to-teal-500',
     accentText: 'text-emerald-600',
+    accentGradient: 'from-emerald-600 via-teal-600 to-cyan-600',
+    accentGradientAlt: 'from-emerald-600 to-teal-600',
+    heroGradient: 'from-emerald-600 via-teal-600 to-cyan-600',
+    
+    // Shadows
+    shadow: 'shadow-lg shadow-slate-200/50',
+    shadowCard: 'shadow-lg shadow-slate-200/50',
+    shadowXl: 'shadow-xl shadow-slate-200/50',
+    
+    // Toggle button
+    toggleBg: 'bg-slate-200',
+    toggleText: 'text-slate-700',
+    toggleMenuBg: 'bg-slate-200',
+    toggleMenuBorder: 'border-slate-300',
+    
+    // Logo
     logo: '/cannasol-logoW.png',
+    
+    // Gradient orbs
     gradientOrbs: {
-      emerald: 'bg-emerald-500/10',
-      teal: 'bg-teal-500/10',
-      cyan: 'bg-cyan-500/5'
+      emerald: 'bg-emerald-500/20',
+      teal: 'bg-teal-500/20',
+      cyan: 'bg-cyan-500/10'
     }
   }
 };
@@ -347,7 +433,7 @@ export default function KavaLandingPage() {
             {/* Theme Toggle */}
             <motion.button
               onClick={() => setIsDark(!isDark)}
-              className={`p-2 rounded-full ${isDark ? 'bg-slate-800 text-yellow-400' : 'bg-slate-200 text-slate-700'} transition-colors`}
+              className={`p-2 rounded-full ${theme.toggleBg} ${theme.toggleText} transition-colors`}
               whileHover={{ scale: 1.1 }}
               whileTap={{ scale: 0.95 }}
               aria-label="Toggle theme"
@@ -370,7 +456,7 @@ export default function KavaLandingPage() {
             {/* Mobile Theme Toggle */}
             <motion.button
               onClick={() => setIsDark(!isDark)}
-              className={`p-2 rounded-full ${isDark ? 'bg-slate-800 text-yellow-400' : 'bg-slate-200 text-slate-700'} transition-colors`}
+              className={`p-2 rounded-full ${theme.toggleBg} ${theme.toggleText} transition-colors`}
               whileTap={{ scale: 0.95 }}
               aria-label="Toggle theme"
             >
@@ -378,7 +464,7 @@ export default function KavaLandingPage() {
             </motion.button>
             
             <motion.button
-              className={`flex items-center justify-center w-10 h-10 rounded-lg ${isDark ? 'bg-slate-800/60 border-slate-700/50' : 'bg-slate-200 border-slate-300'} border`}
+              className={`flex items-center justify-center w-10 h-10 rounded-lg ${theme.toggleMenuBg} ${theme.toggleMenuBorder} border`}
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
               whileTap={{ scale: 0.95 }}
               aria-label="Toggle menu"
@@ -450,7 +536,7 @@ export default function KavaLandingPage() {
       >
         {/* Animated background */}
         <div className="absolute inset-0">
-          <div className={`absolute inset-0 ${isDark ? 'bg-gradient-to-b from-slate-950 via-slate-900 to-slate-950' : 'bg-gradient-to-b from-slate-100 via-white to-slate-100'} transition-colors duration-500`} />
+          <div className={`absolute inset-0 ${theme.bgHero} transition-colors duration-500`} />
           {/* Gradient orbs */}
           <GlowOrb className={`top-1/4 left-1/4 w-[600px] h-[600px] ${theme.gradientOrbs.emerald} blur-[120px]`} delay={0} />
           <GlowOrb className={`bottom-1/4 right-1/4 w-[500px] h-[500px] ${theme.gradientOrbs.teal} blur-[100px]`} delay={1} />
@@ -467,7 +553,7 @@ export default function KavaLandingPage() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6 }}
-            className={`inline-flex items-center gap-2 px-4 py-2 ${isDark ? 'bg-slate-800/60' : 'bg-white/80'} backdrop-blur rounded-full border ${theme.borderCard} mb-8`}
+            className={`inline-flex items-center gap-2 px-4 py-2 ${theme.bgBadge} backdrop-blur rounded-full border ${theme.borderCard} mb-8`}
           >
             <span className="relative flex h-2 w-2">
               <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
@@ -484,7 +570,7 @@ export default function KavaLandingPage() {
             className="text-5xl md:text-7xl lg:text-8xl font-bold mb-6 leading-[1.1]"
           >
             <motion.span 
-              className={`inline-block bg-gradient-to-r ${isDark ? 'from-emerald-300 via-teal-300 to-cyan-300' : 'from-emerald-600 via-teal-600 to-cyan-600'} bg-clip-text text-transparent`}
+              className={`inline-block bg-gradient-to-r ${theme.heroGradient} bg-clip-text text-transparent`}
               animate={{ backgroundPosition: ['0% 50%', '100% 50%', '0% 50%'] }}
               transition={{ duration: 5, repeat: Infinity, ease: "linear" }}
               style={{ backgroundSize: '200% 200%' }}
@@ -531,7 +617,7 @@ export default function KavaLandingPage() {
             </motion.a>
             <motion.a
               href="tel:+12169212240"
-              className={`inline-flex items-center justify-center gap-2 px-8 py-4 ${isDark ? 'bg-slate-800/60' : 'bg-white/80'} backdrop-blur ${theme.text} font-semibold rounded-full text-lg border ${theme.borderCard} hover:border-emerald-500/50 transition-colors`}
+              className={`inline-flex items-center justify-center gap-2 px-8 py-4 ${theme.bgBadge} ${theme.shadowCard} backdrop-blur ${theme.text} font-semibold rounded-full text-lg border ${theme.borderCard} hover:border-emerald-500/50 transition-colors`}
               whileHover={{ scale: 1.02 }}
               whileTap={{ scale: 0.98 }}
             >
@@ -557,11 +643,11 @@ export default function KavaLandingPage() {
                 {/* Animated border gradient */}
                 <div className="absolute -inset-[1px] bg-gradient-to-r from-emerald-500/50 via-teal-500/50 to-emerald-500/50 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-500 blur-sm" />
                 <div className="absolute -inset-[1px] bg-gradient-to-r from-emerald-500 via-teal-500 to-emerald-500 rounded-2xl opacity-0 group-hover:opacity-30 transition-opacity duration-500" />
-                <div className={`relative ${isDark ? 'bg-gradient-to-br from-slate-800/90 to-slate-900/90' : 'bg-white/90'} backdrop-blur-xl rounded-2xl p-6 border ${theme.borderCard} group-hover:border-transparent transition-colors`}>
+                <div className={`relative ${theme.bgCardStats} ${theme.shadowCard} backdrop-blur-xl rounded-2xl p-6 border ${theme.borderCard} group-hover:border-transparent transition-colors`}>
                   <div className="w-10 h-10 mx-auto mb-3 rounded-lg bg-gradient-to-br from-emerald-500/20 to-teal-500/20 flex items-center justify-center group-hover:shadow-lg group-hover:shadow-emerald-500/20 transition-shadow">
                     <stat.icon className={`w-5 h-5 ${theme.accentText}`} />
                   </div>
-                  <div className={`text-3xl md:text-4xl font-bold bg-gradient-to-r ${isDark ? 'from-emerald-400 via-teal-400 to-cyan-400' : 'from-emerald-600 via-teal-600 to-cyan-600'} bg-clip-text text-transparent`}>
+                  <div className={`text-3xl md:text-4xl font-bold bg-gradient-to-r ${theme.accentGradient} bg-clip-text text-transparent`}>
                     <AnimatedCounter value={stat.value} prefix={stat.prefix} suffix={stat.suffix} />
                   </div>
                   <div className={`${theme.textMuted} text-sm mt-1 group-hover:${theme.textSecondary} transition-colors`}>{stat.label}</div>
@@ -577,7 +663,7 @@ export default function KavaLandingPage() {
           animate={{ y: [0, 10, 0] }}
           transition={{ duration: 2, repeat: Infinity }}
         >
-          <div className={`w-6 h-10 rounded-full border-2 ${isDark ? 'border-slate-600' : 'border-slate-400'} flex items-start justify-center p-2`}>
+          <div className={`w-6 h-10 rounded-full border-2 ${theme.borderScroll} flex items-start justify-center p-2`}>
             <motion.div
               className="w-1.5 h-1.5 bg-emerald-400 rounded-full"
               animate={{ y: [0, 12, 0] }}
@@ -593,16 +679,16 @@ export default function KavaLandingPage() {
           <div className="grid lg:grid-cols-2 gap-16 items-center">
             {/* Problem */}
             <motion.div variants={fadeInLeft}>
-              <div className="inline-flex items-center gap-2 px-3 py-1 bg-red-500/10 rounded-full text-red-400 text-sm font-medium mb-6">
-                <span className="w-1.5 h-1.5 bg-red-400 rounded-full" />
+              <div className={`inline-flex items-center gap-2 px-3 py-1 ${theme.bgError} rounded-full ${theme.textError} text-sm font-medium mb-6`}>
+                <span className={`w-1.5 h-1.5 ${theme.errorDot} rounded-full`} />
                 The Industry Problem
               </div>
-              <h2 className="text-3xl md:text-5xl font-bold mb-6 leading-tight">
+              <h2 className={`text-3xl md:text-5xl font-bold mb-6 leading-tight ${theme.text}`}>
                 Traditional Kava
-                <span className="text-slate-500"> Doesn't Work</span>
+                <span className={theme.textMuted}> Doesn't Work</span>
                 <br />for Modern Beverages
               </h2>
-              <p className="text-slate-400 text-lg mb-8 leading-relaxed">
+              <p className={`${theme.textSecondary} text-lg mb-8 leading-relaxed`}>
                 Standard Kava extracts are hydrophobic, poorly absorbed, and take 30-45 minutes to feel. 
                 Your customers want instant results—not a waiting game.
               </p>
@@ -615,11 +701,11 @@ export default function KavaLandingPage() {
                 ].map((problem, i) => (
                   <motion.div
                     key={i}
-                    className="flex items-center gap-3 text-slate-300"
+                    className={`flex items-center gap-3 ${theme.textSecondary}`}
                     variants={fadeInUp}
                   >
-                    <span className="flex-shrink-0 w-6 h-6 rounded-full bg-red-500/20 flex items-center justify-center">
-                      <span className="text-red-400 text-sm">✕</span>
+                    <span className={`flex-shrink-0 w-6 h-6 rounded-full ${theme.bgErrorIcon} flex items-center justify-center`}>
+                      <span className={`${theme.textError} text-sm`}>✕</span>
                     </span>
                     {problem}
                   </motion.div>
@@ -633,19 +719,19 @@ export default function KavaLandingPage() {
               className="relative"
             >
               <div className="absolute inset-0 bg-gradient-to-r from-emerald-500/10 to-teal-500/10 rounded-3xl blur-2xl" />
-              <div className="relative bg-gradient-to-br from-slate-800/60 to-slate-900/60 backdrop-blur rounded-3xl p-8 md:p-10 border border-slate-700/50">
-                <div className="inline-flex items-center gap-2 px-3 py-1 bg-emerald-500/10 rounded-full text-emerald-400 text-sm font-medium mb-6">
+              <div className={`relative ${theme.bgCardSolid} ${theme.shadowXl} backdrop-blur rounded-3xl p-8 md:p-10 border ${theme.borderCard}`}>
+                <div className={`inline-flex items-center gap-2 px-3 py-1 ${theme.bgHighlight} rounded-full ${theme.accentText} text-sm font-medium mb-6`}>
                   <span className="w-1.5 h-1.5 bg-emerald-400 rounded-full animate-pulse" />
                   The Cannasol Solution
                 </div>
-                <h3 className="text-2xl md:text-3xl font-bold mb-4">
+                <h3 className={`text-2xl md:text-3xl font-bold mb-4 ${theme.text}`}>
                   World's First ~18nm
                   <br />
-                  <span className="bg-gradient-to-r from-emerald-400 to-teal-400 bg-clip-text text-transparent">
+                  <span className={`bg-gradient-to-r ${theme.accentGradientAlt} bg-clip-text text-transparent`}>
                     Kava Nanoemulsion
                   </span>
                 </h3>
-                <p className="text-slate-400 mb-8 leading-relaxed">
+                <p className={`${theme.textSecondary} mb-8 leading-relaxed`}>
                   Our proprietary NanoOptimizer™ surfactant system creates ultra-fine Kava particles that absorb instantly, 
                   taste better, and stay perfectly suspended.
                 </p>
@@ -658,13 +744,13 @@ export default function KavaLandingPage() {
                   ].map((benefit, i) => (
                     <motion.div
                       key={i}
-                      className="flex items-center gap-3 text-white"
+                      className={`flex items-center gap-3 ${theme.text}`}
                       initial={{ opacity: 0, x: 20 }}
                       whileInView={{ opacity: 1, x: 0 }}
                       transition={{ delay: i * 0.1 }}
                       viewport={{ once: true }}
                     >
-                      <span className="flex-shrink-0 w-6 h-6 rounded-full bg-emerald-500/20 flex items-center justify-center">
+                      <span className={`flex-shrink-0 w-6 h-6 rounded-full ${theme.bgIconBox} flex items-center justify-center`}>
                         <Check className="w-4 h-4 text-emerald-400" />
                       </span>
                       {benefit}
@@ -678,14 +764,14 @@ export default function KavaLandingPage() {
       </AnimatedSection>
 
       {/* Features Section */}
-      <AnimatedSection className="relative py-24 md:py-32 bg-slate-900/50">
+      <AnimatedSection className={`relative py-24 md:py-32 ${theme.bgSecondary}`}>
         <div className="max-w-7xl mx-auto px-6">
           <motion.div variants={fadeInUp} className="text-center mb-16">
-            <h2 className="text-3xl md:text-5xl font-bold mb-4">
+            <h2 className={`text-3xl md:text-5xl font-bold mb-4 ${theme.text}`}>
               Why Top Brands Choose
-              <span className="bg-gradient-to-r from-emerald-400 to-teal-400 bg-clip-text text-transparent"> Cannasol</span>
+              <span className={`bg-gradient-to-r ${theme.accentGradientAlt} bg-clip-text text-transparent`}> Cannasol</span>
             </h2>
-            <p className="text-slate-400 text-lg max-w-2xl mx-auto">
+            <p className={`${theme.textSecondary} text-lg max-w-2xl mx-auto`}>
               We're not just suppliers—we're your partners in creating market-leading Kava products.
             </p>
           </motion.div>
@@ -702,22 +788,22 @@ export default function KavaLandingPage() {
               >
                 {/* Glow effect on hover */}
                 <div className="absolute -inset-0.5 bg-gradient-to-r from-emerald-500 to-teal-500 rounded-2xl blur opacity-0 group-hover:opacity-20 transition-all duration-500" />
-                <div className="relative h-full bg-gradient-to-br from-slate-800/80 to-slate-900/80 backdrop-blur-xl rounded-2xl p-6 border border-slate-700/50 group-hover:border-emerald-500/50 transition-all duration-300">
+                <div className={`relative h-full ${theme.bgCard} ${theme.shadowCard} backdrop-blur-xl rounded-2xl p-6 border ${theme.borderCard} group-hover:border-emerald-500/50 transition-all duration-300`}>
                   {/* Subtle inner glow */}
                   <div className="absolute inset-0 rounded-2xl bg-gradient-to-br from-emerald-500/5 via-transparent to-teal-500/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
                   <div className="relative">
                     <div className="flex items-start justify-between mb-4">
-                      <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-emerald-500/20 to-teal-500/20 flex items-center justify-center group-hover:scale-110 group-hover:shadow-lg group-hover:shadow-emerald-500/20 transition-all duration-300">
-                        <feature.icon className="w-6 h-6 text-emerald-400 group-hover:text-emerald-300 transition-colors" />
+                      <div className={`w-12 h-12 rounded-xl ${theme.bgIconBox} flex items-center justify-center group-hover:scale-110 group-hover:shadow-lg group-hover:shadow-emerald-500/20 transition-all duration-300`}>
+                        <feature.icon className={`w-6 h-6 ${theme.accentText} group-hover:text-emerald-300 transition-colors`} />
                       </div>
-                      <span className="px-3 py-1 bg-gradient-to-r from-emerald-500/10 to-teal-500/10 rounded-full text-emerald-400 text-xs font-medium border border-emerald-500/20">
+                      <span className={`px-3 py-1 ${theme.bgHighlightBorder} rounded-full ${theme.accentText} text-xs font-medium border`}>
                         {feature.highlight}
                       </span>
                     </div>
-                    <h3 className="text-xl font-bold mb-2 group-hover:text-emerald-300 transition-colors duration-300">
+                    <h3 className={`text-xl font-bold mb-2 ${theme.text} group-hover:${theme.accentText} transition-colors duration-300`}>
                       {feature.title}
                     </h3>
-                    <p className="text-slate-400 text-sm leading-relaxed group-hover:text-slate-300 transition-colors duration-300">
+                    <p className={`${theme.textSecondary} text-sm leading-relaxed transition-colors duration-300`}>
                       {feature.description}
                     </p>
                   </div>
@@ -732,11 +818,11 @@ export default function KavaLandingPage() {
       <AnimatedSection id="process" className="relative py-24 md:py-32">
         <div className="max-w-7xl mx-auto px-6">
           <motion.div variants={fadeInUp} className="text-center mb-16">
-            <h2 className="text-3xl md:text-5xl font-bold mb-4">
+            <h2 className={`text-3xl md:text-5xl font-bold mb-4 ${theme.text}`}>
               From Concept to
-              <span className="bg-gradient-to-r from-emerald-400 to-teal-400 bg-clip-text text-transparent"> Market Leader</span>
+              <span className={`bg-gradient-to-r ${theme.accentGradientAlt} bg-clip-text text-transparent`}> Market Leader</span>
             </h2>
-            <p className="text-slate-400 text-lg max-w-2xl mx-auto">
+            <p className={`${theme.textSecondary} text-lg max-w-2xl mx-auto`}>
               Josh works directly with every client to ensure your success. Here's how we partner together.
             </p>
           </motion.div>
@@ -759,16 +845,16 @@ export default function KavaLandingPage() {
                 whileHover={{ y: -5 }}
                 transition={{ type: "spring", stiffness: 300, damping: 20 }}
               >
-                <div className="relative bg-gradient-to-br from-slate-800/60 to-slate-900/60 backdrop-blur-xl rounded-2xl p-6 border border-slate-700/50 group-hover:border-emerald-500/40 transition-all duration-300">
+                <div className={`relative ${theme.bgCardSolid} ${theme.shadowCard} backdrop-blur-xl rounded-2xl p-6 border ${theme.borderCard} group-hover:border-emerald-500/40 transition-all duration-300`}>
                   {/* Step number with glow */}
                   <div className="relative mb-4">
                     <div className="absolute inset-0 bg-emerald-500/20 blur-xl rounded-full opacity-0 group-hover:opacity-100 transition-opacity" />
-                    <div className="relative text-5xl font-bold bg-gradient-to-br from-emerald-400 to-teal-500 bg-clip-text text-transparent">
+                    <div className={`relative text-5xl font-bold bg-gradient-to-br ${theme.accentGradientAlt} bg-clip-text text-transparent`}>
                       {item.step}
                     </div>
                   </div>
-                  <h3 className="text-xl font-bold mb-2 group-hover:text-emerald-300 transition-colors">{item.title}</h3>
-                  <p className="text-slate-400 text-sm group-hover:text-slate-300 transition-colors">{item.description}</p>
+                  <h3 className={`text-xl font-bold mb-2 ${theme.text} group-hover:${theme.accentText} transition-colors`}>{item.title}</h3>
+                  <p className={`${theme.textSecondary} text-sm transition-colors`}>{item.description}</p>
                 </div>
               </motion.div>
             ))}
@@ -777,18 +863,18 @@ export default function KavaLandingPage() {
       </AnimatedSection>
 
       {/* Partnership & Trust Section */}
-      <AnimatedSection id="proof" className="relative py-24 md:py-32 bg-slate-900/50">
+      <AnimatedSection id="proof" className={`relative py-24 md:py-32 ${theme.bgSecondary}`}>
         <div className="max-w-7xl mx-auto px-6">
           <motion.div variants={fadeInUp} className="text-center mb-16">
-            <div className="inline-flex items-center gap-2 px-4 py-2 bg-emerald-500/10 rounded-full text-emerald-400 text-sm font-medium mb-6">
+            <div className={`inline-flex items-center gap-2 px-4 py-2 ${theme.bgHighlight} rounded-full ${theme.accentText} text-sm font-medium mb-6`}>
               <Award className="w-4 h-4" />
               Industry-Leading Partnership
             </div>
-            <h2 className="text-3xl md:text-5xl font-bold mb-4">
+            <h2 className={`text-3xl md:text-5xl font-bold mb-4 ${theme.text}`}>
               Powered by the Best
-              <span className="bg-gradient-to-r from-emerald-400 to-teal-400 bg-clip-text text-transparent"> Equipment</span>
+              <span className={`bg-gradient-to-r ${theme.accentGradientAlt} bg-clip-text text-transparent`}> Equipment</span>
             </h2>
-            <p className="text-slate-400 text-lg max-w-2xl mx-auto">
+            <p className={`${theme.textSecondary} text-lg max-w-2xl mx-auto`}>
               We partner with QSonica, the #1 name in ultrasonic liquid processing, to deliver unmatched nanoemulsion quality.
             </p>
           </motion.div>
@@ -800,21 +886,21 @@ export default function KavaLandingPage() {
               className="relative group"
             >
               <div className="absolute inset-0 bg-gradient-to-r from-emerald-500/10 to-teal-500/10 rounded-2xl blur-xl" />
-              <div className="relative bg-slate-800/40 backdrop-blur rounded-2xl p-8 border border-slate-700/50 h-full">
+              <div className={`relative ${theme.bgCardAlt} ${theme.shadowCard} backdrop-blur rounded-2xl p-8 border ${theme.borderCard} h-full`}>
                 <div className="flex items-center gap-4 mb-6">
-                  <div className="w-16 h-16 rounded-xl bg-gradient-to-br from-emerald-500/20 to-teal-500/20 flex items-center justify-center">
-                    <Beaker className="w-8 h-8 text-emerald-400" />
+                  <div className={`w-16 h-16 rounded-xl ${theme.bgIconBox} flex items-center justify-center`}>
+                    <Beaker className={`w-8 h-8 ${theme.accentText}`} />
                   </div>
                   <div>
-                    <div className="text-emerald-400 text-sm font-medium">Official Partner</div>
-                    <div className="text-2xl font-bold text-white">QSonica</div>
+                    <div className={`${theme.accentText} text-sm font-medium`}>Official Partner</div>
+                    <div className={`text-2xl font-bold ${theme.text}`}>QSonica</div>
                   </div>
                 </div>
-                <p className="text-slate-300 mb-4">
+                <p className={`${theme.textSecondary} mb-4`}>
                   #1 Ultrasonic Liquid Processing Equipment manufacturer. Our partnership ensures you get access to the most advanced nanoemulsification technology available.
                 </p>
-                <div className="flex items-center gap-2 text-slate-400 text-sm">
-                  <Check className="w-4 h-4 text-emerald-400" />
+                <div className={`flex items-center gap-2 ${theme.textMuted} text-sm`}>
+                  <Check className={`w-4 h-4 ${theme.accentText}`} />
                   Industry-leading ultrasonic processors
                 </div>
               </div>
@@ -826,21 +912,21 @@ export default function KavaLandingPage() {
               className="relative group"
             >
               <div className="absolute inset-0 bg-gradient-to-r from-emerald-500/10 to-teal-500/10 rounded-2xl blur-xl" />
-              <div className="relative bg-slate-800/40 backdrop-blur rounded-2xl p-8 border border-slate-700/50 h-full">
+              <div className={`relative ${theme.bgCardAlt} ${theme.shadowCard} backdrop-blur rounded-2xl p-8 border ${theme.borderCard} h-full`}>
                 <div className="flex items-center gap-4 mb-6">
-                  <div className="w-16 h-16 rounded-xl bg-gradient-to-br from-emerald-500/20 to-teal-500/20 flex items-center justify-center">
-                    <Award className="w-8 h-8 text-emerald-400" />
+                  <div className={`w-16 h-16 rounded-xl ${theme.bgIconBox} flex items-center justify-center`}>
+                    <Award className={`w-8 h-8 ${theme.accentText}`} />
                   </div>
                   <div>
-                    <div className="text-emerald-400 text-sm font-medium">Proven Results</div>
-                    <div className="text-2xl font-bold text-white">Trusted Partner</div>
+                    <div className={`${theme.accentText} text-sm font-medium`}>Proven Results</div>
+                    <div className={`text-2xl font-bold ${theme.text}`}>Trusted Partner</div>
                   </div>
                 </div>
-                <p className="text-slate-300 mb-4">
+                <p className={`${theme.textSecondary} mb-4`}>
                   Every brand we've worked with loves the results. The product sells itself—Josh just helps you get there.
                 </p>
-                <div className="flex items-center gap-2 text-slate-400 text-sm">
-                  <Check className="w-4 h-4 text-emerald-400" />
+                <div className={`flex items-center gap-2 ${theme.textMuted} text-sm`}>
+                  <Check className={`w-4 h-4 ${theme.accentText}`} />
                   Dedicated customer support
                 </div>
               </div>
@@ -852,12 +938,12 @@ export default function KavaLandingPage() {
             variants={fadeInUp}
             className="mt-16 text-center"
           >
-            <p className="text-slate-500 text-sm uppercase tracking-wider mb-4">Perfect For</p>
+            <p className={`${theme.textMuted} text-sm uppercase tracking-wider mb-4`}>Perfect For</p>
             <div className="flex flex-wrap justify-center gap-4">
               {['Kava Seltzers', 'Functional Shots', 'RTD Beverages', 'Wellness Brands'].map((item, i) => (
                 <motion.span 
                   key={i}
-                  className="px-5 py-2.5 bg-gradient-to-r from-slate-800/60 to-slate-800/40 rounded-full text-slate-300 text-sm border border-slate-700/50 hover:border-emerald-500/40 hover:text-emerald-300 transition-all cursor-default"
+                  className={`px-5 py-2.5 ${theme.bgPill} ${theme.shadowCard} rounded-full ${theme.textSecondary} text-sm border ${theme.borderCard} hover:border-emerald-500/40 hover:${theme.accentText} transition-all cursor-default`}
                   whileHover={{ scale: 1.05, y: -2 }}
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
@@ -879,10 +965,10 @@ export default function KavaLandingPage() {
             className="relative"
           >
             <div className="absolute inset-0 bg-gradient-to-r from-emerald-500/20 via-teal-500/20 to-cyan-500/20 rounded-3xl blur-2xl" />
-            <div className="relative bg-gradient-to-br from-slate-800/80 to-slate-900/80 backdrop-blur rounded-3xl p-8 md:p-12 border border-emerald-500/20">
+            <div className={`relative ${theme.bgCard} ${theme.shadowXl} backdrop-blur rounded-3xl p-8 md:p-12 border ${theme.borderCta}`}>
               <div className="text-center mb-10">
                 <motion.div
-                  className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-gradient-to-r from-emerald-500 to-teal-500 mb-6"
+                  className={`inline-flex items-center justify-center w-16 h-16 rounded-full bg-gradient-to-r ${theme.accent} mb-6`}
                   animate={{ 
                     boxShadow: ['0 0 20px rgba(16, 185, 129, 0.3)', '0 0 40px rgba(16, 185, 129, 0.5)', '0 0 20px rgba(16, 185, 129, 0.3)']
                   }}
@@ -890,14 +976,14 @@ export default function KavaLandingPage() {
                 >
                   <MessageCircle className="w-8 h-8 text-slate-900" />
                 </motion.div>
-                <h2 className="text-3xl md:text-4xl font-bold mb-4">
+                <h2 className={`text-3xl md:text-4xl font-bold mb-4 ${theme.text}`}>
                   Ready to Create the Best
                   <br />
-                  <span className="bg-gradient-to-r from-emerald-400 to-teal-400 bg-clip-text text-transparent">
+                  <span className={`bg-gradient-to-r ${theme.accentGradientAlt} bg-clip-text text-transparent`}>
                     Kava Product on the Market?
                   </span>
                 </h2>
-                <p className="text-slate-400 text-lg max-w-2xl mx-auto">
+                <p className={`${theme.textSecondary} text-lg max-w-2xl mx-auto`}>
                   Talk directly with Josh about your product vision. Get a sample and see why the top brands trust Cannasol.
                 </p>
               </div>
@@ -907,7 +993,7 @@ export default function KavaLandingPage() {
                   href="https://cannasoltechnologies.com/contact-us"
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="flex items-center justify-center gap-3 px-6 py-4 bg-gradient-to-r from-emerald-500 to-teal-500 text-slate-900 font-bold rounded-xl text-lg"
+                  className={`flex items-center justify-center gap-3 px-6 py-4 bg-gradient-to-r ${theme.accent} text-slate-900 font-bold rounded-xl text-lg`}
                   whileHover={{ scale: 1.02, boxShadow: '0 0 30px rgba(16, 185, 129, 0.4)' }}
                   whileTap={{ scale: 0.98 }}
                 >
@@ -916,7 +1002,7 @@ export default function KavaLandingPage() {
                 </motion.a>
                 <motion.a
                   href="tel:+12169212240"
-                  className="flex items-center justify-center gap-3 px-6 py-4 bg-slate-700/50 text-white font-semibold rounded-xl text-lg border border-slate-600 hover:border-emerald-500/50 transition-colors"
+                  className={`flex items-center justify-center gap-3 px-6 py-4 ${theme.bgButton} ${theme.text} font-semibold rounded-xl text-lg border ${theme.borderCard} hover:border-emerald-500/50 transition-colors`}
                   whileHover={{ scale: 1.02 }}
                   whileTap={{ scale: 0.98 }}
                 >
@@ -925,7 +1011,7 @@ export default function KavaLandingPage() {
                 </motion.a>
                 <motion.a
                   href="mailto:info@cannasoltechnologies.com"
-                  className="flex items-center justify-center gap-3 px-6 py-4 bg-slate-700/50 text-white font-semibold rounded-xl text-lg border border-slate-600 hover:border-emerald-500/50 transition-colors"
+                  className={`flex items-center justify-center gap-3 px-6 py-4 ${theme.bgButton} ${theme.text} font-semibold rounded-xl text-lg border ${theme.borderCard} hover:border-emerald-500/50 transition-colors`}
                   whileHover={{ scale: 1.02 }}
                   whileTap={{ scale: 0.98 }}
                 >
@@ -934,7 +1020,7 @@ export default function KavaLandingPage() {
                 </motion.a>
               </div>
 
-              <div className="flex flex-wrap items-center justify-center gap-6 text-slate-400 text-sm">
+              <div className={`flex flex-wrap items-center justify-center gap-6 ${theme.textSecondary} text-sm`}>
                 <a 
                   href="https://maps.google.com/?q=Sarasota,+Florida+34234"
                   target="_blank"
