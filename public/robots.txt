@@ -1,0 +1,11 @@
+# Robots.txt for Cannasol Technologies - Nano Kava Landing Page
+# https://kava.cannasoltechnologies.com
+
+User-agent: *
+Allow: /
+
+# Sitemap location
+Sitemap: https://kava.cannasoltechnologies.com/sitemap.xml
+
+# Crawl-delay (optional, be nice to servers)
+Crawl-delay: 1
