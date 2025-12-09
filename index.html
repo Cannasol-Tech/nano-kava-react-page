@@ -86,6 +86,56 @@
     }
     </script>
     
+    <!-- Structured Data - FAQ (Top Questions) -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "FAQPage",
+      "mainEntity": [
+        {
+          "@type": "Question",
+          "name": "What is nano Kava?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Nano Kava is a nanoemulsified form of Kava extract where particles are reduced to approximately 18 nanometers in size. This dramatically increases bioavailability (up to 10x compared to traditional Kava) and reduces onset time to just 5 minutes."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "How fast does nano Kava work?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Most users report feeling effects within 5 minutes of consumption, compared to 30-45 minutes for traditional Kava. This rapid onset is due to the ultra-small particle size allowing for immediate absorption."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "What makes Cannasol's ~18nm particle size special?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Our ~18nm particle size is the smallest in the industry. Smaller particles mean faster absorption, higher bioavailability of kavalactones, crystal-clear formulations with no cloudiness, and better shelf stability with no separation."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "Will nano Kava make my beverage cloudy?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "No! One of the key benefits of our ~18nm particle size is crystal-clear formulations. Traditional Kava extracts create cloudy beverages. Our nano Kava stays perfectly clear and stable."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "Can I get samples before ordering?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Absolutely! We encourage all potential partners to test our nano Kava in their formulations before committing to an order. Contact us to request samples."
+          }
+        }
+      ]
+    }
+    </script>
+    
     <!-- Fonts - Preconnect for performance -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -96,6 +146,16 @@
     <meta name="msapplication-TileColor" content="#0f172a" />
   </head>
   <body>
+    <!-- Hidden form for Netlify Forms detection (required for React SPAs) -->
+    <form name="contact" netlify netlify-honeypot="bot-field" hidden>
+      <input type="text" name="name" />
+      <input type="email" name="email" />
+      <input type="text" name="company" />
+      <input type="tel" name="phone" />
+      <input type="text" name="inquiryType" />
+      <textarea name="message"></textarea>
+    </form>
+    
     <div id="root"></div>
     <script type="module" src="/src/main.jsx"></script>
   </body>

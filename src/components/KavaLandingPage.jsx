@@ -1,4 +1,5 @@
 import React, { useState, useRef } from 'react';
+import { Link } from 'react-router-dom';
 import { motion, useInView, useScroll, useTransform } from 'framer-motion';
 import { 
   Beaker, 
@@ -429,6 +430,8 @@ export default function KavaLandingPage() {
             <a href="#benefits" className={`${theme.textSecondary} hover:${theme.text} transition-colors`}>Benefits</a>
             <a href="#process" className={`${theme.textSecondary} hover:${theme.text} transition-colors`}>Process</a>
             <a href="#proof" className={`${theme.textSecondary} hover:${theme.text} transition-colors`}>Partners</a>
+            <Link to="/faq" className={`${theme.textSecondary} hover:${theme.text} transition-colors`}>FAQ</Link>
+            <Link to="/contact" className={`${theme.textSecondary} hover:${theme.text} transition-colors`}>Contact</Link>
             
             {/* Theme Toggle */}
             <motion.button
@@ -510,13 +513,20 @@ export default function KavaLandingPage() {
             >
               Partners
             </a>
-            <a
-              href="#contact"
+            <Link 
+              to="/faq" 
+              className={`block ${theme.textSecondary} hover:${theme.text} transition-colors py-2`}
+              onClick={() => setMobileMenuOpen(false)}
+            >
+              FAQ
+            </Link>
+            <Link 
+              to="/contact" 
               className="block w-full text-center px-5 py-3 bg-gradient-to-r from-emerald-500 to-teal-500 text-slate-900 font-semibold rounded-full"
               onClick={() => setMobileMenuOpen(false)}
             >
-              Get Started
-            </a>
+              Contact Us
+            </Link>
             <a
               href="tel:+12169212240"
               className="flex items-center justify-center gap-2 text-emerald-400 py-2"
@@ -989,17 +999,16 @@ export default function KavaLandingPage() {
               </div>
 
               <div className="grid md:grid-cols-3 gap-4 mb-8">
-                <motion.a
-                  href="https://cannasoltechnologies.com/contact-us"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className={`flex items-center justify-center gap-3 px-6 py-4 bg-gradient-to-r ${theme.accent} text-slate-900 font-bold rounded-xl text-lg`}
-                  whileHover={{ scale: 1.02, boxShadow: '0 0 30px rgba(16, 185, 129, 0.4)' }}
-                  whileTap={{ scale: 0.98 }}
-                >
-                  <MessageCircle className="w-5 h-5" />
-                  Contact Form
-                </motion.a>
+                <Link to="/contact">
+                  <motion.div
+                    className={`flex items-center justify-center gap-3 px-6 py-4 bg-gradient-to-r ${theme.accent} text-slate-900 font-bold rounded-xl text-lg`}
+                    whileHover={{ scale: 1.02, boxShadow: '0 0 30px rgba(16, 185, 129, 0.4)' }}
+                    whileTap={{ scale: 0.98 }}
+                  >
+                    <MessageCircle className="w-5 h-5" />
+                    Contact Form
+                  </motion.div>
+                </Link>
                 <motion.a
                   href="tel:+12169212240"
                   className={`flex items-center justify-center gap-3 px-6 py-4 ${theme.bgButton} ${theme.text} font-semibold rounded-xl text-lg border ${theme.borderCard} hover:border-emerald-500/50 transition-colors`}
@@ -1053,9 +1062,9 @@ export default function KavaLandingPage() {
               <span className={`${theme.textSecondary} text-sm`}>© 2025 Cannasol Technologies LLC</span>
             </div>
             <div className={`flex gap-6 text-sm ${theme.textMuted}`}>
-              <a href="https://cannasoltechnologies.com/shop" className={`hover:${theme.text} transition-colors`}>Shop</a>
+              <a href="https://cannasoltechnologies.com/shop/" className={`hover:${theme.text} transition-colors`}>Shop</a>
               <a href="https://cannasoltechnologies.com/resources" className={`hover:${theme.text} transition-colors`}>Resources</a>
-              <a href="https://cannasoltechnologies.com/contact-us" className={`hover:${theme.text} transition-colors`}>Contact</a>
+              <Link to="/contact" className={`hover:${theme.text} transition-colors`}>Contact</Link>
             </div>
           </div>
         </div>
