@@ -23,6 +23,14 @@ Complete the Kava landing page and deploy it as a standalone site, with a redire
 - [x] Add Twitter Card tags
 - [x] Add favicon (already have `favicon.svg`)
 
+### 1.4 Add Nanoemulsified Mushrooms Landing Page (TDD)
+- [x] Add feature spec in `docs/features/nanoemulsified-mushrooms-landing-page.md`
+- [x] Add missing testing standards doc `docs/sw-testing-standards.md`
+- [x] Add Vitest + React Testing Library and a `test` script
+- [x] Add new route `/mushrooms` and new page component
+- [x] Add navigation link(s) to the Mushrooms page
+- [x] Verify all tests are passing
+
 ---
 
 ## Milestone 2: Deploy to Production
@@ -107,5 +115,6 @@ nano-kava-react-page/
 | Mobile menu | ✅ Done | Hamburger menu with animated dropdown |
 | SEO meta tags | ✅ Done | OG + Twitter cards added |
 | Contact form | ⏳ Pending | |
+| Mushrooms landing page | ✅ Done | Route: `/mushrooms` |
 | Netlify deploy | ⏳ Pending | |
 | WordPress redirect | ⏳ Pending | |

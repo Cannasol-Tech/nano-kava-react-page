@@ -15,44 +15,10 @@ import {
   Sun,
   Moon
 } from 'lucide-react';
+import themesConfig from '../theme/themes';
 
 // Theme configuration - matches KavaLandingPage
-const themes = {
-  dark: {
-    bg: 'bg-slate-950',
-    bgSecondary: 'bg-slate-900/50',
-    bgCard: 'bg-gradient-to-br from-slate-800/80 to-slate-900/80',
-    bgNav: 'bg-slate-950/80',
-    text: 'text-white',
-    textSecondary: 'text-slate-400',
-    textMuted: 'text-slate-500',
-    border: 'border-slate-800',
-    borderCard: 'border-slate-700/50',
-    accent: 'from-emerald-500 to-teal-500',
-    accentText: 'text-emerald-400',
-    accentGradientAlt: 'from-emerald-400 to-teal-400',
-    toggleBg: 'bg-slate-800',
-    toggleText: 'text-yellow-400',
-    logo: '/cannasol-logo.png',
-  },
-  light: {
-    bg: 'bg-white',
-    bgSecondary: 'bg-slate-50',
-    bgCard: 'bg-white',
-    bgNav: 'bg-white/95',
-    text: 'text-slate-900',
-    textSecondary: 'text-slate-600',
-    textMuted: 'text-slate-500',
-    border: 'border-slate-200',
-    borderCard: 'border-slate-200',
-    accent: 'from-emerald-500 to-teal-500',
-    accentText: 'text-emerald-600',
-    accentGradientAlt: 'from-emerald-600 to-teal-600',
-    toggleBg: 'bg-slate-200',
-    toggleText: 'text-slate-700',
-    logo: '/cannasol-logoW.png',
-  }
-};
+const themes = themesConfig;
 
 // FAQ Data organized by category
 const faqCategories = [
