@@ -364,6 +364,7 @@ export default function ContactPage() {
               className={`p-2 rounded-full ${theme.toggleBg} ${theme.toggleText} transition-colors`}
               whileHover={{ scale: 1.1 }}
               whileTap={{ scale: 0.95 }}
+              aria-label="Toggle theme"
             >
               {isDark ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
             </motion.button>

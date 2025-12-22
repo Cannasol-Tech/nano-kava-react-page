@@ -1,12 +1,12 @@
 import React, { useState, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import { motion, useInView, useScroll, useTransform } from 'framer-motion';
-import { 
-  Beaker, 
-  Zap, 
-  Shield, 
-  TrendingUp, 
-  Clock, 
+import {
+  Beaker,
+  Zap,
+  Shield,
+  TrendingUp,
+  Clock,
   Droplets,
   Award,
   Phone,
@@ -21,9 +21,11 @@ import {
   Menu,
   X,
   Sun,
-  Moon
+  Moon,
+  Calculator
 } from 'lucide-react';
 import themesConfig from '../theme/themes';
+import SavingsCalculator from './SavingsCalculator';
 
 // Theme configuration - Single source of truth for all colors
 const themes = themesConfig;
@@ -303,7 +305,7 @@ export default function KavaLandingPage() {
           <div className="hidden md:flex items-center gap-8 text-sm">
             <a href="#benefits" className={`${theme.textSecondary} hover:${theme.text} transition-colors`}>Benefits</a>
             <a href="#process" className={`${theme.textSecondary} hover:${theme.text} transition-colors`}>Process</a>
-            <a href="#proof" className={`${theme.textSecondary} hover:${theme.text} transition-colors`}>Partners</a>
+            <a href="#calculator" className={`${theme.textSecondary} hover:${theme.text} transition-colors`}>Calculator</a>
             <Link to="/mushrooms" className={`${theme.textSecondary} hover:${theme.text} transition-colors`}>Mushrooms</Link>
             <Link to="/faq" className={`${theme.textSecondary} hover:${theme.text} transition-colors`}>FAQ</Link>
             <Link to="/contact" className={`${theme.textSecondary} hover:${theme.text} transition-colors`}>Contact</Link>
@@ -367,26 +369,26 @@ export default function KavaLandingPage() {
           transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1] }}
         >
           <div className={`px-6 py-4 border-t ${theme.border}/50 space-y-4`}>
-            <a 
-              href="#benefits" 
+            <a
+              href="#benefits"
               className={`block ${theme.textSecondary} hover:${theme.text} transition-colors py-2`}
               onClick={() => setMobileMenuOpen(false)}
             >
               Benefits
             </a>
-            <a 
-              href="#process" 
+            <a
+              href="#process"
               className={`block ${theme.textSecondary} hover:${theme.text} transition-colors py-2`}
               onClick={() => setMobileMenuOpen(false)}
             >
               Process
             </a>
-            <a 
-              href="#proof" 
+            <a
+              href="#calculator"
               className={`block ${theme.textSecondary} hover:${theme.text} transition-colors py-2`}
               onClick={() => setMobileMenuOpen(false)}
             >
-              Partners
+              Calculator
             </a>
             <Link 
               to="/mushrooms" 
@@ -826,14 +828,14 @@ export default function KavaLandingPage() {
           </div>
 
           {/* Target Audience */}
-          <motion.div 
+          <motion.div
             variants={fadeInUp}
             className="mt-16 text-center"
           >
             <p className={`${theme.textMuted} text-sm uppercase tracking-wider mb-4`}>Perfect For</p>
             <div className="flex flex-wrap justify-center gap-4">
               {['Kava Seltzers', 'Functional Shots', 'RTD Beverages', 'Wellness Brands'].map((item, i) => (
-                <motion.span 
+                <motion.span
                   key={i}
                   className={`px-5 py-2.5 ${theme.bgPill} ${theme.shadowCard} rounded-full ${theme.textSecondary} text-sm border ${theme.borderCard} hover:border-emerald-500/40 hover:${theme.accentText} transition-all cursor-default`}
                   whileHover={{ scale: 1.05, y: -2 }}
@@ -845,6 +847,30 @@ export default function KavaLandingPage() {
                 </motion.span>
               ))}
             </div>
+          </motion.div>
+        </div>
+      </AnimatedSection>
+
+      {/* Savings Calculator Section */}
+      <AnimatedSection id="calculator" className="relative py-24 md:py-32">
+        <div className="max-w-5xl mx-auto px-6">
+          <motion.div variants={fadeInUp} className="text-center mb-12">
+            <div className={`inline-flex items-center gap-2 px-4 py-2 ${theme.bgHighlight} rounded-full ${theme.accentText} text-sm font-medium mb-6`}>
+              <Calculator className="w-4 h-4" />
+              Cost Savings Calculator
+            </div>
+            <h2 className={`text-3xl md:text-5xl font-bold mb-4 ${theme.text}`}>
+              Calculate Your
+              <span className={`bg-gradient-to-r ${theme.accentGradientAlt} bg-clip-text text-transparent`}> Savings</span>
+            </h2>
+            <p className={`${theme.textSecondary} text-lg max-w-2xl mx-auto`}>
+              See how much you could save by switching to nano kava. With 10x higher bioavailability,
+              you need significantly less active ingredient for the same powerful effect.
+            </p>
+          </motion.div>
+
+          <motion.div variants={scaleIn}>
+            <SavingsCalculator isDark={isDark} />
           </motion.div>
         </div>
       </AnimatedSection>
