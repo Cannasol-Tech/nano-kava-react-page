@@ -24,3 +24,16 @@ if (typeof globalThis.ResizeObserver === 'undefined') {
 
   globalThis.ResizeObserver = MockResizeObserver;
 }
+
+// Mock window.scrollTo
+window.scrollTo = () => {};
+
+// Mock matchMedia
+window.matchMedia = () => ({
+  matches: false,
+  addListener: () => {},
+  removeListener: () => {},
+  addEventListener: () => {},
+  removeEventListener: () => {},
+  dispatchEvent: () => true,
+});
