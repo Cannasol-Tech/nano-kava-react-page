@@ -433,9 +433,9 @@ export default function ContactPage() {
               icon={Mail} 
               title="Email Us" 
               theme={theme}
-              href="mailto:info@cannasoltechnologies.com"
+              href="mailto:josh.detzel@cannasolusa.com"
             >
-              <p className="font-medium break-all">info@cannasoltechnologies.com</p>
+              <p className="font-medium break-all">josh.detzel@cannasolusa.com</p>
             </ContactInfoCard>
 
             <ContactInfoCard 

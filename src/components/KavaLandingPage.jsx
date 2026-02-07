@@ -208,7 +208,7 @@ export default function KavaLandingPage() {
   const [activeFeature, setActiveFeature] = useState(0);
   const [formData, setFormData] = useState({ name: '', email: '', company: '', message: '' });
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const [isDark, setIsDark] = useState(true);
+  const [isDark, setIsDark] = useState(false);
   
   const theme = isDark ? themes.dark : themes.light;
   const heroRef = useRef(null);
@@ -901,7 +901,7 @@ export default function KavaLandingPage() {
                   (216) 921-2240
                 </motion.a>
                 <motion.a
-                  href="mailto:info@cannasoltechnologies.com"
+                  href="mailto:josh.detzel@cannasolusa.com"
                   className={`flex items-center justify-center gap-3 px-6 py-4 ${theme.bgButton} ${theme.text} font-semibold rounded-xl text-lg border ${theme.borderCard} hover:border-emerald-500/50 transition-colors`}
                   whileHover={{ scale: 1.02 }}
                   whileTap={{ scale: 0.98 }}

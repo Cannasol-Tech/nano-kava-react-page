@@ -225,7 +225,7 @@ function FAQCategory({ category, openItems, toggleItem, theme }) {
  * Main FAQ Page Component
  */
 export default function FAQPage() {
-  const [isDark, setIsDark] = useState(true);
+  const [isDark, setIsDark] = useState(false);
   const [openItems, setOpenItems] = useState([]);
   
   const theme = isDark ? themes.dark : themes.light;

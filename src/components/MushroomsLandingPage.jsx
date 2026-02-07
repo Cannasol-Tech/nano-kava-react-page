@@ -24,7 +24,7 @@ const stagger = {
 };
 
 function MushroomsLandingPage() {
-  const [isDark, setIsDark] = useState(true);
+  const [isDark, setIsDark] = useState(false);
 
   const theme = useMemo(() => (isDark ? themes.dark : themes.light), [isDark]);
 

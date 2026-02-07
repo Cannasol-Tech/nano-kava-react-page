@@ -320,7 +320,7 @@ Structured data is machine-readable markup that helps search engines understand 
     "@type": "ContactPoint",
     "telephone": "+1-216-921-2240",
     "contactType": "sales",
-    "email": "info@cannasoltechnologies.com"
+    "email": "josh.detzel@cannasolusa.com"
   }
 }
 ```
