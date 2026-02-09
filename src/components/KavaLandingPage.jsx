@@ -224,28 +224,33 @@ export default function KavaLandingPage() {
   const stats = [
     { value: '18', prefix: '~', suffix: 'nm', label: 'Particle Size', icon: Droplets },
     { value: '10', suffix: 'x', label: 'Bioavailability', icon: TrendingUp },
-    { value: '5', suffix: ' min', label: 'Onset Time', icon: Clock },
-    { value: '20', suffix: 'L/hr', label: 'Production Rate', icon: Award }
+    { value: '5', suffix: ' min', label: 'Onset Time', icon: Clock }
   ];
 
   const features = [
     {
       icon: Beaker,
-      title: "World's First ~18nm Kava",
-      description: "We pioneered nanoemulsified Kava, achieving ~18nm particle sizes that no competitor has matched. Your beverages get the most bioavailable Kava on the planet.",
+      title: "Enhanced Bioavailability",
+      description: "The increased surface area of our ~18nm nanoemulsified kavalactones enables superior absorption in the gastrointestinal tract, delivering higher bioavailability and more potent effects at lower doses.",
       highlight: "Industry First"
     },
     {
-      icon: Zap,
-      title: "5-Minute Onset",
-      description: "Traditional Kava takes 30-45 minutes. Our nanoemulsion delivers effects in just 5 minutes—the instant gratification today's consumers demand.",
-      highlight: "6x Faster"
+      icon: Sparkles,
+      title: "Improved Palatability",
+      description: "Nanoemulsification eliminates the gritty texture and muddy appearance of traditional kava preparations, resulting in crystal-clear, visually appealing beverages your customers will love.",
+      highlight: "Premium Clarity"
     },
     {
-      icon: Sparkles,
-      title: "Crystal Clear Formulations",
-      description: "Ultra-fine ~18nm particles create translucent, shelf-stable emulsions. No separation, no sediment—just beautiful, marketable beverages.",
-      highlight: "Premium Clarity"
+      icon: Zap,
+      title: "Ease of Production",
+      description: "Our nanoemulsified kava extracts integrate seamlessly into various beverage formulations—shots, soft drinks, and flavored water—making kava consumption more convenient and enjoyable.",
+      highlight: "Versatile"
+    },
+    {
+      icon: Target,
+      title: "Precise Dosing",
+      description: "With uniform distribution of kavalactones throughout the nanoemulsion, dosing becomes remarkably accurate—ensuring consistent, predictable effects in every serving.",
+      highlight: "Consistent"
     },
     {
       icon: Shield,
@@ -258,12 +263,6 @@ export default function KavaLandingPage() {
       title: "Direct Access to Josh",
       description: "CEO Josh works directly with every client, bringing insights from top Kratom and Kava brands. Your success is our success—we're partners, not just suppliers.",
       highlight: "Personal Support"
-    },
-    {
-      icon: Target,
-      title: "Proven Track Record",
-      description: "We're already working with leading Kava seltzer brands. Every client loves the results.",
-      highlight: "Proven Results"
     }
   ];
 
@@ -480,8 +479,8 @@ export default function KavaLandingPage() {
             transition={{ duration: 0.8, delay: 0.4 }}
             className={`text-xl md:text-2xl ${theme.textSecondary} mb-10 max-w-3xl mx-auto leading-relaxed`}
           >
-            The only Kava nanoemulsion achieving ~18nm particle size.
-            <span className={theme.text}> 10x bioavailability. 5-minute onset.</span>
+            Cutting-edge nanoemulsification technology that overcomes the solubility and bioavailability challenges of traditional kava.
+            <span className={theme.text}> Ultra-fine droplets so small they're almost transparent.</span>
             <br className="hidden md:block" />
             Trusted by leading Kava seltzer and shot brands.
           </motion.p>
@@ -523,7 +522,7 @@ export default function KavaLandingPage() {
             initial={{ opacity: 0, y: 40 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8, delay: 0.8 }}
-            className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6 max-w-4xl mx-auto"
+            className="grid grid-cols-1 sm:grid-cols-3 gap-4 md:gap-6 max-w-3xl mx-auto"
           >
             {stats.map((stat, i) => (
               <motion.div
@@ -581,15 +580,15 @@ export default function KavaLandingPage() {
                 <br />for Modern Beverages
               </h2>
               <p className={`${theme.textSecondary} text-lg mb-8 leading-relaxed`}>
-                Standard Kava extracts are hydrophobic, poorly absorbed, and take 30-45 minutes to feel. 
-                Your customers want instant results—not a waiting game.
+                Traditional Kava preparations suffer from poor bioavailability, gritty texture, and muddy appearance.
+                Your customers want instant results and a pleasant experience—not a waiting game.
               </p>
               <div className="space-y-4">
                 {[
-                  'Only 10-15% of kavalactones absorbed',
+                  'Limited absorption in the gastrointestinal tract',
                   '30-45 minute onset frustrates consumers',
-                  'Cloudy, unstable formulations look cheap',
-                  'Bitter taste drives customers away'
+                  'Gritty texture and muddy appearance',
+                  'Inconsistent dosing leads to unpredictable effects'
                 ].map((problem, i) => (
                   <motion.div
                     key={i}
@@ -617,22 +616,21 @@ export default function KavaLandingPage() {
                   The Cannasol Solution
                 </div>
                 <h3 className={`text-2xl md:text-3xl font-bold mb-4 ${theme.text}`}>
-                  World's First ~18nm
+                  Nanoemulsification:
                   <br />
                   <span className={`bg-gradient-to-r ${theme.accentGradientAlt} bg-clip-text text-transparent`}>
-                    Kava Nanoemulsion
+                    A Game-Changing Solution
                   </span>
                 </h3>
                 <p className={`${theme.textSecondary} mb-8 leading-relaxed`}>
-                  Our proprietary NanoOptimizer™ surfactant system creates ultra-fine Kava particles that absorb instantly, 
-                  taste better, and stay perfectly suspended.
+                  This cutting-edge process breaks down oil-based kavalactones into tiny droplets suspended in water—so small they become almost transparent, creating a stable and uniform mixture. Our proprietary NanoOptimizer™ surfactant system dramatically increases surface area, making kavalactones more readily available for absorption by the body.
                 </p>
                 <div className="space-y-4">
                   {[
-                    '80-90% kavalactone absorption',
-                    'Effects felt in just 5 minutes',
-                    'Crystal-clear, shelf-stable emulsions',
-                    'Smooth taste with our bitter blockers'
+                    'Enhanced bioavailability through better absorption',
+                    'Crystal-clear, visually appealing beverages',
+                    'Uniform kavalactone distribution for precise dosing',
+                    'Easy integration into shots, soft drinks, and flavored water'
                   ].map((benefit, i) => (
                     <motion.div
                       key={i}
@@ -660,11 +658,11 @@ export default function KavaLandingPage() {
         <div className="max-w-7xl mx-auto px-6">
           <motion.div variants={fadeInUp} className="text-center mb-16">
             <h2 className={`text-3xl md:text-5xl font-bold mb-4 ${theme.text}`}>
-              Why Top Brands Choose
-              <span className={`bg-gradient-to-r ${theme.accentGradientAlt} bg-clip-text text-transparent`}> Cannasol</span>
+              The Future of
+              <span className={`bg-gradient-to-r ${theme.accentGradientAlt} bg-clip-text text-transparent`}> Kava Consumption</span>
             </h2>
             <p className={`${theme.textSecondary} text-lg max-w-2xl mx-auto`}>
-              We're not just suppliers—we're your partners in creating market-leading Kava products.
+              Nanoemulsification unlocks the full potential of kava, opening doors for innovative product formulations—from convenient shots to flavor-enhanced beverages—making it easier than ever to experience the relaxing and stress-reducing benefits of kava.
             </p>
           </motion.div>
 
@@ -715,7 +713,7 @@ export default function KavaLandingPage() {
               <span className={`bg-gradient-to-r ${theme.accentGradientAlt} bg-clip-text text-transparent`}> Market Leader</span>
             </h2>
             <p className={`${theme.textSecondary} text-lg max-w-2xl mx-auto`}>
-              Josh works directly with every client to ensure your success. Here's how we partner together.
+              We work directly with every client because we believe in your success. Here's how we partner together.
             </p>
           </motion.div>
 

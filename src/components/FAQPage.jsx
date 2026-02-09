@@ -55,7 +55,7 @@ const faqCategories = [
       },
       {
         question: 'What dosage should I use in my products?',
-        answer: 'Dosing depends on your target effects and product format. We recommend starting with 50-100mg of kavalactones per serving for mild relaxation, 100-200mg for moderate effects, and 200-300mg for stronger effects. Because of the increased bioavailability, you may need less nano Kava than traditional extracts to achieve the same effects. Josh works directly with each client to dial in the perfect dosage for your specific product.'
+        answer: 'Dosing depends on your target effects and product format. We recommend starting with 50-100mg of kavalactones per serving for mild relaxation, 100-200mg for moderate effects, and 200-300mg for stronger effects. Because of the increased bioavailability, you may need less nano Kava than traditional extracts to achieve the same effects. We work directly with each client to dial in the perfect dosage for your specific product.'
       },
       {
         question: 'Is nano Kava safe?',
@@ -69,7 +69,7 @@ const faqCategories = [
     faqs: [
       {
         question: 'What products can I make with nano Kava?',
-        answer: 'Our nano Kava is ideal for: Kava seltzers and sparkling beverages, functional shots and elixirs, RTD (ready-to-drink) relaxation beverages, wellness tonics, mocktails and alcohol alternatives, and any water-based formulation where you need fast-acting, great-tasting Kava.'
+        answer: 'Our nano Kava is ideal for: Kava seltzers and sparkling beverages, functional shots and elixirs, RTD (ready-to-drink) relaxation beverages, wellness tonics, mocktails and alcohol alternatives—plus any water-based formulation where you need fast-acting, great-tasting Kava.'
       },
       {
         question: 'Will nano Kava make my beverage cloudy?',
@@ -91,7 +91,11 @@ const faqCategories = [
     faqs: [
       {
         question: 'What is the minimum order quantity?',
-        answer: 'We work with brands of all sizes, from startups to established beverage companies. Minimum order quantities vary based on your needs. Contact Josh directly to discuss your specific requirements—we\'re flexible and want to help you succeed.'
+        answer: (
+          <>
+            We work with brands of all sizes, from startups to established beverage companies. Minimum order quantities vary based on your needs. <Link to="/contact" className="text-emerald-400 hover:text-emerald-300 transition-colors underline">Contact us</Link> directly to discuss your specific requirements—we're flexible and want to help you succeed.
+          </>
+        )
       },
       {
         question: 'Can I get samples before ordering?',
@@ -104,24 +108,6 @@ const faqCategories = [
       {
         question: 'Do you offer white-label or private-label services?',
         answer: 'We primarily supply nano Kava as a bulk ingredient for your own branded products. We don\'t currently offer finished product manufacturing, but we can recommend trusted co-packers and formulators if needed.'
-      }
-    ]
-  },
-  {
-    title: 'Pricing & Business',
-    icon: DollarSign,
-    faqs: [
-      {
-        question: 'How is nano Kava priced?',
-        answer: 'Pricing depends on order volume, kavalactone concentration, and whether you need additional ingredients like bitter blockers. We offer competitive pricing and volume discounts. Contact Josh for a custom quote based on your specific needs.'
-      },
-      {
-        question: 'Do you offer volume discounts?',
-        answer: 'Yes! We offer tiered pricing based on order volume. The more you order, the better your per-unit cost. We\'re committed to helping our partners succeed, and competitive pricing is part of that commitment.'
-      },
-      {
-        question: 'What are your payment terms?',
-        answer: 'We offer flexible payment terms for established partners. New customers typically start with prepayment, with the opportunity to establish credit terms as our relationship grows. Contact us to discuss options.'
       }
     ]
   },

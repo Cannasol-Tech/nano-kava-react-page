@@ -63,32 +63,40 @@ function ContactForm({ theme }) {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    
+
     if (!validateForm()) return;
-    
+
     setStatus('submitting');
-    
+
     try {
-      // Submit to Netlify Forms
-      const formDataToSend = new FormData();
-      formDataToSend.append('form-name', 'contact');
-      formDataToSend.append('name', formData.name);
-      formDataToSend.append('email', formData.email);
-      formDataToSend.append('company', formData.company || '');
-      formDataToSend.append('phone', formData.phone || '');
-      formDataToSend.append('inquiryType', inquiryTypes.find(t => t.value === formData.inquiryType)?.label || 'General');
-      formDataToSend.append('message', formData.message);
-      
-      const response = await fetch('/', {
+      // Submit to Firebase Cloud Function
+      const payload = {
+        name: formData.name,
+        email: formData.email,
+        company: formData.company || '',
+        phone: formData.phone || '',
+        inquiryType: inquiryTypes.find(t => t.value === formData.inquiryType)?.label || 'General',
+        message: formData.message
+      };
+
+      // For production, use your deployed Cloud Function URL
+      // For development, use: http://localhost:5001/nano-kava-landing-page/us-central1/sendContactEmail
+      const CLOUD_FUNCTION_URL = 'https://us-central1-nano-kava-landing-page.cloudfunctions.net/sendContactEmail';
+
+      const response = await fetch(CLOUD_FUNCTION_URL, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-        body: new URLSearchParams(formDataToSend).toString(),
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(payload),
       });
-      
-      if (response.ok) {
+
+      const data = await response.json();
+
+      if (response.ok && data.success) {
         setStatus('success');
       } else {
-        throw new Error('Form submission failed');
+        throw new Error(data.error || 'Form submission failed');
       }
     } catch (error) {
       console.error('Form submission error:', error);
@@ -327,7 +335,7 @@ function ContactInfoCard({ icon: Icon, title, children, theme, href }) {
  * Main Contact Page Component
  */
 export default function ContactPage() {
-  const [isDark, setIsDark] = useState(true);
+  const [isDark, setIsDark] = useState(false);
   const theme = isDark ? themes.dark : themes.light;
 
   return (
