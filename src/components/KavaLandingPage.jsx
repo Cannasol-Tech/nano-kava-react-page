@@ -223,7 +223,7 @@ export default function KavaLandingPage() {
 
   const stats = [
     { value: '18', prefix: '~', suffix: 'nm', label: 'Particle Size', icon: Droplets },
-    { value: '10', suffix: 'x', label: 'Bioavailability', icon: TrendingUp },
+    { value: '5', suffix: 'x', label: 'Bioavailability', icon: TrendingUp },
     { value: '5', suffix: ' min', label: 'Onset Time', icon: Clock }
   ];
 
