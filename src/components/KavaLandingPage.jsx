@@ -23,6 +23,7 @@ import {
   Sun,
   Moon
 } from 'lucide-react';
+import NanoParticles from './NanoParticles';
 import themesConfig from '../theme/themes';
 
 // Theme configuration - Single source of truth for all colors
@@ -102,51 +103,6 @@ function AnimatedCounter({ value, suffix = '', prefix = '' }) {
   }, [isInView, value]);
   
   return <span ref={ref}>{prefix}{count}{suffix}</span>;
-}
-
-// Floating particles background - enhanced with varied sizes and glow
-function FloatingParticles() {
-  const particles = React.useMemo(() => 
-    [...Array(30)].map((_, i) => ({
-      id: i,
-      left: Math.random() * 100,
-      top: Math.random() * 100,
-      size: Math.random() * 4 + 2,
-      duration: 5 + Math.random() * 5,
-      delay: Math.random() * 3,
-    })), []
-  );
-  
-  return (
-    <div className="absolute inset-0 overflow-hidden pointer-events-none">
-      {particles.map((p) => (
-        <motion.div
-          key={p.id}
-          className="absolute rounded-full"
-          style={{
-            left: `${p.left}%`,
-            top: `${p.top}%`,
-            width: p.size,
-            height: p.size,
-            background: `radial-gradient(circle, rgba(16, 185, 129, 0.4) 0%, rgba(20, 184, 166, 0.1) 70%, transparent 100%)`,
-            boxShadow: '0 0 10px rgba(16, 185, 129, 0.3)',
-          }}
-          animate={{
-            y: [0, -40, 0],
-            x: [0, Math.sin(p.id) * 15, 0],
-            opacity: [0.3, 0.7, 0.3],
-            scale: [1, 1.3, 1],
-          }}
-          transition={{
-            duration: p.duration,
-            repeat: Infinity,
-            delay: p.delay,
-            ease: "easeInOut"
-          }}
-        />
-      ))}
-    </div>
-  );
 }
 
 // Animated gradient orb for hero
@@ -435,7 +391,7 @@ export default function KavaLandingPage() {
           {/* Accent glow at top */}
           <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full h-[500px] bg-gradient-to-b from-emerald-500/5 via-transparent to-transparent" />
           <GridBackground />
-          <FloatingParticles />
+          <NanoParticles isDark={isDark} />
         </div>
 
         <div className="relative z-10 max-w-7xl mx-auto px-6 py-20 text-center">
