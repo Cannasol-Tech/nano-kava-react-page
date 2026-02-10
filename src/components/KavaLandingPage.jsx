@@ -395,18 +395,21 @@ export default function KavaLandingPage() {
         </div>
 
         <div className="relative z-10 max-w-7xl mx-auto px-6 py-20 text-center">
+          {/* Backdrop for better text readability */}
+          <div className="absolute inset-0 -mx-6 -my-20 bg-gradient-to-b from-transparent via-black/10 to-transparent backdrop-blur-[2px] pointer-events-none" style={isDark ? { opacity: 0.4 } : { opacity: 0.2 }} />
           {/* Badge */}
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6 }}
-            className={`inline-flex items-center gap-2 px-4 py-2 ${theme.bgBadge} backdrop-blur rounded-full border ${theme.borderCard} mb-8`}
+            className={`inline-flex items-center gap-2 px-4 py-2 ${theme.bgBadge} backdrop-blur-xl rounded-full border ${theme.borderCard} mb-8`}
+            style={isDark ? { boxShadow: '0 4px 20px rgba(0,0,0,0.3)' } : {}}
           >
             <span className="relative flex h-2 w-2">
               <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
               <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
             </span>
-            <span className={`text-sm ${theme.textSecondary}`}>The World's First & Only ~18nm Kava Nanoemulsion</span>
+            <span className={`text-sm ${theme.textSecondary} font-medium`} style={isDark ? { textShadow: '0 1px 3px rgba(0,0,0,0.5)' } : {}}>The World's First & Only ~18nm Kava Nanoemulsion</span>
           </motion.div>
 
           {/* Main headline */}
@@ -414,9 +417,9 @@ export default function KavaLandingPage() {
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8, delay: 0.2 }}
-            className="text-5xl md:text-7xl lg:text-8xl font-bold mb-6 leading-[1.1]"
+            className="text-5xl md:text-7xl lg:text-8xl font-black mb-6 leading-[1.1]"
           >
-            <motion.span 
+            <motion.span
               className={`inline-block bg-gradient-to-r ${theme.heroGradient} bg-clip-text text-transparent`}
               animate={{ backgroundPosition: ['0% 50%', '100% 50%', '0% 50%'] }}
               transition={{ duration: 5, repeat: Infinity, ease: "linear" }}
@@ -425,7 +428,7 @@ export default function KavaLandingPage() {
               Nano-Perfected
             </motion.span>
             <br />
-            <span className={theme.text}>Kava</span>
+            <span className={`${isDark ? 'text-slate-50' : 'text-slate-900'} font-black`}>Kava</span>
           </motion.h1>
 
           {/* Subheadline */}
@@ -433,11 +436,10 @@ export default function KavaLandingPage() {
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8, delay: 0.4 }}
-            className={`text-xl md:text-2xl mb-10 max-w-3xl mx-auto leading-relaxed ${isDark ? 'text-slate-300' : theme.textSecondary} drop-shadow-sm`}
-            style={isDark ? { textShadow: '0 1px 8px rgba(0,0,0,0.5)' } : {}}
+            className={`text-xl md:text-2xl mb-10 max-w-3xl mx-auto leading-relaxed font-bold ${isDark ? 'text-slate-50' : 'text-slate-900'}`}
           >
             Cutting-edge nanoemulsification technology that overcomes the solubility and bioavailability challenges of traditional kava.
-            <span className={`font-medium ${isDark ? 'text-white' : theme.text}`}> Ultra-fine droplets so small they're almost transparent.</span>
+            <span className={`font-semibold ${isDark ? 'text-white' : theme.text}`}> Ultra-fine droplets so small they're almost transparent.</span>
             <br className="hidden md:block" />
             Trusted by leading Kava seltzer and shot brands.
           </motion.p>
@@ -465,9 +467,10 @@ export default function KavaLandingPage() {
             </motion.a>
             <motion.a
               href="tel:+12169212240"
-              className={`inline-flex items-center justify-center gap-2 px-8 py-4 ${theme.bgBadge} ${theme.shadowCard} backdrop-blur ${theme.text} font-semibold rounded-full text-lg border ${theme.borderCard} hover:border-emerald-500/50 transition-colors`}
+              className={`inline-flex items-center justify-center gap-2 px-8 py-4 ${theme.bgBadge} ${theme.shadowCard} backdrop-blur-xl ${theme.text} font-semibold rounded-full text-lg border ${theme.borderCard} hover:border-emerald-500/50 transition-colors`}
               whileHover={{ scale: 1.02 }}
               whileTap={{ scale: 0.98 }}
+              style={isDark ? { boxShadow: '0 4px 24px rgba(0,0,0,0.4)' } : { boxShadow: '0 2px 12px rgba(0,0,0,0.1)' }}
             >
               <Phone className="w-5 h-5" />
               Call Josh: (216) 921-2240
@@ -479,7 +482,7 @@ export default function KavaLandingPage() {
             initial={{ opacity: 0, y: 40 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8, delay: 0.8 }}
-            className="grid grid-cols-1 sm:grid-cols-3 gap-4 md:gap-6 max-w-3xl mx-auto"
+            className="relative grid grid-cols-1 sm:grid-cols-3 gap-4 md:gap-6 max-w-3xl mx-auto"
           >
             {stats.map((stat, i) => (
               <motion.div

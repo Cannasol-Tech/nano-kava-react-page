@@ -48,7 +48,7 @@ function createParticle(w, h) {
     opacity: Math.random() * 0.35 + 0.15,
     pulseOff: Math.random() * Math.PI * 2,
     pulseSp: 0.008 + Math.random() * 0.012,
-    hue: 162 + Math.random() * 28,
+    hue: 143 + Math.random() * 12,
   };
 }
 
@@ -71,27 +71,44 @@ function drawSphere(ctx, cx, cy, R, rya, rxa, isDark, shell, globalOpacity) {
 
   // Base fill (gap-filler)
   ctx.beginPath(); ctx.arc(cx, cy, R * 0.93, 0, Math.PI * 2);
-  ctx.fillStyle = isDark ? 'hsla(178, 45%, 10%, 0.7)' : 'hsla(178, 35%, 18%, 0.45)';
+  ctx.fillStyle = isDark ? 'hsla(140, 45%, 10%, 0.7)' : 'hsla(140, 35%, 18%, 0.45)';
   ctx.fill();
 
-  // Golden core — warm amber glow
-  const cR = R * 0.44;
-  const cG = ctx.createRadialGradient(cx - cR * 0.15, cy - cR * 0.15, cR * 0.05, cx, cy, cR);
+  // Golden core — warm amber glow (opaque base)
+  const cR = R * 0.68;
+
+  // Solid base layer to block transparency
+  ctx.beginPath(); ctx.arc(cx, cy, cR, 0, Math.PI * 2);
+  ctx.fillStyle = isDark ? 'rgb(210,160,30)' : 'rgb(200,150,30)';
+  ctx.fill();
+
+  // Gradient overlay with very gradual fade for seamless blend
+  const cG = ctx.createRadialGradient(cx - cR * 0.15, cy - cR * 0.15, cR * 0.05, cx, cy, cR * 1.4);
   if (isDark) {
-    cG.addColorStop(0, 'rgba(255,225,110,0.20)');
-    cG.addColorStop(0.5, 'rgba(240,195,65,0.12)');
-    cG.addColorStop(1, 'rgba(200,155,40,0)');
+    cG.addColorStop(0, 'rgba(255,230,70,1.0)');
+    cG.addColorStop(0.25, 'rgba(248,210,55,0.92)');
+    cG.addColorStop(0.45, 'rgba(235,188,42,0.75)');
+    cG.addColorStop(0.6, 'rgba(222,170,35,0.5)');
+    cG.addColorStop(0.75, 'rgba(210,155,28,0.25)');
+    cG.addColorStop(0.88, 'rgba(200,148,24,0.1)');
+    cG.addColorStop(0.96, 'rgba(195,145,22,0.02)');
+    cG.addColorStop(1, 'rgba(195,145,22,0)');
   } else {
-    cG.addColorStop(0, 'rgba(250,215,85,0.16)');
-    cG.addColorStop(0.5, 'rgba(230,185,55,0.09)');
-    cG.addColorStop(1, 'rgba(195,145,35,0)');
+    cG.addColorStop(0, 'rgba(255,220,60,1.0)');
+    cG.addColorStop(0.25, 'rgba(245,198,46,0.92)');
+    cG.addColorStop(0.45, 'rgba(230,178,36,0.75)');
+    cG.addColorStop(0.6, 'rgba(218,162,30,0.5)');
+    cG.addColorStop(0.75, 'rgba(205,148,26,0.25)');
+    cG.addColorStop(0.88, 'rgba(195,140,23,0.1)');
+    cG.addColorStop(0.96, 'rgba(190,136,21,0.02)');
+    cG.addColorStop(1, 'rgba(190,136,21,0)');
   }
-  ctx.beginPath(); ctx.arc(cx, cy, cR, 0, Math.PI * 2); ctx.fillStyle = cG; ctx.fill();
+  ctx.beginPath(); ctx.arc(cx, cy, cR * 1.4, 0, Math.PI * 2); ctx.fillStyle = cG; ctx.fill();
 
   // Inner glow
   const iG = ctx.createRadialGradient(cx, cy, cR * 0.3, cx, cy, R * 0.8);
-  iG.addColorStop(0, isDark ? 'rgba(50,210,180,0.04)' : 'rgba(50,210,180,0.025)');
-  iG.addColorStop(1, 'rgba(50,210,180,0)');
+  iG.addColorStop(0, isDark ? 'rgba(27,122,62,0.06)' : 'rgba(27,122,62,0.04)');
+  iG.addColorStop(1, 'rgba(27,122,62,0)');
   ctx.beginPath(); ctx.arc(cx, cy, R * 0.8, 0, Math.PI * 2); ctx.fillStyle = iG; ctx.fill();
 
   // Transform and depth-sort
@@ -114,21 +131,16 @@ function drawSphere(ctx, cx, cy, R, rya, rxa, isDark, shell, globalOpacity) {
     const dot = (pt.x * lx + pt.y * ly + pt.z * lz) / lLen;
     const lit = Math.max(0, dot);
 
-    // Warm/cool hue split: lit side warmer (168), shadow side cooler (185)
-    const hue = isDark
-      ? 168 + (1 - lit) * 18 + pt.y * 5
-      : 166 + (1 - lit) * 18 + pt.y * 5;
+    // Cannasol logo forest green (~#1A7A3D)
+    const hue = 148;
 
-    // ── Back-face: ambient occlusion dark ──
+    // ── Skip back-facing particles (behind the core) ──
     if (depth < 0.3) {
-      ctx.beginPath(); ctx.arc(px, py, sz, 0, Math.PI * 2);
-      ctx.fillStyle = `hsla(${hue}, 50%, ${isDark ? 14 : 20}%, ${0.35 + depth * 0.3})`;
-      ctx.fill();
       continue;
     }
 
-    const sat = 65 + lit * 22;
-    const light = isDark ? 32 + lit * 30 + depth * 10 : 30 + lit * 26 + depth * 8;
+    const sat = 60 + lit * 18;
+    const light = isDark ? 22 + lit * 22 + depth * 8 : 20 + lit * 20 + depth * 6;
     const alpha = 0.68 + depth * 0.3;
 
     // ── Mid-depth: flat + ambient occlusion ring ──
@@ -156,10 +168,10 @@ function drawSphere(ctx, cx, cy, R, rya, rxa, isDark, shell, globalOpacity) {
       px - sz * 0.35, py - sz * 0.35, sz * 0.04,
       px + sz * 0.1, py + sz * 0.1, sz
     );
-    g.addColorStop(0, `hsla(${hue + 14}, ${sat + 14}%, ${light + 22}%, ${alpha})`);
-    g.addColorStop(0.3, `hsla(${hue + 6}, ${sat + 6}%, ${light + 10}%, ${alpha * 0.95})`);
+    g.addColorStop(0, `hsla(${hue + 4}, ${sat + 15}%, ${light + 22}%, ${alpha})`);
+    g.addColorStop(0.3, `hsla(${hue + 2}, ${sat + 8}%, ${light + 10}%, ${alpha * 0.95})`);
     g.addColorStop(0.65, `hsla(${hue}, ${sat}%, ${light}%, ${alpha * 0.82})`);
-    g.addColorStop(1, `hsla(${hue - 6}, ${sat - 10}%, ${light - 10}%, ${alpha * 0.5})`);
+    g.addColorStop(1, `hsla(${hue - 4}, ${sat - 5}%, ${light - 10}%, ${alpha * 0.5})`);
     ctx.beginPath(); ctx.arc(px, py, sz, 0, Math.PI * 2);
     ctx.fillStyle = g; ctx.fill();
 
@@ -168,18 +180,18 @@ function drawSphere(ctx, cx, cy, R, rya, rxa, isDark, shell, globalOpacity) {
       const sa = lit * depth * 0.6;
       const sr = sz * (0.14 + lit * 0.12);
       ctx.beginPath(); ctx.arc(px - sz * 0.28, py - sz * 0.28, sr, 0, Math.PI * 2);
-      ctx.fillStyle = `hsla(${hue + 30}, 100%, 96%, ${sa})`;
+      ctx.fillStyle = `hsla(${hue + 8}, 90%, 85%, ${sa})`;
       ctx.fill();
     }
 
-    // Rim light — cool cyan edge
+    // Rim light — green edge highlight
     if (depth > 0.55) {
       const rim = (1 - Math.abs(dot)) * depth * 0.28;
       if (rim > 0.04) {
         const rG = ctx.createRadialGradient(px + sz * 0.3, py + sz * 0.3, sz * 0.45, px, py, sz);
-        rG.addColorStop(0, `hsla(${hue + 22}, 90%, 80%, 0)`);
-        rG.addColorStop(0.8, `hsla(${hue + 22}, 90%, 80%, ${rim * 0.3})`);
-        rG.addColorStop(1, `hsla(${hue + 22}, 90%, 80%, ${rim})`);
+        rG.addColorStop(0, `hsla(${hue + 6}, 80%, 70%, 0)`);
+        rG.addColorStop(0.8, `hsla(${hue + 6}, 80%, 70%, ${rim * 0.3})`);
+        rG.addColorStop(1, `hsla(${hue + 6}, 80%, 70%, ${rim})`);
         ctx.beginPath(); ctx.arc(px, py, sz, 0, Math.PI * 2);
         ctx.fillStyle = rG; ctx.fill();
       }
@@ -190,16 +202,16 @@ function drawSphere(ctx, cx, cy, R, rya, rxa, isDark, shell, globalOpacity) {
   const bloomX = cx - R * 0.3;
   const bloomY = cy - R * 0.35;
   const bloomG = ctx.createRadialGradient(bloomX, bloomY, 0, bloomX, bloomY, R * 0.9);
-  bloomG.addColorStop(0, isDark ? 'rgba(120,240,220,0.06)' : 'rgba(100,220,200,0.04)');
-  bloomG.addColorStop(0.5, isDark ? 'rgba(120,240,220,0.02)' : 'rgba(100,220,200,0.01)');
-  bloomG.addColorStop(1, 'rgba(120,240,220,0)');
+  bloomG.addColorStop(0, isDark ? 'rgba(27,140,65,0.06)' : 'rgba(27,122,62,0.04)');
+  bloomG.addColorStop(0.5, isDark ? 'rgba(27,140,65,0.02)' : 'rgba(27,122,62,0.01)');
+  bloomG.addColorStop(1, 'rgba(27,122,62,0)');
   ctx.beginPath(); ctx.arc(cx, cy, R * 1.05, 0, Math.PI * 2);
   ctx.fillStyle = bloomG; ctx.fill();
 
   // Outer glow halo
   const oG = ctx.createRadialGradient(cx, cy, R * 0.88, cx, cy, R * 1.45);
-  oG.addColorStop(0, isDark ? 'rgba(50,215,175,0.06)' : 'rgba(50,215,175,0.035)');
-  oG.addColorStop(1, 'rgba(50,215,175,0)');
+  oG.addColorStop(0, isDark ? 'rgba(27,122,62,0.07)' : 'rgba(27,122,62,0.045)');
+  oG.addColorStop(1, 'rgba(27,122,62,0)');
   ctx.beginPath(); ctx.arc(cx, cy, R * 1.45, 0, Math.PI * 2);
   ctx.fillStyle = oG; ctx.fill();
 
@@ -215,8 +227,8 @@ export default function NanoScene({ isDark = true }) {
   const tRef = useRef(0);
 
   const getColors = useCallback(() => {
-    if (isDark) return { pSat: '85%', pLight: '62%', lSat: '70%', lLight: '52%', gA: 0.5 };
-    return { pSat: '75%', pLight: '45%', lSat: '60%', lLight: '40%', gA: 0.35 };
+    if (isDark) return { pSat: '70%', pLight: '42%', lSat: '60%', lLight: '35%', gA: 0.5 };
+    return { pSat: '65%', pLight: '35%', lSat: '55%', lLight: '30%', gA: 0.35 };
   }, [isDark]);
 
   useEffect(() => {
@@ -341,7 +353,7 @@ export default function NanoScene({ isDark = true }) {
             const ny = sp.cy + (dy / dist) * sp.R;
             ctx.beginPath();
             ctx.moveTo(p.x, p.y); ctx.lineTo(nx, ny);
-            ctx.strokeStyle = `hsla(174, ${colors.lSat}, ${colors.lLight}, ${alpha})`;
+            ctx.strokeStyle = `hsla(148, ${colors.lSat}, ${colors.lLight}, ${alpha})`;
             ctx.lineWidth = 0.3;
             ctx.stroke();
           }

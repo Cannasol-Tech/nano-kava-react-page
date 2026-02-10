@@ -46,32 +46,48 @@ function drawNanoParticle(ctx, cx, cy, shellRadius, rotYAngle, rotXAngle, isDark
   ctx.fillStyle = shadowGrad;
   ctx.fill();
 
-  // --- Golden core (visible through gaps) ---
-  const coreR = shellRadius * 0.52;
-  const coreGrad = ctx.createRadialGradient(
-    cx - coreR * 0.25, cy - coreR * 0.25, coreR * 0.05,
-    cx, cy, coreR
-  );
-  if (isDark) {
-    coreGrad.addColorStop(0, 'rgba(255, 210, 80, 0.22)');
-    coreGrad.addColorStop(0.4, 'rgba(230, 180, 50, 0.18)');
-    coreGrad.addColorStop(0.8, 'rgba(200, 155, 40, 0.10)');
-    coreGrad.addColorStop(1, 'rgba(180, 140, 30, 0)');
-  } else {
-    coreGrad.addColorStop(0, 'rgba(240, 195, 60, 0.18)');
-    coreGrad.addColorStop(0.4, 'rgba(215, 170, 45, 0.14)');
-    coreGrad.addColorStop(0.8, 'rgba(190, 150, 35, 0.07)');
-    coreGrad.addColorStop(1, 'rgba(170, 130, 25, 0)');
-  }
+  // --- Golden core (opaque base layer) ---
+  const coreR = shellRadius * 0.72;
+
+  // Solid base to block transparency
   ctx.beginPath();
   ctx.arc(cx, cy, coreR, 0, Math.PI * 2);
+  ctx.fillStyle = isDark ? 'rgb(190, 140, 20)' : 'rgb(185, 135, 20)';
+  ctx.fill();
+
+  // Gradient overlay with very gradual fade for seamless blend
+  const coreGrad = ctx.createRadialGradient(
+    cx - coreR * 0.25, cy - coreR * 0.25, coreR * 0.05,
+    cx, cy, coreR * 1.4
+  );
+  if (isDark) {
+    coreGrad.addColorStop(0, 'rgba(255, 220, 60, 1.0)');
+    coreGrad.addColorStop(0.25, 'rgba(248, 205, 48, 0.92)');
+    coreGrad.addColorStop(0.45, 'rgba(235, 185, 38, 0.75)');
+    coreGrad.addColorStop(0.6, 'rgba(220, 165, 30, 0.5)');
+    coreGrad.addColorStop(0.75, 'rgba(205, 150, 25, 0.25)');
+    coreGrad.addColorStop(0.88, 'rgba(195, 140, 22, 0.1)');
+    coreGrad.addColorStop(0.96, 'rgba(190, 140, 20, 0.02)');
+    coreGrad.addColorStop(1, 'rgba(190, 140, 20, 0)');
+  } else {
+    coreGrad.addColorStop(0, 'rgba(255, 215, 50, 1.0)');
+    coreGrad.addColorStop(0.25, 'rgba(245, 200, 40, 0.92)');
+    coreGrad.addColorStop(0.45, 'rgba(230, 180, 32, 0.75)');
+    coreGrad.addColorStop(0.6, 'rgba(215, 160, 25, 0.5)');
+    coreGrad.addColorStop(0.75, 'rgba(200, 145, 22, 0.25)');
+    coreGrad.addColorStop(0.88, 'rgba(190, 135, 20, 0.1)');
+    coreGrad.addColorStop(0.96, 'rgba(185, 135, 20, 0.02)');
+    coreGrad.addColorStop(1, 'rgba(185, 135, 20, 0)');
+  }
+  ctx.beginPath();
+  ctx.arc(cx, cy, coreR * 1.4, 0, Math.PI * 2);
   ctx.fillStyle = coreGrad;
   ctx.fill();
 
   // --- Inner glow around core ---
   const innerGlow = ctx.createRadialGradient(cx, cy, coreR * 0.6, cx, cy, shellRadius * 0.85);
-  innerGlow.addColorStop(0, isDark ? 'rgba(16, 140, 90, 0.06)' : 'rgba(16, 140, 90, 0.04)');
-  innerGlow.addColorStop(1, 'rgba(16, 140, 90, 0)');
+  innerGlow.addColorStop(0, isDark ? 'rgba(27, 122, 62, 0.06)' : 'rgba(27, 122, 62, 0.04)');
+  innerGlow.addColorStop(1, 'rgba(27, 122, 62, 0)');
   ctx.beginPath();
   ctx.arc(cx, cy, shellRadius * 0.85, 0, Math.PI * 2);
   ctx.fillStyle = innerGlow;
@@ -102,46 +118,41 @@ function drawNanoParticle(ctx, cx, cy, shellRadius, rotYAngle, rotXAngle, isDark
     const dot = (pt.x * lightX + pt.y * lightY + pt.z * lightZ) / lightLen;
     const lighting = Math.max(0, dot);
 
-    // Deeper, richer green-teal hues (148–168)
-    const hue = isDark ? 148 + pt.y * 12 + lighting * 8 : 145 + pt.y * 12 + lighting * 8;
+    // Cannasol logo forest green (~#1A7A3D)
+    const hue = 148;
 
-    // Back-face: dark silhouette with slight color
+    // Skip back-facing particles (they're behind the core)
     if (depth < 0.35) {
-      const backAlpha = 0.15 + depth * 0.25;
-      ctx.beginPath();
-      ctx.arc(px, py, sz, 0, Math.PI * 2);
-      ctx.fillStyle = `hsla(${hue}, 55%, ${isDark ? 18 : 22}%, ${backAlpha})`;
-      ctx.fill();
       continue;
     }
 
     // Mid and front spheres
-    const baseSat = 60 + lighting * 20;
-    const baseLight = isDark ? 28 + lighting * 28 + depth * 10 : 25 + lighting * 25 + depth * 8;
+    const baseSat = 60 + lighting * 18;
+    const baseLight = isDark ? 20 + lighting * 22 + depth * 8 : 18 + lighting * 20 + depth * 6;
     const alpha = 0.5 + depth * 0.45;
 
-    // Main gradient
+    // Main gradient — keep hue offsets small to stay in green range
     const grad = ctx.createRadialGradient(
       px - sz * 0.35, py - sz * 0.35, sz * 0.05,
       px + sz * 0.1, py + sz * 0.1, sz
     );
-    grad.addColorStop(0, `hsla(${hue + 12}, ${baseSat + 15}%, ${baseLight + 22}%, ${alpha})`);
-    grad.addColorStop(0.35, `hsla(${hue + 5}, ${baseSat + 8}%, ${baseLight + 10}%, ${alpha * 0.92})`);
+    grad.addColorStop(0, `hsla(${hue + 4}, ${baseSat + 15}%, ${baseLight + 22}%, ${alpha})`);
+    grad.addColorStop(0.35, `hsla(${hue + 2}, ${baseSat + 8}%, ${baseLight + 10}%, ${alpha * 0.92})`);
     grad.addColorStop(0.7, `hsla(${hue}, ${baseSat}%, ${baseLight}%, ${alpha * 0.8})`);
-    grad.addColorStop(1, `hsla(${hue - 8}, ${baseSat - 10}%, ${baseLight - 12}%, ${alpha * 0.45})`);
+    grad.addColorStop(1, `hsla(${hue - 4}, ${baseSat - 5}%, ${baseLight - 12}%, ${alpha * 0.45})`);
 
     ctx.beginPath();
     ctx.arc(px, py, sz, 0, Math.PI * 2);
     ctx.fillStyle = grad;
     ctx.fill();
 
-    // Specular highlight — tight, bright
+    // Specular highlight — tight, bright green
     if (lighting > 0.3 && depth > 0.5) {
       const specAlpha = lighting * depth * 0.5;
       const specR = sz * (0.2 + lighting * 0.15);
       ctx.beginPath();
       ctx.arc(px - sz * 0.28, py - sz * 0.28, specR, 0, Math.PI * 2);
-      ctx.fillStyle = `hsla(${hue + 25}, 100%, 90%, ${specAlpha})`;
+      ctx.fillStyle = `hsla(${hue + 8}, 90%, 85%, ${specAlpha})`;
       ctx.fill();
     }
 
@@ -153,9 +164,9 @@ function drawNanoParticle(ctx, cx, cy, shellRadius, rotYAngle, rotXAngle, isDark
           px + sz * 0.3, py + sz * 0.3, sz * 0.5,
           px, py, sz
         );
-        rimGrad.addColorStop(0, `hsla(${hue + 20}, 80%, 75%, 0)`);
-        rimGrad.addColorStop(0.8, `hsla(${hue + 20}, 80%, 75%, ${rimStrength * 0.4})`);
-        rimGrad.addColorStop(1, `hsla(${hue + 20}, 80%, 75%, ${rimStrength})`);
+        rimGrad.addColorStop(0, `hsla(${hue + 6}, 80%, 70%, 0)`);
+        rimGrad.addColorStop(0.8, `hsla(${hue + 6}, 80%, 70%, ${rimStrength * 0.4})`);
+        rimGrad.addColorStop(1, `hsla(${hue + 6}, 80%, 70%, ${rimStrength})`);
         ctx.beginPath();
         ctx.arc(px, py, sz, 0, Math.PI * 2);
         ctx.fillStyle = rimGrad;
@@ -166,8 +177,8 @@ function drawNanoParticle(ctx, cx, cy, shellRadius, rotYAngle, rotXAngle, isDark
 
   // --- Outer glow halo ---
   const outerGlow = ctx.createRadialGradient(cx, cy, shellRadius * 0.85, cx, cy, shellRadius * 1.5);
-  outerGlow.addColorStop(0, isDark ? 'rgba(16, 160, 110, 0.07)' : 'rgba(16, 160, 110, 0.045)');
-  outerGlow.addColorStop(1, 'rgba(16, 160, 110, 0)');
+  outerGlow.addColorStop(0, isDark ? 'rgba(27, 122, 62, 0.07)' : 'rgba(27, 122, 62, 0.045)');
+  outerGlow.addColorStop(1, 'rgba(27, 122, 62, 0)');
   ctx.beginPath();
   ctx.arc(cx, cy, shellRadius * 1.5, 0, Math.PI * 2);
   ctx.fillStyle = outerGlow;
