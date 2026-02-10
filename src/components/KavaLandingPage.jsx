@@ -611,7 +611,7 @@ export default function KavaLandingPage() {
       </AnimatedSection>
 
       {/* Features Section */}
-      <AnimatedSection className={`relative py-24 md:py-32 ${theme.bgSecondary}`}>
+      <AnimatedSection className="relative py-24 md:py-32">
         <div className="max-w-7xl mx-auto px-6">
           <motion.div variants={fadeInUp} className="text-center mb-16">
             <h2 className={`text-3xl md:text-5xl font-bold mb-4 ${theme.text}`}>

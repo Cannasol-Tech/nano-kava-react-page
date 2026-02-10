@@ -16,7 +16,7 @@ npm run test         # Run tests once (vitest run)
 npm run test:watch   # Watch mode testing (vitest)
 ```
 
-Makefile shortcuts: `make install`, `make dev` (no auto-open), `make build`, `make clean`, `make deploy`
+Makefile shortcuts: `make install`, `make dev`, `make preview` (opens browser), `make preview-mushrooms` (opens /mushrooms), `make build`, `make clean`, `make deploy`
 
 ## Deployment
 
@@ -30,6 +30,8 @@ Cloud Functions deploy separately for email handling. Project ID: `nano-kava-lan
 
 **Stack**: React 18 + Vite 5 + Tailwind CSS 3 + Framer Motion 11 + Firebase
 
+**App structure** (`App.jsx`): `NanoScene` is rendered as a fixed background layer (`fixed inset-0 -z-10`) behind all route content via `AppContent`. Theme is provided at the router level: `Router > ThemeProvider > AppContent`.
+
 **Routing** (React Router v7 in `AppRoutes.jsx`):
 - `/` → `KavaLandingPage` — main landing page with hero, features, process timeline, CTA
 - `/faq` → `FAQPage` — categorized FAQ accordions
@@ -37,13 +39,15 @@ Cloud Functions deploy separately for email handling. Project ID: `nano-kava-lan
 - `/mushrooms` → `MushroomsLandingPage` — secondary product page
 
 **3D Canvas Visualizations** (custom HTML5 Canvas, no Three.js):
-- `NanoScene.jsx` — Complex multi-sphere particle system with physics, mouse interaction, depth sorting, lighting calculations, Fibonacci sphere distribution
-- `NanoSphere.jsx` — Simpler 3D sphere with floating animation and lighting
+- `NanoScene.jsx` — Complex multi-sphere particle system with physics, mouse interaction, depth sorting, dual-light shading, Fibonacci sphere distribution. Renders 3 spheres (350/220/120 points) plus 55 background particles with connection lines.
+- `NanoSphere.jsx` — Simpler single 3D sphere with floating animation and lighting
 - `NanoParticles.jsx` — Background particle network with connections
 
-These use `requestAnimationFrame`, precomputed Fibonacci sphere points, and manual 3D rotation/projection math. They are performance-sensitive — changes should respect `devicePixelRatio` and `ResizeObserver` patterns already in place.
+All canvas components share a single `requestAnimationFrame` loop via `src/utils/animationLoop.js` — components call `registerAnimation(id, callback)` / `unregisterAnimation(id)` rather than managing their own RAF. The loop auto-starts/stops based on registered callbacks. This is critical for performance; do not introduce separate RAF loops.
 
-**Theming** (`src/theme/themes.js`): Dark/light toggle with 60+ CSS class variants. All pages consume theme state and pass classes from this config.
+Canvas components use precomputed Fibonacci sphere points, pre-allocated sort buffers (avoiding per-frame GC), and manual 3D rotation/projection math. Changes must respect `devicePixelRatio` and `ResizeObserver` patterns already in place.
+
+**Theming**: `ThemeContext.jsx` provides `{ isDark, setIsDark }` (defaults to dark). `src/theme/themes.js` maps `dark`/`light` keys to 60+ Tailwind class strings. Pages destructure theme classes from `themes[isDark ? 'dark' : 'light']`.
 
 **Animation patterns**: Framer Motion variants (`fadeInUp`, `staggerContainer`, `scaleIn`, etc.) with `useInView` for scroll-triggered animations and `useScroll`/`useTransform` for parallax.
 
@@ -51,7 +55,7 @@ These use `requestAnimationFrame`, precomputed Fibonacci sphere points, and manu
 
 ## Key Conventions
 
-- Path alias `@/*` maps to `src/*` (configured in jsconfig.json and vite.config.js)
-- Brand colors: green `#2ECC71`, teal `#17A2B8`, dark `#0f172a` (defined in tailwind.config.js)
-- Custom CSS animations (gradient-shift, shimmer, float, glow) defined in `src/index.css`
+- Path alias `@/*` maps to `src/*` in jsconfig.json (IDE resolution only — not configured in vite.config.js, so use relative imports in code)
+- Brand colors: `cannasol-green` `#2ECC71`, `cannasol-teal` `#17A2B8`, `cannasol-dark` `#0f172a` (defined in tailwind.config.js under `theme.extend.colors.cannasol`)
+- Custom Tailwind animations: `float`, `glow`, `pulse-slow` (in tailwind.config.js); additional CSS animations (gradient-shift, shimmer) in `src/index.css`
 - Test mocks for `IntersectionObserver` and `ResizeObserver` in `src/test/setupTests.js`
