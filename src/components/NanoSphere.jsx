@@ -1,6 +1,6 @@
 import React, { useRef, useEffect } from 'react';
 
-// Fibonacci sphere distribution for even point placement
+// Fibonacci sphere for even point distribution on a sphere surface
 function fibonacciSphere(count) {
   const points = [];
   const goldenAngle = Math.PI * (3 - Math.sqrt(5));
@@ -20,117 +20,156 @@ function fibonacciSphere(count) {
 function rotateY(point, angle) {
   const cos = Math.cos(angle);
   const sin = Math.sin(angle);
-  return {
-    x: point.x * cos + point.z * sin,
-    y: point.y,
-    z: -point.x * sin + point.z * cos,
-  };
+  return { x: point.x * cos + point.z * sin, y: point.y, z: -point.x * sin + point.z * cos };
 }
 
 function rotateX(point, angle) {
   const cos = Math.cos(angle);
   const sin = Math.sin(angle);
-  return {
-    x: point.x,
-    y: point.y * cos - point.z * sin,
-    z: point.y * sin + point.z * cos,
-  };
+  return { x: point.x, y: point.y * cos - point.z * sin, z: point.y * sin + point.z * cos };
 }
 
-// A single nanoemulsion particle (shell of small spheres + gold core)
-function drawNanoParticle(ctx, cx, cy, shellRadius, rotY, rotX, isDark) {
-  const shellPoints = fibonacciSphere(90);
-  const subSphereRadius = shellRadius * 0.12;
+// Precompute shell points for reuse
+const shellPointsLarge = fibonacciSphere(120);
+const shellPointsMed = fibonacciSphere(80);
+const shellPointsSmall = fibonacciSphere(50);
 
-  // Colors
-  const coreColor = isDark
-    ? 'rgba(218, 175, 60, 0.35)'
-    : 'rgba(200, 160, 40, 0.30)';
-  const coreHighlight = isDark
-    ? 'rgba(240, 200, 80, 0.15)'
-    : 'rgba(220, 180, 60, 0.12)';
+function drawNanoParticle(ctx, cx, cy, shellRadius, rotYAngle, rotXAngle, isDark, shellPoints) {
+  const subR = shellRadius * 0.11;
 
-  // Draw glowing core first (visible through gaps)
-  const coreRadius = shellRadius * 0.55;
-  const coreGrad = ctx.createRadialGradient(
-    cx - coreRadius * 0.2, cy - coreRadius * 0.2, coreRadius * 0.1,
-    cx, cy, coreRadius
-  );
-  coreGrad.addColorStop(0, coreHighlight);
-  coreGrad.addColorStop(0.6, coreColor);
-  coreGrad.addColorStop(1, 'rgba(218, 175, 60, 0)');
+  // --- Ambient shadow beneath the sphere ---
+  const shadowGrad = ctx.createRadialGradient(cx, cy + shellRadius * 0.9, 0, cx, cy + shellRadius * 0.9, shellRadius * 1.1);
+  shadowGrad.addColorStop(0, isDark ? 'rgba(0,0,0,0.12)' : 'rgba(0,0,0,0.06)');
+  shadowGrad.addColorStop(1, 'rgba(0,0,0,0)');
   ctx.beginPath();
-  ctx.arc(cx, cy, coreRadius, 0, Math.PI * 2);
+  ctx.ellipse(cx, cy + shellRadius * 0.9, shellRadius * 1.1, shellRadius * 0.3, 0, 0, Math.PI * 2);
+  ctx.fillStyle = shadowGrad;
+  ctx.fill();
+
+  // --- Golden core (visible through gaps) ---
+  const coreR = shellRadius * 0.52;
+  const coreGrad = ctx.createRadialGradient(
+    cx - coreR * 0.25, cy - coreR * 0.25, coreR * 0.05,
+    cx, cy, coreR
+  );
+  if (isDark) {
+    coreGrad.addColorStop(0, 'rgba(255, 210, 80, 0.22)');
+    coreGrad.addColorStop(0.4, 'rgba(230, 180, 50, 0.18)');
+    coreGrad.addColorStop(0.8, 'rgba(200, 155, 40, 0.10)');
+    coreGrad.addColorStop(1, 'rgba(180, 140, 30, 0)');
+  } else {
+    coreGrad.addColorStop(0, 'rgba(240, 195, 60, 0.18)');
+    coreGrad.addColorStop(0.4, 'rgba(215, 170, 45, 0.14)');
+    coreGrad.addColorStop(0.8, 'rgba(190, 150, 35, 0.07)');
+    coreGrad.addColorStop(1, 'rgba(170, 130, 25, 0)');
+  }
+  ctx.beginPath();
+  ctx.arc(cx, cy, coreR, 0, Math.PI * 2);
   ctx.fillStyle = coreGrad;
   ctx.fill();
 
-  // Transform and sort shell points by Z for depth ordering
+  // --- Inner glow around core ---
+  const innerGlow = ctx.createRadialGradient(cx, cy, coreR * 0.6, cx, cy, shellRadius * 0.85);
+  innerGlow.addColorStop(0, isDark ? 'rgba(16, 140, 90, 0.06)' : 'rgba(16, 140, 90, 0.04)');
+  innerGlow.addColorStop(1, 'rgba(16, 140, 90, 0)');
+  ctx.beginPath();
+  ctx.arc(cx, cy, shellRadius * 0.85, 0, Math.PI * 2);
+  ctx.fillStyle = innerGlow;
+  ctx.fill();
+
+  // --- Transform and depth-sort shell points ---
   const transformed = shellPoints.map((p) => {
-    let pt = rotateY(p, rotY);
-    pt = rotateX(pt, rotX);
+    let pt = rotateY(p, rotYAngle);
+    pt = rotateX(pt, rotXAngle);
     return pt;
   });
+  const sorted = transformed.map((p, i) => ({ ...p, i })).sort((a, b) => a.z - b.z);
 
-  // Sort back-to-front
-  const indexed = transformed.map((p, i) => ({ ...p, i }));
-  indexed.sort((a, b) => a.z - b.z);
+  // Light direction (top-left-front)
+  const lightX = -0.4, lightY = -0.5, lightZ = 0.7;
+  const lightLen = Math.sqrt(lightX * lightX + lightY * lightY + lightZ * lightZ);
 
-  for (const pt of indexed) {
-    const perspective = 1 + pt.z * 0.25;
+  for (const pt of sorted) {
+    const perspective = 1 + pt.z * 0.3;
     const px = cx + pt.x * shellRadius * perspective;
     const py = cy + pt.y * shellRadius * perspective;
-    const sz = subSphereRadius * (0.7 + pt.z * 0.3);
+    const sz = subR * (0.65 + pt.z * 0.35);
+    if (sz < 0.4) continue;
 
-    if (sz < 0.5) continue;
+    const depth = (pt.z + 1) / 2; // 0=back, 1=front
 
-    // Depth-based lighting
-    const depthFactor = (pt.z + 1) / 2; // 0 = back, 1 = front
-    const lightness = 45 + depthFactor * 25;
-    const saturation = 65 + depthFactor * 15;
-    const alpha = 0.3 + depthFactor * 0.6;
+    // Lighting via dot product with light direction
+    const dot = (pt.x * lightX + pt.y * lightY + pt.z * lightZ) / lightLen;
+    const lighting = Math.max(0, dot);
 
-    // Hue shifts between teal and blue-ish
-    const hue = isDark ? 175 + pt.y * 15 : 170 + pt.y * 15;
+    // Deeper, richer green-teal hues (148–168)
+    const hue = isDark ? 148 + pt.y * 12 + lighting * 8 : 145 + pt.y * 12 + lighting * 8;
 
-    // Shadow/depth on back spheres
-    const shadowAlpha = isDark ? 0.4 : 0.25;
-    if (depthFactor < 0.5) {
+    // Back-face: dark silhouette with slight color
+    if (depth < 0.35) {
+      const backAlpha = 0.15 + depth * 0.25;
       ctx.beginPath();
       ctx.arc(px, py, sz, 0, Math.PI * 2);
-      ctx.fillStyle = `hsla(${hue}, ${saturation}%, ${lightness - 15}%, ${alpha * shadowAlpha})`;
+      ctx.fillStyle = `hsla(${hue}, 55%, ${isDark ? 18 : 22}%, ${backAlpha})`;
       ctx.fill();
       continue;
     }
 
-    // Main sub-sphere with gradient for 3D look
+    // Mid and front spheres
+    const baseSat = 60 + lighting * 20;
+    const baseLight = isDark ? 28 + lighting * 28 + depth * 10 : 25 + lighting * 25 + depth * 8;
+    const alpha = 0.5 + depth * 0.45;
+
+    // Main gradient
     const grad = ctx.createRadialGradient(
-      px - sz * 0.3, py - sz * 0.3, sz * 0.1,
-      px, py, sz
+      px - sz * 0.35, py - sz * 0.35, sz * 0.05,
+      px + sz * 0.1, py + sz * 0.1, sz
     );
-    grad.addColorStop(0, `hsla(${hue + 15}, ${saturation + 10}%, ${lightness + 20}%, ${alpha})`);
-    grad.addColorStop(0.5, `hsla(${hue}, ${saturation}%, ${lightness}%, ${alpha * 0.9})`);
-    grad.addColorStop(1, `hsla(${hue - 10}, ${saturation - 10}%, ${lightness - 15}%, ${alpha * 0.5})`);
+    grad.addColorStop(0, `hsla(${hue + 12}, ${baseSat + 15}%, ${baseLight + 22}%, ${alpha})`);
+    grad.addColorStop(0.35, `hsla(${hue + 5}, ${baseSat + 8}%, ${baseLight + 10}%, ${alpha * 0.92})`);
+    grad.addColorStop(0.7, `hsla(${hue}, ${baseSat}%, ${baseLight}%, ${alpha * 0.8})`);
+    grad.addColorStop(1, `hsla(${hue - 8}, ${baseSat - 10}%, ${baseLight - 12}%, ${alpha * 0.45})`);
 
     ctx.beginPath();
     ctx.arc(px, py, sz, 0, Math.PI * 2);
     ctx.fillStyle = grad;
     ctx.fill();
 
-    // Specular highlight
-    if (depthFactor > 0.6) {
+    // Specular highlight — tight, bright
+    if (lighting > 0.3 && depth > 0.5) {
+      const specAlpha = lighting * depth * 0.5;
+      const specR = sz * (0.2 + lighting * 0.15);
       ctx.beginPath();
-      ctx.arc(px - sz * 0.25, py - sz * 0.25, sz * 0.3, 0, Math.PI * 2);
-      ctx.fillStyle = `hsla(${hue + 20}, 100%, 92%, ${depthFactor * 0.35})`;
+      ctx.arc(px - sz * 0.28, py - sz * 0.28, specR, 0, Math.PI * 2);
+      ctx.fillStyle = `hsla(${hue + 25}, 100%, 90%, ${specAlpha})`;
       ctx.fill();
+    }
+
+    // Rim light — subtle edge highlight on front-facing spheres near the silhouette edge
+    if (depth > 0.55) {
+      const rimStrength = (1 - Math.abs(dot)) * depth * 0.3;
+      if (rimStrength > 0.05) {
+        const rimGrad = ctx.createRadialGradient(
+          px + sz * 0.3, py + sz * 0.3, sz * 0.5,
+          px, py, sz
+        );
+        rimGrad.addColorStop(0, `hsla(${hue + 20}, 80%, 75%, 0)`);
+        rimGrad.addColorStop(0.8, `hsla(${hue + 20}, 80%, 75%, ${rimStrength * 0.4})`);
+        rimGrad.addColorStop(1, `hsla(${hue + 20}, 80%, 75%, ${rimStrength})`);
+        ctx.beginPath();
+        ctx.arc(px, py, sz, 0, Math.PI * 2);
+        ctx.fillStyle = rimGrad;
+        ctx.fill();
+      }
     }
   }
 
-  // Outer glow around the whole structure
-  const outerGlow = ctx.createRadialGradient(cx, cy, shellRadius * 0.8, cx, cy, shellRadius * 1.6);
-  outerGlow.addColorStop(0, isDark ? 'rgba(16, 185, 160, 0.06)' : 'rgba(16, 185, 160, 0.04)');
-  outerGlow.addColorStop(1, 'rgba(16, 185, 160, 0)');
+  // --- Outer glow halo ---
+  const outerGlow = ctx.createRadialGradient(cx, cy, shellRadius * 0.85, cx, cy, shellRadius * 1.5);
+  outerGlow.addColorStop(0, isDark ? 'rgba(16, 160, 110, 0.07)' : 'rgba(16, 160, 110, 0.045)');
+  outerGlow.addColorStop(1, 'rgba(16, 160, 110, 0)');
   ctx.beginPath();
-  ctx.arc(cx, cy, shellRadius * 1.6, 0, Math.PI * 2);
+  ctx.arc(cx, cy, shellRadius * 1.5, 0, Math.PI * 2);
   ctx.fillStyle = outerGlow;
   ctx.fill();
 }
@@ -163,29 +202,29 @@ export default function NanoSphere({ isDark = true }) {
     let t = 0;
 
     function animate() {
-      t += 0.003;
+      t += 0.0025;
       ctx.clearRect(0, 0, width, height);
 
-      // Large particle — left-center area, with cutaway feel
-      const largeR = Math.min(width, height) * 0.22;
-      const largeCx = width * 0.28;
-      const largeCy = height * 0.48;
-      const largeFloat = Math.sin(t * 1.2) * 8;
-      drawNanoParticle(ctx, largeCx, largeCy + largeFloat, largeR, t * 0.6, t * 0.3 + 0.3, isDark);
+      // Large — left side
+      const lgR = Math.min(width, height) * 0.23;
+      const lgX = width * 0.22;
+      const lgY = height * 0.50;
+      const lgFloat = Math.sin(t * 1.1) * 10 + Math.cos(t * 0.7) * 4;
+      drawNanoParticle(ctx, lgX, lgY + lgFloat, lgR, t * 0.5, t * 0.25 + 0.4, isDark, shellPointsLarge);
 
-      // Medium particle — upper right
-      const medR = Math.min(width, height) * 0.11;
-      const medCx = width * 0.62;
-      const medCy = height * 0.28;
-      const medFloat = Math.sin(t * 1.5 + 1) * 6;
-      drawNanoParticle(ctx, medCx, medCy + medFloat, medR, t * 0.8 + 2, t * 0.4 + 1, isDark);
+      // Medium — upper right
+      const mdR = Math.min(width, height) * 0.12;
+      const mdX = width * 0.68;
+      const mdY = height * 0.30;
+      const mdFloat = Math.sin(t * 1.4 + 1.2) * 7 + Math.cos(t * 0.9 + 0.5) * 3;
+      drawNanoParticle(ctx, mdX, mdY + mdFloat, mdR, t * 0.7 + 2, t * 0.35 + 1.2, isDark, shellPointsMed);
 
-      // Small particle — bottom right
-      const smR = Math.min(width, height) * 0.065;
-      const smCx = width * 0.78;
-      const smCy = height * 0.65;
-      const smFloat = Math.sin(t * 1.8 + 2.5) * 4;
-      drawNanoParticle(ctx, smCx, smCy + smFloat, smR, t * 1.0 + 4, t * 0.5 + 2, isDark);
+      // Small — lower right
+      const smR = Math.min(width, height) * 0.06;
+      const smX = width * 0.82;
+      const smY = height * 0.62;
+      const smFloat = Math.sin(t * 1.7 + 2.8) * 5 + Math.cos(t * 1.1 + 1.8) * 2;
+      drawNanoParticle(ctx, smX, smY + smFloat, smR, t * 0.9 + 4, t * 0.45 + 2.5, isDark, shellPointsSmall);
 
       animRef.current = requestAnimationFrame(animate);
     }

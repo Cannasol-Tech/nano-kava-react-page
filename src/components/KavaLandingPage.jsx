@@ -23,8 +23,7 @@ import {
   Sun,
   Moon
 } from 'lucide-react';
-import NanoParticles from './NanoParticles';
-import NanoSphere from './NanoSphere';
+import NanoScene from './NanoScene';
 import themesConfig from '../theme/themes';
 
 // Theme configuration - Single source of truth for all colors
@@ -392,12 +391,7 @@ export default function KavaLandingPage() {
           {/* Accent glow at top */}
           <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full h-[500px] bg-gradient-to-b from-emerald-500/5 via-transparent to-transparent" />
           <GridBackground />
-          <NanoParticles isDark={isDark} />
-        </div>
-
-        {/* 3D Nanoemulsion spheres — layered above background, below text */}
-        <div className="absolute inset-0 z-[5] pointer-events-none">
-          <NanoSphere isDark={isDark} />
+          <NanoScene isDark={isDark} />
         </div>
 
         <div className="relative z-10 max-w-7xl mx-auto px-6 py-20 text-center">
@@ -439,10 +433,11 @@ export default function KavaLandingPage() {
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8, delay: 0.4 }}
-            className={`text-xl md:text-2xl ${theme.textSecondary} mb-10 max-w-3xl mx-auto leading-relaxed`}
+            className={`text-xl md:text-2xl mb-10 max-w-3xl mx-auto leading-relaxed ${isDark ? 'text-slate-300' : theme.textSecondary} drop-shadow-sm`}
+            style={isDark ? { textShadow: '0 1px 8px rgba(0,0,0,0.5)' } : {}}
           >
             Cutting-edge nanoemulsification technology that overcomes the solubility and bioavailability challenges of traditional kava.
-            <span className={theme.text}> Ultra-fine droplets so small they're almost transparent.</span>
+            <span className={`font-medium ${isDark ? 'text-white' : theme.text}`}> Ultra-fine droplets so small they're almost transparent.</span>
             <br className="hidden md:block" />
             Trusted by leading Kava seltzer and shot brands.
           </motion.p>

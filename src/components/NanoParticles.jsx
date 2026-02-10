@@ -1,12 +1,12 @@
 import React, { useRef, useEffect, useCallback } from 'react';
 
-const PARTICLE_COUNT = 80;
-const CONNECTION_DISTANCE = 140;
-const MOUSE_RADIUS = 200;
-const BASE_SPEED = 0.3;
+const PARTICLE_COUNT = 55;
+const CONNECTION_DISTANCE = 130;
+const MOUSE_RADIUS = 180;
+const BASE_SPEED = 0.2;
 
 function createParticle(width, height) {
-  const size = Math.random() * 3 + 1.5;
+  const size = Math.random() * 2.5 + 1;
   return {
     x: Math.random() * width,
     y: Math.random() * height,
@@ -14,11 +14,11 @@ function createParticle(width, height) {
     vy: (Math.random() - 0.5) * BASE_SPEED,
     size,
     baseSize: size,
-    opacity: Math.random() * 0.5 + 0.3,
+    opacity: Math.random() * 0.35 + 0.15,
     pulseOffset: Math.random() * Math.PI * 2,
-    pulseSpeed: 0.01 + Math.random() * 0.02,
-    // Color hue varies between emerald (160) and cyan (185)
-    hue: 160 + Math.random() * 25,
+    pulseSpeed: 0.008 + Math.random() * 0.012,
+    // Darker emerald-green range (140–162)
+    hue: 140 + Math.random() * 22,
   };
 }
 
@@ -32,19 +32,19 @@ export default function NanoParticles({ isDark = true }) {
   const getColors = useCallback(() => {
     if (isDark) {
       return {
-        particleSat: '80%',
-        particleLight: '65%',
-        lineSat: '70%',
-        lineLight: '55%',
-        glowAlpha: 0.6,
+        particleSat: '75%',
+        particleLight: '42%',
+        lineSat: '60%',
+        lineLight: '35%',
+        glowAlpha: 0.5,
       };
     }
     return {
-      particleSat: '70%',
-      particleLight: '45%',
-      lineSat: '60%',
-      lineLight: '40%',
-      glowAlpha: 0.4,
+      particleSat: '65%',
+      particleLight: '32%',
+      lineSat: '55%',
+      lineLight: '30%',
+      glowAlpha: 0.35,
     };
   }, [isDark]);
 
@@ -66,7 +66,6 @@ export default function NanoParticles({ isDark = true }) {
       canvas.style.height = `${height}px`;
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
 
-      // Re-initialize particles if needed
       if (particlesRef.current.length === 0) {
         particlesRef.current = Array.from({ length: PARTICLE_COUNT }, () =>
           createParticle(width, height)
@@ -104,38 +103,32 @@ export default function NanoParticles({ isDark = true }) {
       for (let i = 0; i < particles.length; i++) {
         const p = particles[i];
 
-        // Organic brownian drift
-        p.vx += (Math.random() - 0.5) * 0.04;
-        p.vy += (Math.random() - 0.5) * 0.04;
+        p.vx += (Math.random() - 0.5) * 0.025;
+        p.vy += (Math.random() - 0.5) * 0.025;
+        p.vx *= 0.992;
+        p.vy *= 0.992;
 
-        // Dampen velocity
-        p.vx *= 0.99;
-        p.vy *= 0.99;
-
-        // Mouse repulsion
         const dx = p.x - mouse.x;
         const dy = p.y - mouse.y;
         const dist = Math.sqrt(dx * dx + dy * dy);
         if (dist < MOUSE_RADIUS && dist > 0) {
           const force = (MOUSE_RADIUS - dist) / MOUSE_RADIUS;
-          p.vx += (dx / dist) * force * 0.8;
-          p.vy += (dy / dist) * force * 0.8;
+          p.vx += (dx / dist) * force * 0.6;
+          p.vy += (dy / dist) * force * 0.6;
         }
 
         p.x += p.vx;
         p.y += p.vy;
 
-        // Wrap around edges with padding
         if (p.x < -20) p.x = width + 20;
         if (p.x > width + 20) p.x = -20;
         if (p.y < -20) p.y = height + 20;
         if (p.y > height + 20) p.y = -20;
 
-        // Pulse size
-        p.size = p.baseSize + Math.sin(t * p.pulseSpeed + p.pulseOffset) * 0.5;
+        p.size = p.baseSize + Math.sin(t * p.pulseSpeed + p.pulseOffset) * 0.4;
       }
 
-      // Draw connections
+      // Draw connections — thinner, subtler
       for (let i = 0; i < particles.length; i++) {
         for (let j = i + 1; j < particles.length; j++) {
           const a = particles[i];
@@ -145,13 +138,13 @@ export default function NanoParticles({ isDark = true }) {
           const dist = Math.sqrt(dx * dx + dy * dy);
 
           if (dist < CONNECTION_DISTANCE) {
-            const alpha = (1 - dist / CONNECTION_DISTANCE) * 0.25;
+            const alpha = (1 - dist / CONNECTION_DISTANCE) * 0.15;
             const avgHue = (a.hue + b.hue) / 2;
             ctx.beginPath();
             ctx.moveTo(a.x, a.y);
             ctx.lineTo(b.x, b.y);
             ctx.strokeStyle = `hsla(${avgHue}, ${colors.lineSat}, ${colors.lineLight}, ${alpha})`;
-            ctx.lineWidth = 0.6;
+            ctx.lineWidth = 0.5;
             ctx.stroke();
           }
         }
@@ -160,48 +153,44 @@ export default function NanoParticles({ isDark = true }) {
       // Draw particles
       for (let i = 0; i < particles.length; i++) {
         const p = particles[i];
-        const pulseAlpha = p.opacity + Math.sin(t * p.pulseSpeed + p.pulseOffset) * 0.15;
+        const pulseAlpha = p.opacity + Math.sin(t * p.pulseSpeed + p.pulseOffset) * 0.1;
 
-        // Outer glow
-        const glowGrad = ctx.createRadialGradient(p.x, p.y, 0, p.x, p.y, p.size * 4);
+        // Soft glow
+        const glowGrad = ctx.createRadialGradient(p.x, p.y, 0, p.x, p.y, p.size * 5);
         glowGrad.addColorStop(0, `hsla(${p.hue}, ${colors.particleSat}, ${colors.particleLight}, ${pulseAlpha * colors.glowAlpha})`);
         glowGrad.addColorStop(1, `hsla(${p.hue}, ${colors.particleSat}, ${colors.particleLight}, 0)`);
         ctx.beginPath();
-        ctx.arc(p.x, p.y, p.size * 4, 0, Math.PI * 2);
+        ctx.arc(p.x, p.y, p.size * 5, 0, Math.PI * 2);
         ctx.fillStyle = glowGrad;
         ctx.fill();
 
-        // Core particle
+        // Core
         const coreGrad = ctx.createRadialGradient(
-          p.x - p.size * 0.3,
-          p.y - p.size * 0.3,
-          0,
-          p.x,
-          p.y,
-          p.size
+          p.x - p.size * 0.3, p.y - p.size * 0.3, 0,
+          p.x, p.y, p.size
         );
-        coreGrad.addColorStop(0, `hsla(${p.hue + 10}, 90%, 80%, ${pulseAlpha})`);
-        coreGrad.addColorStop(0.6, `hsla(${p.hue}, ${colors.particleSat}, ${colors.particleLight}, ${pulseAlpha * 0.9})`);
-        coreGrad.addColorStop(1, `hsla(${p.hue - 5}, ${colors.particleSat}, ${colors.particleLight}, ${pulseAlpha * 0.4})`);
+        coreGrad.addColorStop(0, `hsla(${p.hue + 8}, 80%, 60%, ${pulseAlpha})`);
+        coreGrad.addColorStop(0.6, `hsla(${p.hue}, ${colors.particleSat}, ${colors.particleLight}, ${pulseAlpha * 0.85})`);
+        coreGrad.addColorStop(1, `hsla(${p.hue - 5}, ${colors.particleSat}, ${colors.particleLight}, ${pulseAlpha * 0.3})`);
         ctx.beginPath();
         ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
         ctx.fillStyle = coreGrad;
         ctx.fill();
 
-        // Specular highlight
-        const specSize = p.size * 0.35;
+        // Tiny specular
+        const specSize = p.size * 0.3;
         ctx.beginPath();
-        ctx.arc(p.x - p.size * 0.25, p.y - p.size * 0.25, specSize, 0, Math.PI * 2);
-        ctx.fillStyle = `hsla(${p.hue + 20}, 100%, 95%, ${pulseAlpha * 0.5})`;
+        ctx.arc(p.x - p.size * 0.2, p.y - p.size * 0.2, specSize, 0, Math.PI * 2);
+        ctx.fillStyle = `hsla(${p.hue + 15}, 100%, 85%, ${pulseAlpha * 0.35})`;
         ctx.fill();
       }
 
-      // Draw mouse interaction ring (subtle)
+      // Mouse glow
       if (mouse.x > 0 && mouse.y > 0) {
         const ringGrad = ctx.createRadialGradient(mouse.x, mouse.y, 0, mouse.x, mouse.y, MOUSE_RADIUS);
-        ringGrad.addColorStop(0, `hsla(168, 80%, 60%, 0.03)`);
-        ringGrad.addColorStop(0.7, `hsla(168, 80%, 60%, 0.01)`);
-        ringGrad.addColorStop(1, `hsla(168, 80%, 60%, 0)`);
+        ringGrad.addColorStop(0, 'hsla(152, 70%, 40%, 0.025)');
+        ringGrad.addColorStop(0.7, 'hsla(152, 70%, 40%, 0.008)');
+        ringGrad.addColorStop(1, 'hsla(152, 70%, 40%, 0)');
         ctx.beginPath();
         ctx.arc(mouse.x, mouse.y, MOUSE_RADIUS, 0, Math.PI * 2);
         ctx.fillStyle = ringGrad;
@@ -211,7 +200,6 @@ export default function NanoParticles({ isDark = true }) {
       animFrameRef.current = requestAnimationFrame(animate);
     }
 
-    // Initialize particles
     particlesRef.current = Array.from({ length: PARTICLE_COUNT }, () =>
       createParticle(width, height)
     );
