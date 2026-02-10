@@ -24,6 +24,7 @@ import {
   Moon
 } from 'lucide-react';
 import NanoParticles from './NanoParticles';
+import NanoSphere from './NanoSphere';
 import themesConfig from '../theme/themes';
 
 // Theme configuration - Single source of truth for all colors
@@ -392,6 +393,11 @@ export default function KavaLandingPage() {
           <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full h-[500px] bg-gradient-to-b from-emerald-500/5 via-transparent to-transparent" />
           <GridBackground />
           <NanoParticles isDark={isDark} />
+        </div>
+
+        {/* 3D Nanoemulsion spheres — layered above background, below text */}
+        <div className="absolute inset-0 z-[5] pointer-events-none">
+          <NanoSphere isDark={isDark} />
         </div>
 
         <div className="relative z-10 max-w-7xl mx-auto px-6 py-20 text-center">
