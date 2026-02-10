@@ -23,7 +23,7 @@ import {
   Sun,
   Moon
 } from 'lucide-react';
-import NanoScene from './NanoScene';
+import { useTheme } from '../context/ThemeContext';
 import themesConfig from '../theme/themes';
 
 // Theme configuration - Single source of truth for all colors
@@ -164,7 +164,7 @@ export default function KavaLandingPage() {
   const [activeFeature, setActiveFeature] = useState(0);
   const [formData, setFormData] = useState({ name: '', email: '', company: '', message: '' });
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const [isDark, setIsDark] = useState(false);
+  const { isDark, setIsDark } = useTheme();
   
   const theme = isDark ? themes.dark : themes.light;
   const heroRef = useRef(null);
@@ -230,7 +230,7 @@ export default function KavaLandingPage() {
   ];
 
   return (
-    <div className={`min-h-screen ${theme.bg} ${theme.text} overflow-x-hidden transition-colors duration-500`}>
+    <div className={`min-h-screen ${theme.text} overflow-x-hidden transition-colors duration-500`}>
       {/* Navigation */}
       <motion.nav 
         className={`fixed top-0 left-0 right-0 z-50 backdrop-blur-xl ${theme.bgNav} border-b ${theme.border}/50 transition-colors duration-500`}
@@ -381,9 +381,8 @@ export default function KavaLandingPage() {
         className="relative min-h-screen flex items-center justify-center pt-20 overflow-hidden"
         style={{ opacity: heroOpacity, scale: heroScale, y: heroY }}
       >
-        {/* Animated background */}
+        {/* Animated background (NanoScene is now a global fixed layer in App.jsx) */}
         <div className="absolute inset-0">
-          <div className={`absolute inset-0 ${theme.bgHero} transition-colors duration-500`} />
           {/* Gradient orbs */}
           <GlowOrb className={`top-1/4 left-1/4 w-[600px] h-[600px] ${theme.gradientOrbs.emerald} blur-[120px]`} delay={0} />
           <GlowOrb className={`bottom-1/4 right-1/4 w-[500px] h-[500px] ${theme.gradientOrbs.teal} blur-[100px]`} delay={1} />
@@ -391,12 +390,9 @@ export default function KavaLandingPage() {
           {/* Accent glow at top */}
           <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full h-[500px] bg-gradient-to-b from-emerald-500/5 via-transparent to-transparent" />
           <GridBackground />
-          <NanoScene isDark={isDark} />
         </div>
 
         <div className="relative z-10 max-w-7xl mx-auto px-6 py-20 text-center">
-          {/* Backdrop for better text readability */}
-          <div className="absolute inset-0 -mx-6 -my-20 bg-gradient-to-b from-transparent via-black/10 to-transparent backdrop-blur-[2px] pointer-events-none" style={isDark ? { opacity: 0.4 } : { opacity: 0.2 }} />
           {/* Badge */}
           <motion.div
             initial={{ opacity: 0, y: 20 }}
@@ -425,10 +421,8 @@ export default function KavaLandingPage() {
               transition={{ duration: 5, repeat: Infinity, ease: "linear" }}
               style={{ backgroundSize: '200% 200%' }}
             >
-              Nano-Perfected
+              Nano Kava
             </motion.span>
-            <br />
-            <span className={`${isDark ? 'text-slate-50' : 'text-slate-900'} font-black`}>Kava</span>
           </motion.h1>
 
           {/* Subheadline */}
@@ -529,38 +523,41 @@ export default function KavaLandingPage() {
         <div className="max-w-7xl mx-auto px-6">
           <div className="grid lg:grid-cols-2 gap-16 items-center">
             {/* Problem */}
-            <motion.div variants={fadeInLeft}>
-              <div className={`inline-flex items-center gap-2 px-3 py-1 ${theme.bgError} rounded-full ${theme.textError} text-sm font-medium mb-6`}>
-                <span className={`w-1.5 h-1.5 ${theme.errorDot} rounded-full`} />
-                The Industry Problem
-              </div>
-              <h2 className={`text-3xl md:text-5xl font-bold mb-6 leading-tight ${theme.text}`}>
-                Traditional Kava
-                <span className={theme.textMuted}> Doesn't Work</span>
-                <br />for Modern Beverages
-              </h2>
-              <p className={`${theme.textSecondary} text-lg mb-8 leading-relaxed`}>
-                Traditional Kava preparations suffer from poor bioavailability, gritty texture, and muddy appearance.
-                Your customers want instant results and a pleasant experience—not a waiting game.
-              </p>
-              <div className="space-y-4">
-                {[
-                  'Limited absorption in the gastrointestinal tract',
-                  '30-45 minute onset frustrates consumers',
-                  'Gritty texture and muddy appearance',
-                  'Inconsistent dosing leads to unpredictable effects'
-                ].map((problem, i) => (
-                  <motion.div
-                    key={i}
-                    className={`flex items-center gap-3 ${theme.textSecondary}`}
-                    variants={fadeInUp}
-                  >
-                    <span className={`flex-shrink-0 w-6 h-6 rounded-full ${theme.bgErrorIcon} flex items-center justify-center`}>
-                      <span className={`${theme.textError} text-sm`}>✕</span>
-                    </span>
-                    {problem}
-                  </motion.div>
-                ))}
+            <motion.div variants={fadeInLeft} className="relative">
+              <div className="absolute inset-0 bg-gradient-to-r from-red-500/10 to-orange-500/10 rounded-3xl blur-2xl" />
+              <div className={`relative ${theme.bgCardSolid} ${theme.shadowXl} backdrop-blur rounded-3xl p-8 md:p-10 border ${theme.borderCard}`}>
+                <div className={`inline-flex items-center gap-2 px-3 py-1 ${theme.bgError} rounded-full ${theme.textError} text-sm font-medium mb-6`}>
+                  <span className={`w-1.5 h-1.5 ${theme.errorDot} rounded-full`} />
+                  The Industry Problem
+                </div>
+                <h2 className={`text-3xl md:text-5xl font-bold mb-6 leading-tight ${theme.text}`}>
+                  Traditional Kava
+                  <span className={theme.textMuted}> Doesn't Work</span>
+                  <br />for Modern Beverages
+                </h2>
+                <p className={`${theme.textSecondary} text-lg mb-8 leading-relaxed`}>
+                  Traditional Kava preparations suffer from poor bioavailability, gritty texture, and muddy appearance.
+                  Your customers want instant results and a pleasant experience—not a waiting game.
+                </p>
+                <div className="space-y-4">
+                  {[
+                    'Limited absorption in the gastrointestinal tract',
+                    '30-45 minute onset frustrates consumers',
+                    'Gritty texture and muddy appearance',
+                    'Inconsistent dosing leads to unpredictable effects'
+                  ].map((problem, i) => (
+                    <motion.div
+                      key={i}
+                      className={`flex items-center gap-3 ${theme.textSecondary}`}
+                      variants={fadeInUp}
+                    >
+                      <span className={`flex-shrink-0 w-6 h-6 rounded-full ${theme.bgErrorIcon} flex items-center justify-center`}>
+                        <span className={`${theme.textError} text-sm`}>✕</span>
+                      </span>
+                      {problem}
+                    </motion.div>
+                  ))}
+                </div>
               </div>
             </motion.div>
 
@@ -899,7 +896,7 @@ export default function KavaLandingPage() {
                 alt="Cannasol Technologies" 
                 className="h-8 w-auto"
               />
-              <span className={`${theme.textSecondary} text-sm`}>© 2025 Cannasol Technologies LLC</span>
+              <span className={`${theme.textSecondary} text-sm`}>© 2026 Cannasol Technologies LLC</span>
             </div>
             <div className={`flex gap-6 text-sm ${theme.textMuted}`}>
               <a href="https://cannasoltechnologies.com/shop/" className={`hover:${theme.text} transition-colors`}>Shop</a>

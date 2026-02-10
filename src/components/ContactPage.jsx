@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { Link } from 'react-router-dom';
+import { useTheme } from '../context/ThemeContext';
 import { 
   ArrowLeft, 
   Send, 
@@ -335,11 +336,11 @@ function ContactInfoCard({ icon: Icon, title, children, theme, href }) {
  * Main Contact Page Component
  */
 export default function ContactPage() {
-  const [isDark, setIsDark] = useState(false);
+  const { isDark, setIsDark } = useTheme();
   const theme = isDark ? themes.dark : themes.light;
 
   return (
-    <div className={`min-h-screen ${theme.bg} ${theme.text} transition-colors duration-500`}>
+    <div className={`min-h-screen ${theme.text} transition-colors duration-500`}>
       {/* Navigation */}
       <motion.nav 
         className={`fixed top-0 left-0 right-0 z-50 backdrop-blur-xl ${theme.bgNav} border-b ${theme.border}/50 transition-colors duration-500`}

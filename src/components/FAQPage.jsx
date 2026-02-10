@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Link } from 'react-router-dom';
+import { useTheme } from '../context/ThemeContext';
 import { 
   ChevronDown, 
   ArrowLeft, 
@@ -211,7 +212,7 @@ function FAQCategory({ category, openItems, toggleItem, theme }) {
  * Main FAQ Page Component
  */
 export default function FAQPage() {
-  const [isDark, setIsDark] = useState(false);
+  const { isDark, setIsDark } = useTheme();
   const [openItems, setOpenItems] = useState([]);
   
   const theme = isDark ? themes.dark : themes.light;
@@ -225,7 +226,7 @@ export default function FAQPage() {
   };
 
   return (
-    <div className={`min-h-screen ${theme.bg} ${theme.text} transition-colors duration-500`}>
+    <div className={`min-h-screen ${theme.text} transition-colors duration-500`}>
       {/* Navigation */}
       <motion.nav 
         className={`fixed top-0 left-0 right-0 z-50 backdrop-blur-xl ${theme.bgNav} border-b ${theme.border}/50 transition-colors duration-500`}

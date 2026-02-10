@@ -1,5 +1,6 @@
-import React, { useMemo, useState } from 'react';
+import React, { useMemo } from 'react';
 import { Link } from 'react-router-dom';
+import { useTheme } from '../context/ThemeContext';
 import { motion } from 'framer-motion';
 import { ArrowLeft, Leaf, Sparkles, Sun, Moon, ArrowRight, Beaker, Droplets, ShieldCheck } from 'lucide-react';
 
@@ -24,7 +25,7 @@ const stagger = {
 };
 
 function MushroomsLandingPage() {
-  const [isDark, setIsDark] = useState(false);
+  const { isDark, setIsDark } = useTheme();
 
   const theme = useMemo(() => (isDark ? themes.dark : themes.light), [isDark]);
 
@@ -86,7 +87,7 @@ function MushroomsLandingPage() {
   );
 
   return (
-    <div className={`min-h-screen ${theme.bg} ${theme.text} overflow-x-hidden transition-colors duration-500`}>
+    <div className={`min-h-screen ${theme.text} overflow-x-hidden transition-colors duration-500`}>
       <motion.nav
         className={`fixed top-0 left-0 right-0 z-50 backdrop-blur-xl ${theme.bgNav} border-b ${theme.border}/50 transition-colors duration-500`}
         initial={{ y: -100 }}
