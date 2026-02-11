@@ -1,4 +1,5 @@
 import React from 'react';
+import { MotionConfig } from 'framer-motion';
 import { BrowserRouter as Router } from 'react-router-dom';
 import { HelmetProvider } from 'react-helmet-async';
 import AppRoutes from './AppRoutes';
@@ -26,7 +27,9 @@ function App() {
     <HelmetProvider>
       <Router>
         <ThemeProvider>
-          <AppContent />
+          <MotionConfig reducedMotion="user">
+            <AppContent />
+          </MotionConfig>
         </ThemeProvider>
       </Router>
     </HelmetProvider>

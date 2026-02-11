@@ -205,7 +205,7 @@ function MushroomsLandingPage() {
                 <Tag
                   key={item.label}
                   {...linkProps}
-                  className={`block ${theme.textSecondary} hover:text-emerald-400 font-medium py-2.5 px-3 rounded-lg hover:${isDark ? 'bg-slate-800/50' : 'bg-emerald-500/10'} transition-all duration-200 border-l-2 border-transparent hover:border-emerald-500`}
+                  className={`block ${theme.textSecondary} hover:text-emerald-400 font-medium py-2.5 px-3 rounded-lg hover:${isDark ? 'bg-slate-800/50' : 'bg-emerald-500/10'} transition-colors duration-200 border-l-2 border-transparent hover:border-emerald-500`}
                   onClick={() => setMobileMenuOpen(false)}
                 >
                   {item.label}
@@ -421,7 +421,7 @@ function MushroomsLandingPage() {
       <footer className={`border-t ${theme.border}/50 transition-colors duration-500`}>
         <div className="max-w-7xl mx-auto px-6 py-10 flex flex-col md:flex-row gap-6 items-start md:items-center justify-between">
           <div className="flex items-center gap-3">
-            <img src={theme.logo} alt="Cannasol Technologies Logo" className="h-8 w-auto" />
+            <img src={theme.logo} alt="Cannasol Technologies Logo" className="h-8 w-auto" loading="lazy" />
             <div>
               <div className={`font-semibold ${theme.text}`}>Cannasol Technologies</div>
               <div className={`text-sm ${theme.textMuted}`}>Nanoemulsified ingredients for modern functional products</div>

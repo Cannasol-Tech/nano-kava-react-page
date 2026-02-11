@@ -7,6 +7,41 @@
 
 ---
 
+## Status Overview
+
+| # | Optimization | Priority | Status |
+|---|-------------|----------|--------|
+| 1 | Remove `backdrop-filter` overuse | Critical | **FIXED** |
+| 2 | Fix `btn-shine` `left` → `transform` | Critical | **FIXED** |
+| 3 | Migrate NanoParticles to shared RAF | Critical | **FIXED** |
+| 4 | Add tab visibility handling | Critical | **FIXED** |
+| 5 | Add IntersectionObserver to NanoParticles | Critical | **FIXED** |
+| 6 | Replace `transition-all` with specific | High | **FIXED** |
+| 7 | Fix NanoParticles `Math.sqrt()` in O(N²) | High | **FIXED** |
+| 8 | Batch NanoParticles connection lines | High | **FIXED** |
+| 9 | Reduce per-frame gradient creation | High | **FIXED** |
+| 10 | Cache `getBoundingClientRect()` | High | **FIXED** |
+| 11 | Pre-allocate `spPos` array in NanoScene | High | **FIXED** |
+| 12 | Fix `glow` box-shadow animation | High | **FIXED** |
+| 13 | Memoize ThemeContext value | High | **FIXED** |
+| 14 | Add `React.memo` to expensive components | High | **FIXED** |
+| 15 | Move static arrays outside component | High | **FIXED** |
+| 16 | Address `overflow-hidden` + `border-radius` | Medium | **FIXED** — mitigated with `will-change` |
+| 17 | Add `will-change` on animated elements | Medium | **FIXED** |
+| 18 | Cache vignette gradient | Medium | **FIXED** |
+| 19 | Convert GlowOrb to CSS animation | Medium | **FIXED** |
+| 20 | Convert `backgroundPosition` to CSS | Medium | **FIXED** |
+| 21 | Optimize `filter: blur()` overlays | Medium | **FIXED** — added `will-change: opacity` |
+| 22 | Passive event listeners | Low | **FIXED** |
+| 23 | Reduce `Math.random()` calls | Low | **FIXED** |
+| 24 | Lazy load below-fold images | Low | **FIXED** |
+| 25 | Verify `prefers-reduced-motion` support | Low | **FIXED** — `MotionConfig reducedMotion="user"` |
+| 26 | Use delta-time for rotation (Safari frame-rate fix) | Critical | **FIXED** |
+
+**Progress: 26/26 FIXED**
+
+---
+
 ## Table of Contents
 
 1. [Critical: CSS `backdrop-filter` Overuse](#1-critical-css-backdrop-filter-overuse)

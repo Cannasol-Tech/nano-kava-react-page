@@ -168,7 +168,7 @@ function ContactForm({ theme }) {
               value={formData.name}
               onChange={handleChange}
               placeholder="John Smith"
-              className={`w-full pl-12 pr-4 py-3 ${theme.bgInput} ${theme.text} ${theme.placeholder} border ${errors.name ? 'border-red-500' : theme.borderInput} rounded-xl focus:outline-none focus:ring-2 ${theme.focusRing} transition-all`}
+              className={`w-full pl-12 pr-4 py-3 ${theme.bgInput} ${theme.text} ${theme.placeholder} border ${errors.name ? 'border-red-500' : theme.borderInput} rounded-xl focus:outline-none focus:ring-2 ${theme.focusRing} transition-colors`}
             />
           </div>
           {errors.name && <p className="text-red-500 text-sm mt-1">{errors.name}</p>}
@@ -186,7 +186,7 @@ function ContactForm({ theme }) {
               value={formData.email}
               onChange={handleChange}
               placeholder="john@company.com"
-              className={`w-full pl-12 pr-4 py-3 ${theme.bgInput} ${theme.text} ${theme.placeholder} border ${errors.email ? 'border-red-500' : theme.borderInput} rounded-xl focus:outline-none focus:ring-2 ${theme.focusRing} transition-all`}
+              className={`w-full pl-12 pr-4 py-3 ${theme.bgInput} ${theme.text} ${theme.placeholder} border ${errors.email ? 'border-red-500' : theme.borderInput} rounded-xl focus:outline-none focus:ring-2 ${theme.focusRing} transition-colors`}
             />
           </div>
           {errors.email && <p className="text-red-500 text-sm mt-1">{errors.email}</p>}
@@ -207,7 +207,7 @@ function ContactForm({ theme }) {
               value={formData.company}
               onChange={handleChange}
               placeholder="Your Company"
-              className={`w-full pl-12 pr-4 py-3 ${theme.bgInput} ${theme.text} ${theme.placeholder} border ${theme.borderInput} rounded-xl focus:outline-none focus:ring-2 ${theme.focusRing} transition-all`}
+              className={`w-full pl-12 pr-4 py-3 ${theme.bgInput} ${theme.text} ${theme.placeholder} border ${theme.borderInput} rounded-xl focus:outline-none focus:ring-2 ${theme.focusRing} transition-colors`}
             />
           </div>
         </div>
@@ -224,7 +224,7 @@ function ContactForm({ theme }) {
               value={formData.phone}
               onChange={handleChange}
               placeholder="+1 (555) 000-0000"
-              className={`w-full pl-12 pr-4 py-3 ${theme.bgInput} ${theme.text} ${theme.placeholder} border ${theme.borderInput} rounded-xl focus:outline-none focus:ring-2 ${theme.focusRing} transition-all`}
+              className={`w-full pl-12 pr-4 py-3 ${theme.bgInput} ${theme.text} ${theme.placeholder} border ${theme.borderInput} rounded-xl focus:outline-none focus:ring-2 ${theme.focusRing} transition-colors`}
             />
           </div>
         </div>
@@ -244,7 +244,7 @@ function ContactForm({ theme }) {
                 setFormData(prev => ({ ...prev, inquiryType: type.value }));
                 if (errors.inquiryType) setErrors(prev => ({ ...prev, inquiryType: '' }));
               }}
-              className={`p-4 rounded-xl border text-left transition-all ${
+              className={`p-4 rounded-xl border text-left transition-colors ${
                 formData.inquiryType === type.value
                   ? `bg-gradient-to-r ${theme.accent} text-slate-900 border-transparent`
                   : `${theme.bgInput} ${theme.text} ${theme.borderInput} hover:border-emerald-500/50`
@@ -270,7 +270,7 @@ function ContactForm({ theme }) {
             onChange={handleChange}
             placeholder="Tell us about your project, product goals, or any questions you have..."
             rows={5}
-            className={`w-full pl-12 pr-4 py-3 ${theme.bgInput} ${theme.text} ${theme.placeholder} border ${errors.message ? 'border-red-500' : theme.borderInput} rounded-xl focus:outline-none focus:ring-2 ${theme.focusRing} transition-all resize-none`}
+            className={`w-full pl-12 pr-4 py-3 ${theme.bgInput} ${theme.text} ${theme.placeholder} border ${errors.message ? 'border-red-500' : theme.borderInput} rounded-xl focus:outline-none focus:ring-2 ${theme.focusRing} transition-colors resize-none`}
           />
         </div>
         {errors.message && <p className="text-red-500 text-sm mt-1">{errors.message}</p>}

@@ -76,7 +76,7 @@ const scaleIn = {
 };
 
 // Animated counter component
-function AnimatedCounter({ value, suffix = '', prefix = '' }) {
+const AnimatedCounter = React.memo(function AnimatedCounter({ value, suffix = '', prefix = '' }) {
   const ref = useRef(null);
   const isInView = useInView(ref, { once: true, margin: "-100px" });
   const [count, setCount] = useState(0);
@@ -104,26 +104,17 @@ function AnimatedCounter({ value, suffix = '', prefix = '' }) {
   }, [isInView, value]);
   
   return <span ref={ref}>{prefix}{count}{suffix}</span>;
-}
+});
 
-// Animated gradient orb for hero
-function GlowOrb({ className = '', delay = 0 }) {
+// Animated gradient orb for hero — CSS-driven for compositor thread (#19)
+const GlowOrb = React.memo(function GlowOrb({ className = '', delay = 0 }) {
   return (
-    <motion.div
-      className={`absolute rounded-full ${className}`}
-      animate={{
-        scale: [1, 1.2, 1],
-        opacity: [0.3, 0.5, 0.3],
-      }}
-      transition={{
-        duration: 4,
-        delay,
-        repeat: Infinity,
-        ease: "easeInOut"
-      }}
+    <div
+      className={`absolute rounded-full animate-glow-orb ${className}`}
+      style={{ animationDelay: `${delay}s` }}
     />
   );
-}
+});
 
 // Animated line/grid background
 function GridBackground() {
@@ -161,74 +152,75 @@ function AnimatedSection({ children, className = '', id = '' }) {
   );
 }
 
+// Static data arrays — moved outside component to avoid per-render allocation (#15)
+const STATS = [
+  { value: '18', prefix: '~', suffix: 'nm', label: 'Particle Size', icon: Droplets },
+  { value: '5', suffix: 'x', label: 'Bioavailability', icon: TrendingUp },
+  { value: '5', suffix: ' min', label: 'Onset Time', icon: Clock }
+];
+
+const FEATURES = [
+  {
+    icon: Beaker,
+    title: "Enhanced Bioavailability",
+    description: "The increased surface area of our ~18nm nanoemulsified kavalactones enables superior absorption in the gastrointestinal tract, delivering higher bioavailability and more potent effects at lower doses.",
+    highlight: "Industry First"
+  },
+  {
+    icon: Sparkles,
+    title: "Improved Palatability",
+    description: "Nanoemulsification eliminates the gritty texture and muddy appearance of traditional kava preparations, resulting in crystal-clear, visually appealing beverages your customers will love.",
+    highlight: "Premium Clarity"
+  },
+  {
+    icon: Zap,
+    title: "Ease of Production",
+    description: "Our nanoemulsified kava extracts integrate seamlessly into various beverage formulations—shots, soft drinks, and flavored water—making kava consumption more convenient and enjoyable.",
+    highlight: "Versatile"
+  },
+  {
+    icon: Target,
+    title: "Precise Dosing",
+    description: "With uniform distribution of kavalactones throughout the nanoemulsion, dosing becomes remarkably accurate—ensuring consistent, predictable effects in every serving.",
+    highlight: "Consistent"
+  },
+  {
+    icon: Shield,
+    title: "Bitter Blocker Bundles",
+    description: "We offer the best deals on bitter blockers in the industry. Create smooth, palatable Kava products your customers will actually enjoy drinking.",
+    highlight: "Best Pricing"
+  },
+  {
+    icon: HeartHandshake,
+    title: "Direct Access to Josh",
+    description: "Our founder works directly with every client, bringing insights from top Kratom and Kava brands. Your success is our success—we're partners, not just suppliers.",
+    highlight: "Personal Support"
+  }
+];
+
+const PROCESS = [
+  { step: '01', title: 'Discovery Call', description: 'Discuss your product vision with Josh directly' },
+  { step: '02', title: 'Sample & Test', description: 'Get samples to test in your formulations' },
+  { step: '03', title: 'Refine & Order', description: 'Dial in your product and place your order' },
+  { step: '04', title: 'Scale Production', description: 'Launch with confidence and ongoing support' }
+];
+
 export default function KavaLandingPage() {
   const [activeFeature, setActiveFeature] = useState(0);
   const [formData, setFormData] = useState({ name: '', email: '', company: '', message: '' });
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const { isDark, setIsDark } = useTheme();
-  
+
   const theme = isDark ? themes.dark : themes.light;
   const heroRef = useRef(null);
   const { scrollYProgress } = useScroll({
     target: heroRef,
     offset: ["start start", "end start"]
   });
-  
+
   const heroOpacity = useTransform(scrollYProgress, [0, 0.5], [1, 0]);
   const heroScale = useTransform(scrollYProgress, [0, 0.5], [1, 0.95]);
   const heroY = useTransform(scrollYProgress, [0, 0.5], [0, 100]);
-
-  const stats = [
-    { value: '18', prefix: '~', suffix: 'nm', label: 'Particle Size', icon: Droplets },
-    { value: '5', suffix: 'x', label: 'Bioavailability', icon: TrendingUp },
-    { value: '5', suffix: ' min', label: 'Onset Time', icon: Clock }
-  ];
-
-  const features = [
-    {
-      icon: Beaker,
-      title: "Enhanced Bioavailability",
-      description: "The increased surface area of our ~18nm nanoemulsified kavalactones enables superior absorption in the gastrointestinal tract, delivering higher bioavailability and more potent effects at lower doses.",
-      highlight: "Industry First"
-    },
-    {
-      icon: Sparkles,
-      title: "Improved Palatability",
-      description: "Nanoemulsification eliminates the gritty texture and muddy appearance of traditional kava preparations, resulting in crystal-clear, visually appealing beverages your customers will love.",
-      highlight: "Premium Clarity"
-    },
-    {
-      icon: Zap,
-      title: "Ease of Production",
-      description: "Our nanoemulsified kava extracts integrate seamlessly into various beverage formulations—shots, soft drinks, and flavored water—making kava consumption more convenient and enjoyable.",
-      highlight: "Versatile"
-    },
-    {
-      icon: Target,
-      title: "Precise Dosing",
-      description: "With uniform distribution of kavalactones throughout the nanoemulsion, dosing becomes remarkably accurate—ensuring consistent, predictable effects in every serving.",
-      highlight: "Consistent"
-    },
-    {
-      icon: Shield,
-      title: "Bitter Blocker Bundles",
-      description: "We offer the best deals on bitter blockers in the industry. Create smooth, palatable Kava products your customers will actually enjoy drinking.",
-      highlight: "Best Pricing"
-    },
-    {
-      icon: HeartHandshake,
-      title: "Direct Access to Josh",
-      description: "Our founder works directly with every client, bringing insights from top Kratom and Kava brands. Your success is our success—we're partners, not just suppliers.",
-      highlight: "Personal Support"
-    }
-  ];
-
-  const process = [
-    { step: '01', title: 'Discovery Call', description: 'Discuss your product vision with Josh directly' },
-    { step: '02', title: 'Sample & Test', description: 'Get samples to test in your formulations' },
-    { step: '03', title: 'Refine & Order', description: 'Dial in your product and place your order' },
-    { step: '04', title: 'Scale Production', description: 'Launch with confidence and ongoing support' }
-  ];
 
   return (
     <div className={`min-h-screen ${theme.text} overflow-x-hidden transition-colors duration-500`}>
@@ -364,7 +356,7 @@ export default function KavaLandingPage() {
                 <Tag
                   key={item.label}
                   {...linkProps}
-                  className={`block ${theme.textSecondary} hover:text-emerald-400 font-medium py-2.5 px-3 rounded-lg hover:${isDark ? 'bg-slate-800/50' : 'bg-emerald-500/10'} transition-all duration-200 border-l-2 border-transparent hover:border-emerald-500`}
+                  className={`block ${theme.textSecondary} hover:text-emerald-400 font-medium py-2.5 px-3 rounded-lg hover:${isDark ? 'bg-slate-800/50' : 'bg-emerald-500/10'} transition-colors duration-200 border-l-2 border-transparent hover:border-emerald-500`}
                   onClick={() => setMobileMenuOpen(false)}
                 >
                   {item.label}
@@ -448,15 +440,12 @@ export default function KavaLandingPage() {
                   aria-hidden="true"
                 />
               )}
-              <motion.span
-                className="inline-block relative"
-                animate={{ backgroundPosition: ['0% 50%', '100% 50%', '0% 50%'] }}
-                transition={{ duration: 4, repeat: Infinity, ease: "linear" }}
+              <span
+                className="inline-block relative animate-gradient-text"
                 style={{
                   backgroundImage: isDark
                     ? 'linear-gradient(120deg, #a7f3d0, #6ee7b7, #2dd4bf, #22d3ee, #67e8f9, #6ee7b7, #a7f3d0)'
                     : 'linear-gradient(120deg, #059669, #0d9488, #0891b2, #06b6d4, #0d9488, #059669)',
-                  backgroundSize: '400% 100%',
                   WebkitBackgroundClip: 'text',
                   WebkitTextFillColor: 'transparent',
                   backgroundClip: 'text',
@@ -466,7 +455,7 @@ export default function KavaLandingPage() {
                 }}
               >
                 Nano Kava
-              </motion.span>
+              </span>
               <span className="sr-only"> — Premium Nano-Emulsified Kavalactones</span>
             </motion.h1>
 
@@ -525,7 +514,7 @@ export default function KavaLandingPage() {
             transition={{ duration: 0.8, delay: 0.8 }}
             className="relative grid grid-cols-1 sm:grid-cols-3 gap-4 md:gap-6 max-w-3xl mx-auto"
           >
-            {stats.map((stat, i) => (
+            {STATS.map((stat, i) => (
               <motion.div
                 key={i}
                 className="relative group"
@@ -671,7 +660,7 @@ export default function KavaLandingPage() {
           </motion.div>
 
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {features.map((feature, i) => (
+            {FEATURES.map((feature, i) => (
               <motion.div
                 key={i}
                 variants={scaleIn}
@@ -681,13 +670,13 @@ export default function KavaLandingPage() {
                 transition={{ type: "spring", stiffness: 300, damping: 20 }}
               >
                 {/* Glow effect on hover */}
-                <div className="absolute -inset-0.5 bg-gradient-to-r from-emerald-500 to-teal-500 rounded-2xl blur opacity-0 group-hover:opacity-20 transition-all duration-500" />
-                <div className={`relative h-full ${theme.bgCard} ${theme.shadowCard} rounded-2xl p-6 border ${theme.borderCard} group-hover:border-emerald-500/50 transition-all duration-300`}>
+                <div className="absolute -inset-0.5 bg-gradient-to-r from-emerald-500 to-teal-500 rounded-2xl blur opacity-0 group-hover:opacity-20 transition-opacity duration-500" style={{ willChange: 'opacity' }} />
+                <div className={`relative h-full ${theme.bgCard} ${theme.shadowCard} rounded-2xl p-6 border ${theme.borderCard} group-hover:border-emerald-500/50 transition-colors duration-300`}>
                   {/* Subtle inner glow */}
                   <div className="absolute inset-0 rounded-2xl bg-gradient-to-br from-emerald-500/5 via-transparent to-teal-500/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
                   <div className="relative">
                     <div className="flex items-start justify-between mb-4">
-                      <div className={`w-12 h-12 rounded-xl ${theme.bgIconBox} flex items-center justify-center group-hover:scale-110 group-hover:shadow-lg group-hover:shadow-emerald-500/20 transition-all duration-300`}>
+                      <div className={`w-12 h-12 rounded-xl ${theme.bgIconBox} flex items-center justify-center group-hover:scale-110 group-hover:shadow-lg group-hover:shadow-emerald-500/20 transition-[transform,box-shadow] duration-300`}>
                         <feature.icon className={`w-6 h-6 ${theme.accentText} group-hover:text-emerald-300 transition-colors`} />
                       </div>
                       <span className={`px-3 py-1 ${theme.bgHighlightBorder} rounded-full ${theme.accentText} text-xs font-medium border`}>
@@ -731,7 +720,7 @@ export default function KavaLandingPage() {
                 transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
               />
             </div>
-            {process.map((item, i) => (
+            {PROCESS.map((item, i) => (
               <motion.div
                 key={i}
                 variants={fadeInUp}
@@ -739,7 +728,7 @@ export default function KavaLandingPage() {
                 whileHover={{ y: -5 }}
                 transition={{ type: "spring", stiffness: 300, damping: 20 }}
               >
-                <div className={`relative ${theme.bgCardSolid} ${theme.shadowCard} rounded-2xl p-6 border ${theme.borderCard} group-hover:border-emerald-500/40 transition-all duration-300`}>
+                <div className={`relative ${theme.bgCardSolid} ${theme.shadowCard} rounded-2xl p-6 border ${theme.borderCard} group-hover:border-emerald-500/40 transition-colors duration-300`}>
                   {/* Step number with glow */}
                   <div className="relative mb-4">
                     <div className="absolute inset-0 bg-emerald-500/20 blur-xl rounded-full opacity-0 group-hover:opacity-100 transition-opacity" />
@@ -782,7 +771,7 @@ export default function KavaLandingPage() {
               transition={{ type: "spring", stiffness: 300, damping: 20 }}
             >
               <div className="absolute inset-0 bg-gradient-to-r from-emerald-500/10 to-teal-500/10 rounded-2xl blur-xl opacity-60 group-hover:opacity-100 transition-opacity duration-300" />
-              <div className={`relative ${theme.bgCardAlt} ${theme.shadowCard} rounded-2xl p-8 border ${theme.borderCard} h-full transition-all duration-300 group-hover:border-emerald-500/40 group-hover:shadow-lg group-hover:shadow-emerald-500/10`}>
+              <div className={`relative ${theme.bgCardAlt} ${theme.shadowCard} rounded-2xl p-8 border ${theme.borderCard} h-full transition-[border-color,box-shadow] duration-300 group-hover:border-emerald-500/40 group-hover:shadow-lg group-hover:shadow-emerald-500/10`}>
                 <div className="flex items-center gap-4 mb-6">
                   <div className={`w-16 h-16 rounded-xl ${theme.bgIconBox} flex items-center justify-center`}>
                     <Beaker className={`w-8 h-8 ${theme.accentText}`} />
@@ -810,7 +799,7 @@ export default function KavaLandingPage() {
               transition={{ type: "spring", stiffness: 300, damping: 20 }}
             >
               <div className="absolute inset-0 bg-gradient-to-r from-emerald-500/10 to-teal-500/10 rounded-2xl blur-xl opacity-60 group-hover:opacity-100 transition-opacity duration-300" />
-              <div className={`relative ${theme.bgCardAlt} ${theme.shadowCard} rounded-2xl p-8 border ${theme.borderCard} h-full transition-all duration-300 group-hover:border-emerald-500/40 group-hover:shadow-lg group-hover:shadow-emerald-500/10`}>
+              <div className={`relative ${theme.bgCardAlt} ${theme.shadowCard} rounded-2xl p-8 border ${theme.borderCard} h-full transition-[border-color,box-shadow] duration-300 group-hover:border-emerald-500/40 group-hover:shadow-lg group-hover:shadow-emerald-500/10`}>
                 <div className="flex items-center gap-4 mb-6">
                   <div className={`w-16 h-16 rounded-xl ${theme.bgIconBox} flex items-center justify-center`}>
                     <Award className={`w-8 h-8 ${theme.accentText}`} />
@@ -841,7 +830,7 @@ export default function KavaLandingPage() {
               {['Kava Seltzers', 'Functional Shots', 'RTD Beverages', 'Wellness Brands'].map((item, i) => (
                 <motion.span 
                   key={i}
-                  className={`px-5 py-2.5 ${theme.bgPill} ${theme.shadowCard} rounded-full ${theme.textSecondary} text-sm border ${theme.borderCard} hover:border-emerald-500/40 hover:${theme.accentText} transition-all cursor-default`}
+                  className={`px-5 py-2.5 ${theme.bgPill} ${theme.shadowCard} rounded-full ${theme.textSecondary} text-sm border ${theme.borderCard} hover:border-emerald-500/40 hover:${theme.accentText} transition-colors cursor-default`}
                   whileHover={{ scale: 1.05, y: -2 }}
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
@@ -865,15 +854,11 @@ export default function KavaLandingPage() {
             <div className="absolute inset-0 bg-gradient-to-r from-emerald-500/20 via-teal-500/20 to-cyan-500/20 rounded-3xl blur-2xl" />
             <div className={`relative ${theme.bgCard} ${theme.shadowXl} rounded-3xl p-8 md:p-12 border ${theme.borderCta}`}>
               <div className="text-center mb-10">
-                <motion.div
-                  className={`inline-flex items-center justify-center w-16 h-16 rounded-full bg-gradient-to-r ${theme.accent} mb-6`}
-                  animate={{ 
-                    boxShadow: ['0 0 20px rgba(16, 185, 129, 0.3)', '0 0 40px rgba(16, 185, 129, 0.5)', '0 0 20px rgba(16, 185, 129, 0.3)']
-                  }}
-                  transition={{ duration: 2, repeat: Infinity }}
+                <div
+                  className={`inline-flex items-center justify-center w-16 h-16 rounded-full bg-gradient-to-r ${theme.accent} mb-6 animate-glow`}
                 >
                   <MessageCircle className="w-8 h-8 text-slate-900" />
-                </motion.div>
+                </div>
                 <h2 className={`text-3xl md:text-4xl font-bold mb-4 ${theme.text}`}>
                   Ready to Create the Best
                   <br />
@@ -942,10 +927,11 @@ export default function KavaLandingPage() {
         <div className="max-w-7xl mx-auto px-6">
           <div className="flex flex-col md:flex-row justify-between items-center gap-6">
             <div className="flex items-center gap-3">
-              <img 
-                src={theme.logo} 
-                alt="Cannasol Technologies" 
+              <img
+                src={theme.logo}
+                alt="Cannasol Technologies"
                 className="h-8 w-auto"
+                loading="lazy"
               />
               <span className={`${theme.textSecondary} text-sm`}>© 2026 Cannasol Technologies LLC</span>
             </div>
