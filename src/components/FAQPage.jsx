@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { Helmet } from 'react-helmet-async';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Link } from 'react-router-dom';
 import { useTheme } from '../context/ThemeContext';
@@ -138,18 +139,20 @@ const faqCategories = [
 function FAQItem({ question, answer, isOpen, onClick, theme }) {
   return (
     <div className={`border-b ${theme.borderCard}`}>
-      <button
-        onClick={onClick}
-        className={`w-full py-5 px-6 flex items-center justify-between text-left ${theme.text} hover:${theme.accentText} transition-colors`}
-      >
-        <span className="font-medium pr-8">{question}</span>
-        <motion.div
-          animate={{ rotate: isOpen ? 180 : 0 }}
-          transition={{ duration: 0.2 }}
+      <h3 className="m-0">
+        <button
+          onClick={onClick}
+          className={`w-full py-5 px-6 flex items-center justify-between text-left ${theme.text} hover:${theme.accentText} transition-colors`}
         >
-          <ChevronDown className={`w-5 h-5 ${theme.textMuted}`} />
-        </motion.div>
-      </button>
+          <span className="font-medium pr-8">{question}</span>
+          <motion.div
+            animate={{ rotate: isOpen ? 180 : 0 }}
+            transition={{ duration: 0.2 }}
+          >
+            <ChevronDown className={`w-5 h-5 ${theme.textMuted}`} />
+          </motion.div>
+        </button>
+      </h3>
       <AnimatePresence>
         {isOpen && (
           <motion.div
@@ -227,6 +230,15 @@ export default function FAQPage() {
 
   return (
     <div className={`min-h-screen ${theme.text} transition-colors duration-500`}>
+      <Helmet>
+        <title>Nano Kava FAQ | Kavalactone Questions Answered — EnjoyNano</title>
+        <meta name="description" content="Frequently asked questions about nano kava, kavalactones, nano-emulsified kava technology, dosing, safety, and bioavailability benefits." />
+        <link rel="canonical" href="https://enjoynano.com/faq" />
+        <meta property="og:title" content="Nano Kava FAQ — Kavalactone Questions Answered" />
+        <meta property="og:description" content="Get answers about nano kava, kavalactones, dosing, safety, and nano-emulsified kava benefits." />
+        <meta property="og:url" content="https://enjoynano.com/faq" />
+      </Helmet>
+
       {/* Navigation */}
       <motion.nav 
         className={`fixed top-0 left-0 right-0 z-50 backdrop-blur-xl ${theme.bgNav} border-b ${theme.border}/50 transition-colors duration-500`}
@@ -284,6 +296,7 @@ export default function FAQPage() {
             <h1 className={`text-4xl md:text-6xl font-bold mb-6 ${theme.text}`}>
               Frequently Asked
               <span className={`bg-gradient-to-r ${theme.accentGradientAlt} bg-clip-text text-transparent`}> Questions</span>
+              <span className="sr-only"> — Nano Kava &amp; Kavalactones</span>
             </h1>
             <p className={`text-xl ${theme.textSecondary} max-w-2xl mx-auto`}>
               Everything you need to know about our nano Kava emulsion, formulation, ordering, and partnership opportunities.

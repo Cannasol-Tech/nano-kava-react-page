@@ -1,4 +1,5 @@
 import React, { useMemo } from 'react';
+import { Helmet } from 'react-helmet-async';
 import { Link } from 'react-router-dom';
 import { useTheme } from '../context/ThemeContext';
 import { motion } from 'framer-motion';
@@ -89,6 +90,15 @@ function MushroomsLandingPage() {
 
   return (
     <div className={`min-h-screen ${theme.text} overflow-x-hidden transition-colors duration-500`}>
+      <Helmet>
+        <title>Nano Mushroom Extracts | Nanoemulsified Functional Mushrooms — EnjoyNano</title>
+        <meta name="description" content="Nanoemulsified functional mushroom extracts for maximum bioavailability. Lion's Mane, Reishi, Cordyceps and more — powered by nano-emulsification technology." />
+        <link rel="canonical" href="https://enjoynano.com/mushrooms" />
+        <meta property="og:title" content="Nano Mushroom Extracts — Nanoemulsified Functional Mushrooms" />
+        <meta property="og:description" content="Nanoemulsified functional mushroom extracts: Lion's Mane, Reishi, Cordyceps with maximum bioavailability." />
+        <meta property="og:url" content="https://enjoynano.com/mushrooms" />
+      </Helmet>
+
       <motion.nav
         className={`fixed top-0 left-0 right-0 z-50 backdrop-blur-xl ${theme.bgNav} border-b ${theme.border}/50 transition-colors duration-500`}
         initial={{ y: -100 }}

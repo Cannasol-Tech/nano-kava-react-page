@@ -84,8 +84,8 @@ Complete the Kava landing page and deploy it as a standalone site, with a redire
 - **Icons**: Lucide React
 
 ### Deployment
-- **Hosting**: Netlify (recommended) or Vercel
-- **Forms**: Netlify Forms (built-in, no backend)
+- **Hosting**: Firebase Hosting
+- **Forms**: Firebase Functions
 - **Domain**: Subdomain of cannasoltechnologies.com
 
 ### File Structure

@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { Helmet } from 'react-helmet-async';
 import { motion } from 'framer-motion';
 import { Link } from 'react-router-dom';
 import { useTheme } from '../context/ThemeContext';
@@ -341,6 +342,15 @@ export default function ContactPage() {
 
   return (
     <div className={`min-h-screen ${theme.text} transition-colors duration-500`}>
+      <Helmet>
+        <title>Contact Us | Nano Kava by EnjoyNano</title>
+        <meta name="description" content="Get in touch with the EnjoyNano team. Questions about nano kava, wholesale orders, or nano-emulsified kavalactone technology? We'd love to hear from you." />
+        <link rel="canonical" href="https://enjoynano.com/contact" />
+        <meta property="og:title" content="Contact EnjoyNano — Nano Kava Team" />
+        <meta property="og:description" content="Reach out for nano kava samples, pricing, formulation support, or partnership inquiries." />
+        <meta property="og:url" content="https://enjoynano.com/contact" />
+      </Helmet>
+
       {/* Navigation */}
       <motion.nav 
         className={`fixed top-0 left-0 right-0 z-50 backdrop-blur-xl ${theme.bgNav} border-b ${theme.border}/50 transition-colors duration-500`}
@@ -398,6 +408,7 @@ export default function ContactPage() {
             <h1 className={`text-4xl md:text-6xl font-bold mb-6 ${theme.text}`}>
               Let's
               <span className={`bg-gradient-to-r ${theme.accentGradientAlt} bg-clip-text text-transparent`}> Connect</span>
+              <span className="sr-only"> — Contact EnjoyNano for Nano Kava</span>
             </h1>
             <p className={`text-xl ${theme.textSecondary} max-w-2xl mx-auto`}>
               Ready to revolutionize your Kava products? Whether you need samples, pricing, or formulation support—Josh is here to help.

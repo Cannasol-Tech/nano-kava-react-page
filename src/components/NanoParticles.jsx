@@ -28,6 +28,8 @@ export default function NanoParticles({ isDark = true }) {
   const mouseRef = useRef({ x: -1000, y: -1000 });
   const animFrameRef = useRef(null);
   const timeRef = useRef(0);
+  const pausedRef = useRef(false);
+  const visibleRef = useRef(true);
 
   const getColors = useCallback(() => {
     if (isDark) {
@@ -90,7 +92,34 @@ export default function NanoParticles({ isDark = true }) {
     canvas.addEventListener('mousemove', handleMouseMove);
     canvas.addEventListener('mouseleave', handleMouseLeave);
 
+    // Pause rendering when canvas scrolls offscreen
+    const observer = new IntersectionObserver(([entry]) => {
+      visibleRef.current = entry.isIntersecting;
+    }, { threshold: 0 });
+    observer.observe(canvas);
+
+    function handleVisibilityChange() {
+      if (document.hidden) {
+        pausedRef.current = true;
+        if (animFrameRef.current) {
+          cancelAnimationFrame(animFrameRef.current);
+          animFrameRef.current = null;
+        }
+      } else {
+        pausedRef.current = false;
+        if (!animFrameRef.current) {
+          animFrameRef.current = requestAnimationFrame(animate);
+        }
+      }
+    }
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+
     function animate() {
+      if (pausedRef.current) return;
+      if (!visibleRef.current) {
+        animFrameRef.current = requestAnimationFrame(animate);
+        return;
+      }
       timeRef.current += 1;
       const t = timeRef.current;
       const colors = getColors();
@@ -207,6 +236,8 @@ export default function NanoParticles({ isDark = true }) {
     animFrameRef.current = requestAnimationFrame(animate);
 
     return () => {
+      observer.disconnect();
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
       window.removeEventListener('resize', resize);
       canvas.removeEventListener('mousemove', handleMouseMove);
       canvas.removeEventListener('mouseleave', handleMouseLeave);

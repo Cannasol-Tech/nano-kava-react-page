@@ -1,4 +1,5 @@
 import React, { useState, useRef } from 'react';
+import { Helmet } from 'react-helmet-async';
 import { Link } from 'react-router-dom';
 import { motion, useInView, useScroll, useTransform } from 'framer-motion';
 import { 
@@ -217,7 +218,7 @@ export default function KavaLandingPage() {
     {
       icon: HeartHandshake,
       title: "Direct Access to Josh",
-      description: "CEO Josh works directly with every client, bringing insights from top Kratom and Kava brands. Your success is our success—we're partners, not just suppliers.",
+      description: "Our founder works directly with every client, bringing insights from top Kratom and Kava brands. Your success is our success—we're partners, not just suppliers.",
       highlight: "Personal Support"
     }
   ];
@@ -231,6 +232,15 @@ export default function KavaLandingPage() {
 
   return (
     <div className={`min-h-screen ${theme.text} overflow-x-hidden transition-colors duration-500`}>
+      <Helmet>
+        <title>Nano Kava | Premium Nano-Emulsified Kavalactones — EnjoyNano</title>
+        <meta name="description" content="Nano-emulsified kava with ~18nm particle size. 10x bioavailability, 5-minute onset, crystal-clear kavalactones. Trusted by top beverage brands." />
+        <link rel="canonical" href="https://enjoynano.com/" />
+        <meta property="og:title" content="Nano Kava | Premium Nano-Emulsified Kavalactones" />
+        <meta property="og:description" content="Nano-emulsified kava with ~18nm particle size. 10x bioavailability, 5-minute onset, crystal-clear kavalactones." />
+        <meta property="og:url" content="https://enjoynano.com/" />
+      </Helmet>
+
       {/* Navigation */}
       <motion.nav 
         className={`fixed top-0 left-0 right-0 z-50 backdrop-blur-xl ${theme.bgNav} border-b ${theme.border}/50 transition-colors duration-500`}
@@ -402,7 +412,7 @@ export default function KavaLandingPage() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6 }}
-            className={`max-w-3xl mx-auto mb-10 ${!isDark ? 'bg-white/60 backdrop-blur-xl rounded-3xl px-8 py-10 md:px-12 md:py-12 border border-emerald-500/20 shadow-lg shadow-slate-200/30 overflow-hidden relative' : ''}`}
+            className={`max-w-3xl mx-auto mb-10 ${!isDark ? 'bg-white/30 backdrop-blur-xl rounded-3xl px-8 py-10 md:px-12 md:py-12 border border-emerald-500/15 shadow-lg shadow-slate-200/20 overflow-hidden relative' : ''}`}
           >
             {/* Light mode tinted overlay */}
             {!isDark && <div className="absolute inset-0 bg-gradient-to-r from-emerald-500/10 via-teal-500/10 to-cyan-500/10 pointer-events-none" />}
@@ -421,19 +431,43 @@ export default function KavaLandingPage() {
 
             {/* Main headline */}
             <motion.h1
-              initial={{ opacity: 0, y: 30 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.8, delay: 0.2 }}
-              className="text-5xl md:text-7xl lg:text-8xl font-black mb-6 leading-[1.1]"
+              initial={{ opacity: 0, y: 30, scale: 0.95 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              transition={{ duration: 1, delay: 0.2, ease: [0.16, 1, 0.3, 1] }}
+              className="relative text-6xl md:text-8xl lg:text-9xl font-black mb-6 leading-[1.1] tracking-tighter"
             >
+              {/* Background glow pulse */}
+              {isDark && (
+                <motion.span
+                  className="absolute inset-0 blur-3xl opacity-40 pointer-events-none"
+                  animate={{ opacity: [0.25, 0.5, 0.25] }}
+                  transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
+                  style={{
+                    background: 'radial-gradient(ellipse at center, rgba(52, 211, 153, 0.4), rgba(45, 212, 191, 0.2), transparent 70%)',
+                  }}
+                  aria-hidden="true"
+                />
+              )}
               <motion.span
-                className={`inline-block bg-gradient-to-r ${theme.heroGradient} bg-clip-text text-transparent`}
+                className="inline-block relative"
                 animate={{ backgroundPosition: ['0% 50%', '100% 50%', '0% 50%'] }}
-                transition={{ duration: 5, repeat: Infinity, ease: "linear" }}
-                style={{ backgroundSize: '200% 200%' }}
+                transition={{ duration: 4, repeat: Infinity, ease: "linear" }}
+                style={{
+                  backgroundImage: isDark
+                    ? 'linear-gradient(120deg, #a7f3d0, #6ee7b7, #2dd4bf, #22d3ee, #67e8f9, #6ee7b7, #a7f3d0)'
+                    : 'linear-gradient(120deg, #059669, #0d9488, #0891b2, #06b6d4, #0d9488, #059669)',
+                  backgroundSize: '400% 100%',
+                  WebkitBackgroundClip: 'text',
+                  WebkitTextFillColor: 'transparent',
+                  backgroundClip: 'text',
+                  filter: isDark
+                    ? 'drop-shadow(0 0 40px rgba(52, 211, 153, 0.4)) drop-shadow(0 0 80px rgba(45, 212, 191, 0.2))'
+                    : 'drop-shadow(0 2px 4px rgba(0,0,0,0.1))',
+                }}
               >
                 Nano Kava
               </motion.span>
+              <span className="sr-only"> — Premium Nano-Emulsified Kavalactones</span>
             </motion.h1>
 
             {/* Subheadline */}
@@ -534,25 +568,25 @@ export default function KavaLandingPage() {
       {/* Problem/Solution Section */}
       <AnimatedSection id="benefits" className="relative py-24 md:py-32">
         <div className="max-w-7xl mx-auto px-6">
-          <div className="grid lg:grid-cols-2 gap-16 items-center">
+          <div className="grid lg:grid-cols-2 gap-16 items-stretch">
             {/* Problem */}
             <motion.div variants={fadeInLeft} className="relative">
               <div className="absolute inset-0 bg-gradient-to-r from-red-500/10 to-orange-500/10 rounded-3xl blur-2xl" />
-              <div className={`relative ${theme.bgCardSolid} ${theme.shadowXl} backdrop-blur rounded-3xl p-8 md:p-10 border ${theme.borderCard}`}>
-                <div className={`inline-flex items-center gap-2 px-3 py-1 ${theme.bgError} rounded-full ${theme.textError} text-sm font-medium mb-6`}>
+              <div className={`relative ${theme.bgCardSolid} ${theme.shadowXl} backdrop-blur rounded-3xl p-8 md:p-10 border ${theme.borderCard} flex flex-col h-full`}>
+                <div className={`inline-flex self-start items-center gap-2 px-3 py-1 ${theme.bgError} rounded-full ${theme.textError} text-sm font-medium mb-6`}>
                   <span className={`w-1.5 h-1.5 ${theme.errorDot} rounded-full`} />
                   The Industry Problem
                 </div>
-                <h2 className={`text-3xl md:text-5xl font-bold mb-6 leading-tight ${theme.text}`}>
+                <h2 className={`text-2xl md:text-4xl font-bold mb-6 leading-tight ${theme.text}`}>
                   Traditional Kava
-                  <span className={theme.textMuted}> Doesn't Work</span>
-                  <br />for Modern Beverages
+                  <span className="text-red-500"> Doesn't Work</span>{' '}
+                  for Modern Beverages
                 </h2>
                 <p className={`${theme.textSecondary} text-lg mb-8 leading-relaxed`}>
                   Traditional Kava preparations suffer from poor bioavailability, gritty texture, and muddy appearance.
                   Your customers want instant results and a pleasant experience—not a waiting game.
                 </p>
-                <div className="space-y-4">
+                <div className="space-y-4 mt-auto">
                   {[
                     'Limited absorption in the gastrointestinal tract',
                     '30-45 minute onset frustrates consumers',
@@ -580,12 +614,12 @@ export default function KavaLandingPage() {
               className="relative"
             >
               <div className="absolute inset-0 bg-gradient-to-r from-emerald-500/10 to-teal-500/10 rounded-3xl blur-2xl" />
-              <div className={`relative ${theme.bgCardSolid} ${theme.shadowXl} backdrop-blur rounded-3xl p-8 md:p-10 border ${theme.borderCard}`}>
-                <div className={`inline-flex items-center gap-2 px-3 py-1 ${theme.bgHighlight} rounded-full ${theme.accentText} text-sm font-medium mb-6`}>
+              <div className={`relative ${theme.bgCardSolid} ${theme.shadowXl} backdrop-blur rounded-3xl p-8 md:p-10 border ${theme.borderCard} flex flex-col h-full`}>
+                <div className={`inline-flex self-start items-center gap-2 px-3 py-1 ${theme.bgHighlight} rounded-full ${theme.accentText} text-sm font-medium mb-6`}>
                   <span className="w-1.5 h-1.5 bg-emerald-400 rounded-full animate-pulse" />
                   The Cannasol Solution
                 </div>
-                <h3 className={`text-2xl md:text-3xl font-bold mb-4 ${theme.text}`}>
+                <h3 className={`text-2xl md:text-4xl font-bold mb-4 ${theme.text}`}>
                   Nanoemulsification:
                   <br />
                   <span className={`bg-gradient-to-r ${theme.accentGradientAlt} bg-clip-text text-transparent`}>
@@ -595,7 +629,7 @@ export default function KavaLandingPage() {
                 <p className={`${theme.textSecondary} mb-8 leading-relaxed`}>
                   This cutting-edge process breaks down oil-based kavalactones into tiny droplets suspended in water—so small they become almost transparent, creating a stable and uniform mixture. Our proprietary NanoOptimizer™ surfactant system dramatically increases surface area, making kavalactones more readily available for absorption by the body.
                 </p>
-                <div className="space-y-4">
+                <div className="space-y-4 mt-auto">
                   {[
                     'Enhanced bioavailability through better absorption',
                     'Crystal-clear, visually appealing beverages',
@@ -744,9 +778,11 @@ export default function KavaLandingPage() {
             <motion.div
               variants={scaleIn}
               className="relative group"
+              whileHover={{ scale: 1.03, y: -4 }}
+              transition={{ type: "spring", stiffness: 300, damping: 20 }}
             >
-              <div className="absolute inset-0 bg-gradient-to-r from-emerald-500/10 to-teal-500/10 rounded-2xl blur-xl" />
-              <div className={`relative ${theme.bgCardAlt} ${theme.shadowCard} backdrop-blur rounded-2xl p-8 border ${theme.borderCard} h-full`}>
+              <div className="absolute inset-0 bg-gradient-to-r from-emerald-500/10 to-teal-500/10 rounded-2xl blur-xl opacity-60 group-hover:opacity-100 transition-opacity duration-300" />
+              <div className={`relative ${theme.bgCardAlt} ${theme.shadowCard} backdrop-blur rounded-2xl p-8 border ${theme.borderCard} h-full transition-all duration-300 group-hover:border-emerald-500/40 group-hover:shadow-lg group-hover:shadow-emerald-500/10`}>
                 <div className="flex items-center gap-4 mb-6">
                   <div className={`w-16 h-16 rounded-xl ${theme.bgIconBox} flex items-center justify-center`}>
                     <Beaker className={`w-8 h-8 ${theme.accentText}`} />
@@ -770,9 +806,11 @@ export default function KavaLandingPage() {
             <motion.div
               variants={scaleIn}
               className="relative group"
+              whileHover={{ scale: 1.03, y: -4 }}
+              transition={{ type: "spring", stiffness: 300, damping: 20 }}
             >
-              <div className="absolute inset-0 bg-gradient-to-r from-emerald-500/10 to-teal-500/10 rounded-2xl blur-xl" />
-              <div className={`relative ${theme.bgCardAlt} ${theme.shadowCard} backdrop-blur rounded-2xl p-8 border ${theme.borderCard} h-full`}>
+              <div className="absolute inset-0 bg-gradient-to-r from-emerald-500/10 to-teal-500/10 rounded-2xl blur-xl opacity-60 group-hover:opacity-100 transition-opacity duration-300" />
+              <div className={`relative ${theme.bgCardAlt} ${theme.shadowCard} backdrop-blur rounded-2xl p-8 border ${theme.borderCard} h-full transition-all duration-300 group-hover:border-emerald-500/40 group-hover:shadow-lg group-hover:shadow-emerald-500/10`}>
                 <div className="flex items-center gap-4 mb-6">
                   <div className={`w-16 h-16 rounded-xl ${theme.bgIconBox} flex items-center justify-center`}>
                     <Award className={`w-8 h-8 ${theme.accentText}`} />
@@ -912,8 +950,8 @@ export default function KavaLandingPage() {
               <span className={`${theme.textSecondary} text-sm`}>© 2026 Cannasol Technologies LLC</span>
             </div>
             <div className={`flex gap-6 text-sm ${theme.textMuted}`}>
-              <a href="https://cannasoltechnologies.com/shop/" className={`hover:${theme.text} transition-colors`}>Shop</a>
-              <a href="https://cannasoltechnologies.com/resources" className={`hover:${theme.text} transition-colors`}>Resources</a>
+              <a href="https://cannasoltechnologies.com/shop/" target="_blank" rel="noopener noreferrer" className={`hover:${theme.text} transition-colors`}>Shop</a>
+              <a href="https://cannasoltechnologies.com/resources" target="_blank" rel="noopener noreferrer" className={`hover:${theme.text} transition-colors`}>Resources</a>
               <Link to="/contact" className={`hover:${theme.text} transition-colors`}>Contact</Link>
             </div>
           </div>

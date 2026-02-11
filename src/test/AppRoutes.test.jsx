@@ -2,22 +2,28 @@ import React from 'react';
 import { describe, it, expect } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
+import { HelmetProvider } from 'react-helmet-async';
+import { ThemeProvider } from '../context/ThemeContext';
 import AppRoutes from '../AppRoutes';
 
 function renderRoute(initialPath) {
   return render(
-    <MemoryRouter initialEntries={[initialPath]}>
-      <AppRoutes />
-    </MemoryRouter>
+    <HelmetProvider>
+      <MemoryRouter initialEntries={[initialPath]}>
+        <ThemeProvider>
+          <AppRoutes />
+        </ThemeProvider>
+      </MemoryRouter>
+    </HelmetProvider>
   );
 }
 
 describe('AppRoutes', () => {
-  it('renders the mushrooms landing page at /mushrooms', () => {
+  it('renders the mushrooms landing page at /mushrooms', async () => {
     renderRoute('/mushrooms');
 
     expect(
-      screen.getByRole('heading', { name: /nanoemulsified\s+functional\s+mushrooms/i })
+      await screen.findByRole('heading', { name: /nanoemulsified\s+functional\s+mushrooms/i })
     ).toBeInTheDocument();
 
     expect(screen.getByText(/lion's mane/i)).toBeInTheDocument();

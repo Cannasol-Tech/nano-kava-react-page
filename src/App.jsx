@@ -1,5 +1,6 @@
 import React from 'react';
 import { BrowserRouter as Router } from 'react-router-dom';
+import { HelmetProvider } from 'react-helmet-async';
 import AppRoutes from './AppRoutes';
 import { ThemeProvider, useTheme } from './context/ThemeContext';
 import NanoScene from './components/NanoScene';
@@ -22,11 +23,13 @@ function AppContent() {
 
 function App() {
   return (
-    <Router>
-      <ThemeProvider>
-        <AppContent />
-      </ThemeProvider>
-    </Router>
+    <HelmetProvider>
+      <Router>
+        <ThemeProvider>
+          <AppContent />
+        </ThemeProvider>
+      </Router>
+    </HelmetProvider>
   );
 }
 

@@ -14,9 +14,12 @@ npm run build        # Production build to dist/
 npm run preview      # Preview production build locally
 npm run test         # Run tests once (vitest run)
 npm run test:watch   # Watch mode testing (vitest)
+npx vitest run src/test/AppRoutes.test.jsx  # Run a single test file
 ```
 
 Makefile shortcuts: `make install`, `make dev`, `make preview` (opens browser), `make preview-mushrooms` (opens /mushrooms), `make build`, `make clean`, `make deploy`
+
+Cloud Functions have a separate `functions/` directory with its own `package.json`. Install and deploy independently: `cd functions && npm install`.
 
 ## Deployment
 
@@ -58,4 +61,14 @@ Canvas components use precomputed Fibonacci sphere points, pre-allocated sort bu
 - Path alias `@/*` maps to `src/*` in jsconfig.json (IDE resolution only — not configured in vite.config.js, so use relative imports in code)
 - Brand colors: `cannasol-green` `#2ECC71`, `cannasol-teal` `#17A2B8`, `cannasol-dark` `#0f172a` (defined in tailwind.config.js under `theme.extend.colors.cannasol`)
 - Custom Tailwind animations: `float`, `glow`, `pulse-slow` (in tailwind.config.js); additional CSS animations (gradient-shift, shimmer) in `src/index.css`
-- Test mocks for `IntersectionObserver` and `ResizeObserver` in `src/test/setupTests.js`
+- `landingPage.js` at project root is a standalone prototype — not used by the app. The actual mushrooms page is `src/components/MushroomsLandingPage.jsx`
+- `docs/` contains planning docs (`implementation-plan.md`), feature specs, SEO notes, and testing standards — check here for project context
+
+## Testing
+
+Standards are documented in `docs/sw-testing-standards.md`. Key points:
+- Vitest + jsdom + React Testing Library (RTL)
+- Prefer `getByRole` / `findByRole` with accessible names; avoid `querySelector`
+- Route tests use `MemoryRouter` with `initialEntries` (see `src/test/AppRoutes.test.jsx` for the pattern)
+- Assert user-visible behavior: headings, CTAs, navigation links. Do not assert animation timings, Tailwind class strings, or pixel layout
+- Test mocks for `IntersectionObserver` and `ResizeObserver` are in `src/test/setupTests.js`
