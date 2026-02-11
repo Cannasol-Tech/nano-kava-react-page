@@ -84,6 +84,43 @@ body {
   animation: shimmer 2s infinite;
 }
 
+/* Hover shine effect */
+.btn-shine {
+  position: relative;
+  overflow: hidden;
+}
+
+.btn-shine::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 60%;
+  height: 100%;
+  background: linear-gradient(
+    120deg,
+    transparent,
+    rgba(255, 255, 255, 0.4),
+    transparent
+  );
+  transition: none;
+  pointer-events: none;
+  z-index: 20;
+}
+
+.btn-shine:hover::before {
+  animation: btn-shine-slide 0.6s ease-out;
+}
+
+@keyframes btn-shine-slide {
+  0% {
+    left: -100%;
+  }
+  100% {
+    left: 150%;
+  }
+}
+
 /* Custom animations */
 @keyframes float {
   0%, 100% {

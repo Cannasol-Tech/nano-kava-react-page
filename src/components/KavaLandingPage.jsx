@@ -256,12 +256,31 @@ export default function KavaLandingPage() {
           </motion.div>
           
           <div className="hidden md:flex items-center gap-8 text-sm">
-            <a href="#benefits" className={`${theme.textSecondary} hover:${theme.text} transition-colors`}>Benefits</a>
-            <a href="#process" className={`${theme.textSecondary} hover:${theme.text} transition-colors`}>Process</a>
-            <a href="#proof" className={`${theme.textSecondary} hover:${theme.text} transition-colors`}>Partners</a>
-            <Link to="/mushrooms" className={`${theme.textSecondary} hover:${theme.text} transition-colors`}>Mushrooms</Link>
-            <Link to="/faq" className={`${theme.textSecondary} hover:${theme.text} transition-colors`}>FAQ</Link>
-            <Link to="/contact" className={`${theme.textSecondary} hover:${theme.text} transition-colors`}>Contact</Link>
+            {[
+              { href: '#benefits', label: 'Benefits' },
+              { href: '#process', label: 'Process' },
+              { href: '#proof', label: 'Partners' },
+              { to: '/mushrooms', label: 'Mushrooms' },
+              { to: '/faq', label: 'FAQ' },
+              { to: '/contact', label: 'Contact' },
+            ].map((item) => {
+              const Tag = item.to ? Link : 'a';
+              const linkProps = item.to ? { to: item.to } : { href: item.href };
+              return (
+                <div key={item.label} className="relative group">
+                  <Tag
+                    {...linkProps}
+                    className={`${theme.textSecondary} group-hover:text-emerald-400 transition-colors duration-300 font-medium py-1`}
+                  >
+                    {item.label}
+                  </Tag>
+                  {/* Animated underline */}
+                  <span className="absolute -bottom-0.5 left-0 right-0 h-[2px] bg-gradient-to-r from-emerald-500 to-teal-500 rounded-full origin-left scale-x-0 group-hover:scale-x-100 transition-transform duration-300 ease-out" />
+                  {/* Glow under the line */}
+                  <span className="absolute -bottom-0.5 left-0 right-0 h-[2px] bg-gradient-to-r from-emerald-500 to-teal-500 rounded-full origin-left scale-x-0 group-hover:scale-x-100 transition-transform duration-300 ease-out blur-sm" />
+                </div>
+              );
+            })}
             
             {/* Theme Toggle */}
             <motion.button
@@ -276,7 +295,7 @@ export default function KavaLandingPage() {
             
             <motion.a
               href="#contact"
-              className={`px-5 py-2.5 bg-gradient-to-r ${theme.accent} text-slate-900 font-semibold rounded-full`}
+              className={`btn-shine px-5 py-2.5 bg-gradient-to-r ${theme.accent} text-slate-900 font-semibold rounded-full`}
               whileHover={{ scale: 1.05, boxShadow: '0 0 30px rgba(16, 185, 129, 0.4)' }}
               whileTap={{ scale: 0.98 }}
             >
@@ -321,42 +340,27 @@ export default function KavaLandingPage() {
           }}
           transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1] }}
         >
-          <div className={`px-6 py-4 border-t ${theme.border}/50 space-y-4`}>
-            <a 
-              href="#benefits" 
-              className={`block ${theme.textSecondary} hover:${theme.text} transition-colors py-2`}
-              onClick={() => setMobileMenuOpen(false)}
-            >
-              Benefits
-            </a>
-            <a 
-              href="#process" 
-              className={`block ${theme.textSecondary} hover:${theme.text} transition-colors py-2`}
-              onClick={() => setMobileMenuOpen(false)}
-            >
-              Process
-            </a>
-            <a 
-              href="#proof" 
-              className={`block ${theme.textSecondary} hover:${theme.text} transition-colors py-2`}
-              onClick={() => setMobileMenuOpen(false)}
-            >
-              Partners
-            </a>
-            <Link 
-              to="/mushrooms" 
-              className={`block ${theme.textSecondary} hover:${theme.text} transition-colors py-2`}
-              onClick={() => setMobileMenuOpen(false)}
-            >
-              Mushrooms
-            </Link>
-            <Link 
-              to="/faq" 
-              className={`block ${theme.textSecondary} hover:${theme.text} transition-colors py-2`}
-              onClick={() => setMobileMenuOpen(false)}
-            >
-              FAQ
-            </Link>
+          <div className={`px-6 py-4 border-t ${theme.border}/50 space-y-1`}>
+            {[
+              { href: '#benefits', label: 'Benefits' },
+              { href: '#process', label: 'Process' },
+              { href: '#proof', label: 'Partners' },
+              { to: '/mushrooms', label: 'Mushrooms' },
+              { to: '/faq', label: 'FAQ' },
+            ].map((item) => {
+              const Tag = item.to ? Link : 'a';
+              const linkProps = item.to ? { to: item.to } : { href: item.href };
+              return (
+                <Tag
+                  key={item.label}
+                  {...linkProps}
+                  className={`block ${theme.textSecondary} hover:text-emerald-400 font-medium py-2.5 px-3 rounded-lg hover:${isDark ? 'bg-slate-800/50' : 'bg-emerald-500/10'} transition-all duration-200 border-l-2 border-transparent hover:border-emerald-500`}
+                  onClick={() => setMobileMenuOpen(false)}
+                >
+                  {item.label}
+                </Tag>
+              );
+            })}
             <Link 
               to="/contact" 
               className="block w-full text-center px-5 py-3 bg-gradient-to-r from-emerald-500 to-teal-500 text-slate-900 font-semibold rounded-full"
@@ -393,50 +397,59 @@ export default function KavaLandingPage() {
         </div>
 
         <div className="relative z-10 max-w-7xl mx-auto px-6 py-20 text-center">
-          {/* Badge */}
+          {/* Hero content card — light mode gets a frosted glass wrapper */}
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6 }}
-            className={`inline-flex items-center gap-2 px-4 py-2 ${theme.bgBadge} backdrop-blur-xl rounded-full border ${theme.borderCard} mb-8`}
-            style={isDark ? { boxShadow: '0 4px 20px rgba(0,0,0,0.3)' } : {}}
+            className={`max-w-3xl mx-auto mb-10 ${!isDark ? 'bg-white/60 backdrop-blur-xl rounded-3xl px-8 py-10 md:px-12 md:py-12 border border-emerald-500/20 shadow-lg shadow-slate-200/30 overflow-hidden relative' : ''}`}
           >
-            <span className="relative flex h-2 w-2">
-              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-              <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
-            </span>
-            <span className={`text-sm ${theme.textSecondary} font-medium`} style={isDark ? { textShadow: '0 1px 3px rgba(0,0,0,0.5)' } : {}}>The World's First & Only ~18nm Kava Nanoemulsion</span>
-          </motion.div>
-
-          {/* Main headline */}
-          <motion.h1
-            initial={{ opacity: 0, y: 30 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8, delay: 0.2 }}
-            className="text-5xl md:text-7xl lg:text-8xl font-black mb-6 leading-[1.1]"
-          >
-            <motion.span
-              className={`inline-block bg-gradient-to-r ${theme.heroGradient} bg-clip-text text-transparent`}
-              animate={{ backgroundPosition: ['0% 50%', '100% 50%', '0% 50%'] }}
-              transition={{ duration: 5, repeat: Infinity, ease: "linear" }}
-              style={{ backgroundSize: '200% 200%' }}
+            {/* Light mode tinted overlay */}
+            {!isDark && <div className="absolute inset-0 bg-gradient-to-r from-emerald-500/10 via-teal-500/10 to-cyan-500/10 pointer-events-none" />}
+            <div className="relative">
+            {/* Badge */}
+            <div
+              className={`inline-flex items-center gap-2 px-4 py-2 ${theme.bgBadge} backdrop-blur-xl rounded-full border ${theme.borderCard} mb-8`}
+              style={isDark ? { boxShadow: '0 4px 20px rgba(0,0,0,0.3)' } : {}}
             >
-              Nano Kava
-            </motion.span>
-          </motion.h1>
+              <span className="relative flex h-2 w-2">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+              </span>
+              <span className={`text-sm ${theme.textSecondary} font-medium`} style={isDark ? { textShadow: '0 1px 3px rgba(0,0,0,0.5)' } : {}}>The World's First & Only ~18nm Kava Nanoemulsion</span>
+            </div>
 
-          {/* Subheadline */}
-          <motion.p
-            initial={{ opacity: 0, y: 30 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8, delay: 0.4 }}
-            className={`text-xl md:text-2xl mb-10 max-w-3xl mx-auto leading-relaxed font-bold ${isDark ? 'text-slate-50' : 'text-slate-900'}`}
-          >
-            Cutting-edge nanoemulsification technology that overcomes the solubility and bioavailability challenges of traditional kava.
-            <span className={`font-semibold ${isDark ? 'text-white' : theme.text}`}> Ultra-fine droplets so small they're almost transparent.</span>
-            <br className="hidden md:block" />
-            Trusted by leading Kava seltzer and shot brands.
-          </motion.p>
+            {/* Main headline */}
+            <motion.h1
+              initial={{ opacity: 0, y: 30 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.8, delay: 0.2 }}
+              className="text-5xl md:text-7xl lg:text-8xl font-black mb-6 leading-[1.1]"
+            >
+              <motion.span
+                className={`inline-block bg-gradient-to-r ${theme.heroGradient} bg-clip-text text-transparent`}
+                animate={{ backgroundPosition: ['0% 50%', '100% 50%', '0% 50%'] }}
+                transition={{ duration: 5, repeat: Infinity, ease: "linear" }}
+                style={{ backgroundSize: '200% 200%' }}
+              >
+                Nano Kava
+              </motion.span>
+            </motion.h1>
+
+            {/* Subheadline */}
+            <motion.p
+              initial={{ opacity: 0, y: 30 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.8, delay: 0.4 }}
+              className={`text-xl md:text-2xl leading-relaxed font-bold ${isDark ? 'text-slate-50' : 'text-slate-900'}`}
+            >
+              Cutting-edge nanoemulsification technology that overcomes the solubility and bioavailability challenges of traditional kava.
+              <span className={`font-semibold ${isDark ? 'text-white' : theme.text}`}> Ultra-fine droplets so small they're almost transparent.</span>
+              <br className="hidden md:block" />
+              Trusted by leading Kava seltzer and shot brands.
+            </motion.p>
+            </div>
+          </motion.div>
 
           {/* CTA Buttons */}
           <motion.div
@@ -447,7 +460,7 @@ export default function KavaLandingPage() {
           >
             <motion.a
               href="#contact"
-              className={`group relative inline-flex items-center justify-center gap-2 px-8 py-4 bg-gradient-to-r ${theme.accent} text-slate-900 font-bold rounded-full text-lg overflow-hidden`}
+              className={`btn-shine group relative inline-flex items-center justify-center gap-2 px-8 py-4 bg-gradient-to-r ${theme.accent} text-slate-900 font-bold rounded-full text-lg overflow-hidden`}
               whileHover={{ scale: 1.05, boxShadow: '0 0 50px rgba(16, 185, 129, 0.6)' }}
               whileTap={{ scale: 0.98 }}
               style={{ backgroundSize: '200% 100%' }}
@@ -461,7 +474,7 @@ export default function KavaLandingPage() {
             </motion.a>
             <motion.a
               href="tel:+12169212240"
-              className={`inline-flex items-center justify-center gap-2 px-8 py-4 ${theme.bgBadge} ${theme.shadowCard} backdrop-blur-xl ${theme.text} font-semibold rounded-full text-lg border ${theme.borderCard} hover:border-emerald-500/50 transition-colors`}
+              className={`btn-shine inline-flex items-center justify-center gap-2 px-8 py-4 ${theme.bgBadge} ${theme.shadowCard} backdrop-blur-xl ${theme.text} font-semibold rounded-full text-lg border ${theme.borderCard} hover:border-emerald-500/50 transition-colors`}
               whileHover={{ scale: 1.02 }}
               whileTap={{ scale: 0.98 }}
               style={isDark ? { boxShadow: '0 4px 24px rgba(0,0,0,0.4)' } : { boxShadow: '0 2px 12px rgba(0,0,0,0.1)' }}

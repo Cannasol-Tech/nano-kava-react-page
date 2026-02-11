@@ -2,7 +2,7 @@ import React, { useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import { useTheme } from '../context/ThemeContext';
 import { motion } from 'framer-motion';
-import { ArrowLeft, Leaf, Sparkles, Sun, Moon, ArrowRight, Beaker, Droplets, ShieldCheck } from 'lucide-react';
+import { ArrowLeft, Leaf, Sparkles, Sun, Moon, ArrowRight, Beaker, Droplets, ShieldCheck, Dumbbell, Phone, Menu, X } from 'lucide-react';
 
 import themesConfig from '../theme/themes';
 
@@ -26,6 +26,7 @@ const stagger = {
 
 function MushroomsLandingPage() {
   const { isDark, setIsDark } = useTheme();
+  const [mobileMenuOpen, setMobileMenuOpen] = React.useState(false);
 
   const theme = useMemo(() => (isDark ? themes.dark : themes.light), [isDark]);
 
@@ -54,7 +55,7 @@ function MushroomsLandingPage() {
       {
         title: 'Cordyceps',
         bestFor: 'Performance & energy',
-        icon: ArrowRight,
+        icon: Dumbbell,
         points: [
           'Efficient delivery in RTDs and shots',
           'Uniform distribution across servings',
@@ -95,43 +96,128 @@ function MushroomsLandingPage() {
         transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
       >
         <div className="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
-          <div className="flex items-center gap-4">
-            <Link to="/" className={`inline-flex items-center gap-2 ${theme.textSecondary} hover:${theme.text} transition-colors`}>
-              <ArrowLeft className="w-4 h-4" />
-              <span className="text-sm font-medium">Back</span>
-            </Link>
-            <div className="h-5 w-px bg-slate-700/40" />
-            <div className="flex items-center gap-3">
-              <img src={theme.logo} alt="Cannasol Technologies Logo" className="h-9 w-auto" />
+          <motion.div className="flex items-center gap-3" whileHover={{ scale: 1.02 }}>
+            <Link to="/" className="flex items-center gap-3">
+              <img src={theme.logo} alt="Cannasol Technologies Logo" className="h-10 w-auto" />
               <div className="hidden sm:block">
-                <span className={`font-semibold ${theme.text}`}>Cannasol</span>
+                <span className={`font-semibold text-lg ${theme.text}`}>Cannasol</span>
                 <span className={`${theme.textSecondary} text-sm ml-1`}>Technologies</span>
               </div>
-            </div>
-          </div>
+            </Link>
+          </motion.div>
 
-          <div className="flex items-center gap-3">
+          <div className="hidden md:flex items-center gap-8 text-sm">
+            {[
+              { to: '/', label: 'Nano Kava' },
+              { href: '#offerings', label: 'Products' },
+              { to: '/faq', label: 'FAQ' },
+              { to: '/contact', label: 'Contact' },
+            ].map((item) => {
+              const Tag = item.to ? Link : 'a';
+              const linkProps = item.to ? { to: item.to } : { href: item.href };
+              return (
+                <div key={item.label} className="relative group">
+                  <Tag
+                    {...linkProps}
+                    className={`${theme.textSecondary} group-hover:text-emerald-400 transition-colors duration-300 font-medium py-1`}
+                  >
+                    {item.label}
+                  </Tag>
+                  <span className="absolute -bottom-0.5 left-0 right-0 h-[2px] bg-gradient-to-r from-emerald-500 to-teal-500 rounded-full origin-left scale-x-0 group-hover:scale-x-100 transition-transform duration-300 ease-out" />
+                  <span className="absolute -bottom-0.5 left-0 right-0 h-[2px] bg-gradient-to-r from-emerald-500 to-teal-500 rounded-full origin-left scale-x-0 group-hover:scale-x-100 transition-transform duration-300 ease-out blur-sm" />
+                </div>
+              );
+            })}
+
             <motion.button
               onClick={() => setIsDark(!isDark)}
               className={`p-2 rounded-full ${theme.toggleBg} ${theme.toggleText} transition-colors`}
-              whileHover={{ scale: 1.08 }}
+              whileHover={{ scale: 1.1 }}
               whileTap={{ scale: 0.95 }}
               aria-label="Toggle theme"
             >
               {isDark ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
             </motion.button>
 
-            <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
+            <motion.div whileHover={{ scale: 1.05, boxShadow: '0 0 30px rgba(16, 185, 129, 0.4)' }} whileTap={{ scale: 0.98 }}>
               <Link
                 to="/contact"
-                className={`inline-flex items-center gap-2 px-5 py-2.5 bg-gradient-to-r ${theme.accent} text-slate-900 font-semibold rounded-full`}
+                className={`btn-shine inline-flex items-center gap-2 px-5 py-2.5 bg-gradient-to-r ${theme.accent} text-slate-900 font-semibold rounded-full`}
               >
                 Contact Sales
                 <ArrowRight className="w-4 h-4" />
               </Link>
             </motion.div>
           </div>
+
+          {/* Mobile menu button */}
+          <div className="md:hidden flex items-center gap-2">
+            <motion.button
+              onClick={() => setIsDark(!isDark)}
+              className={`p-2 rounded-full ${theme.toggleBg} ${theme.toggleText} transition-colors`}
+              whileTap={{ scale: 0.95 }}
+              aria-label="Toggle theme"
+            >
+              {isDark ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
+            </motion.button>
+
+            <motion.button
+              className={`flex items-center justify-center w-10 h-10 rounded-lg ${theme.toggleMenuBg} ${theme.toggleMenuBorder} border`}
+              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+              whileTap={{ scale: 0.95 }}
+              aria-label="Toggle menu"
+            >
+              {mobileMenuOpen ? (
+                <X className={`w-5 h-5 ${theme.text}`} />
+              ) : (
+                <Menu className={`w-5 h-5 ${theme.text}`} />
+              )}
+            </motion.button>
+          </div>
         </div>
+
+        {/* Mobile menu dropdown */}
+        <motion.div
+          className="md:hidden overflow-hidden"
+          initial={false}
+          animate={{ height: mobileMenuOpen ? 'auto' : 0, opacity: mobileMenuOpen ? 1 : 0 }}
+          transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1] }}
+        >
+          <div className={`px-6 py-4 border-t ${theme.border}/50 space-y-1`}>
+            {[
+              { to: '/', label: 'Nano Kava' },
+              { href: '#offerings', label: 'Products' },
+              { to: '/faq', label: 'FAQ' },
+            ].map((item) => {
+              const Tag = item.to ? Link : 'a';
+              const linkProps = item.to ? { to: item.to } : { href: item.href };
+              return (
+                <Tag
+                  key={item.label}
+                  {...linkProps}
+                  className={`block ${theme.textSecondary} hover:text-emerald-400 font-medium py-2.5 px-3 rounded-lg hover:${isDark ? 'bg-slate-800/50' : 'bg-emerald-500/10'} transition-all duration-200 border-l-2 border-transparent hover:border-emerald-500`}
+                  onClick={() => setMobileMenuOpen(false)}
+                >
+                  {item.label}
+                </Tag>
+              );
+            })}
+            <Link
+              to="/contact"
+              className="btn-shine block w-full text-center px-5 py-3 bg-gradient-to-r from-emerald-500 to-teal-500 text-slate-900 font-semibold rounded-full"
+              onClick={() => setMobileMenuOpen(false)}
+            >
+              Contact Sales
+            </Link>
+            <a
+              href="tel:+12169212240"
+              className="flex items-center justify-center gap-2 text-emerald-400 py-2"
+            >
+              <Phone className="w-4 h-4" />
+              <span className="font-medium">Call: (216) 921-2240</span>
+            </a>
+          </div>
+        </motion.div>
       </motion.nav>
 
       <main className="pt-24">

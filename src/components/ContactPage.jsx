@@ -379,7 +379,7 @@ export default function ContactPage() {
             
             <Link
               to="/faq"
-              className={`hidden sm:inline-flex px-5 py-2.5 ${theme.bgInput} ${theme.text} font-semibold rounded-full border ${theme.borderCard}`}
+              className={`btn-shine hidden sm:inline-flex px-5 py-2.5 ${theme.bgInput} ${theme.text} font-semibold rounded-full border ${theme.borderCard}`}
             >
               FAQ
             </Link>
