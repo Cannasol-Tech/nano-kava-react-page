@@ -100,7 +100,7 @@ function MushroomsLandingPage() {
       </Helmet>
 
       <motion.nav
-        className={`fixed top-0 left-0 right-0 z-50 backdrop-blur-xl ${theme.bgNav} border-b ${theme.border}/50 transition-colors duration-500`}
+        className={`fixed top-0 left-0 right-0 z-50 ${theme.bgNav} border-b ${theme.border}/50 transition-colors duration-500`}
         initial={{ y: -100 }}
         animate={{ y: 0 }}
         transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
@@ -242,7 +242,7 @@ function MushroomsLandingPage() {
             <motion.div initial="hidden" animate="visible" variants={stagger} className="max-w-3xl">
               <motion.div
                 variants={fadeInUp}
-                className={`inline-flex items-center gap-2 px-4 py-2 ${theme.bgBadge} backdrop-blur rounded-full border ${theme.borderCard}`}
+                className={`inline-flex items-center gap-2 px-4 py-2 ${theme.bgBadge} rounded-full border ${theme.borderCard}`}
               >
                 <span className="relative flex h-2 w-2">
                   <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
@@ -291,7 +291,7 @@ function MushroomsLandingPage() {
 
         <section id="offerings" className="max-w-7xl mx-auto px-6 py-20">
           <motion.div initial="hidden" whileInView="visible" viewport={{ once: true, margin: '-80px' }} variants={stagger}>
-            <motion.div variants={fadeInUp} className={`${theme.bgCard} backdrop-blur-xl border ${theme.borderCard} rounded-3xl p-8 md:p-10 mb-10 ${theme.shadowCard}`}>
+            <motion.div variants={fadeInUp} className={`${theme.bgCard} border ${theme.borderCard} rounded-3xl p-8 md:p-10 mb-10 ${theme.shadowCard}`}>
               <h2 className="text-3xl md:text-4xl font-bold">
                 Three flagship nanoemulsified offerings
               </h2>
@@ -342,7 +342,7 @@ function MushroomsLandingPage() {
           </motion.div>
         </section>
 
-        <section className={`${theme.bgSecondary} backdrop-blur-xl transition-colors duration-500`}>
+        <section className={`${theme.bgSecondary} transition-colors duration-500`}>
           <div className="max-w-7xl mx-auto px-6 py-20">
             <motion.div initial="hidden" whileInView="visible" viewport={{ once: true, margin: '-80px' }} variants={stagger}>
               <motion.h2 variants={fadeInUp} className="text-3xl md:text-4xl font-bold">

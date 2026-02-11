@@ -243,7 +243,7 @@ export default function KavaLandingPage() {
 
       {/* Navigation */}
       <motion.nav 
-        className={`fixed top-0 left-0 right-0 z-50 backdrop-blur-xl ${theme.bgNav} border-b ${theme.border}/50 transition-colors duration-500`}
+        className={`fixed top-0 left-0 right-0 z-50 ${theme.bgNav} border-b ${theme.border}/50 transition-colors duration-500`}
         initial={{ y: -100 }}
         animate={{ y: 0 }}
         transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
@@ -412,14 +412,14 @@ export default function KavaLandingPage() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6 }}
-            className={`max-w-3xl mx-auto mb-10 ${!isDark ? 'bg-white/30 backdrop-blur-xl rounded-3xl px-8 py-10 md:px-12 md:py-12 border border-emerald-500/15 shadow-lg shadow-slate-200/20 overflow-hidden relative' : ''}`}
+            className={`max-w-3xl mx-auto mb-10 ${!isDark ? 'bg-white/60 rounded-3xl px-8 py-10 md:px-12 md:py-12 border border-emerald-500/15 shadow-lg shadow-slate-200/20 overflow-hidden relative' : ''}`}
           >
             {/* Light mode tinted overlay */}
             {!isDark && <div className="absolute inset-0 bg-gradient-to-r from-emerald-500/10 via-teal-500/10 to-cyan-500/10 pointer-events-none" />}
             <div className="relative">
             {/* Badge */}
             <div
-              className={`inline-flex items-center gap-2 px-4 py-2 ${theme.bgBadge} backdrop-blur-xl rounded-full border ${theme.borderCard} mb-8`}
+              className={`inline-flex items-center gap-2 px-4 py-2 ${theme.bgBadge} rounded-full border ${theme.borderCard} mb-8`}
               style={isDark ? { boxShadow: '0 4px 20px rgba(0,0,0,0.3)' } : {}}
             >
               <span className="relative flex h-2 w-2">
@@ -508,7 +508,7 @@ export default function KavaLandingPage() {
             </motion.a>
             <motion.a
               href="tel:+12169212240"
-              className={`btn-shine inline-flex items-center justify-center gap-2 px-8 py-4 ${theme.bgBadge} ${theme.shadowCard} backdrop-blur-xl ${theme.text} font-semibold rounded-full text-lg border ${theme.borderCard} hover:border-emerald-500/50 transition-colors`}
+              className={`btn-shine inline-flex items-center justify-center gap-2 px-8 py-4 ${theme.bgBadge} ${theme.shadowCard} ${theme.text} font-semibold rounded-full text-lg border ${theme.borderCard} hover:border-emerald-500/50 transition-colors`}
               whileHover={{ scale: 1.02 }}
               whileTap={{ scale: 0.98 }}
               style={isDark ? { boxShadow: '0 4px 24px rgba(0,0,0,0.4)' } : { boxShadow: '0 2px 12px rgba(0,0,0,0.1)' }}
@@ -535,7 +535,7 @@ export default function KavaLandingPage() {
                 {/* Animated border gradient */}
                 <div className="absolute -inset-[1px] bg-gradient-to-r from-emerald-500/50 via-teal-500/50 to-emerald-500/50 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-500 blur-sm" />
                 <div className="absolute -inset-[1px] bg-gradient-to-r from-emerald-500 via-teal-500 to-emerald-500 rounded-2xl opacity-0 group-hover:opacity-30 transition-opacity duration-500" />
-                <div className={`relative ${theme.bgCardStats} ${theme.shadowCard} backdrop-blur-xl rounded-2xl p-6 border ${theme.borderCard} group-hover:border-transparent transition-colors`}>
+                <div className={`relative ${theme.bgCardStats} ${theme.shadowCard} rounded-2xl p-6 border ${theme.borderCard} group-hover:border-transparent transition-colors`}>
                   <div className="w-10 h-10 mx-auto mb-3 rounded-lg bg-gradient-to-br from-emerald-500/20 to-teal-500/20 flex items-center justify-center group-hover:shadow-lg group-hover:shadow-emerald-500/20 transition-shadow">
                     <stat.icon className={`w-5 h-5 ${theme.accentText}`} />
                   </div>
@@ -572,7 +572,7 @@ export default function KavaLandingPage() {
             {/* Problem */}
             <motion.div variants={fadeInLeft} className="relative">
               <div className="absolute inset-0 bg-gradient-to-r from-red-500/10 to-orange-500/10 rounded-3xl blur-2xl" />
-              <div className={`relative ${theme.bgCardSolid} ${theme.shadowXl} backdrop-blur rounded-3xl p-8 md:p-10 border ${theme.borderCard} flex flex-col h-full`}>
+              <div className={`relative ${theme.bgCardSolid} ${theme.shadowXl} rounded-3xl p-8 md:p-10 border ${theme.borderCard} flex flex-col h-full`}>
                 <div className={`inline-flex self-start items-center gap-2 px-3 py-1 ${theme.bgError} rounded-full ${theme.textError} text-sm font-medium mb-6`}>
                   <span className={`w-1.5 h-1.5 ${theme.errorDot} rounded-full`} />
                   The Industry Problem
@@ -614,7 +614,7 @@ export default function KavaLandingPage() {
               className="relative"
             >
               <div className="absolute inset-0 bg-gradient-to-r from-emerald-500/10 to-teal-500/10 rounded-3xl blur-2xl" />
-              <div className={`relative ${theme.bgCardSolid} ${theme.shadowXl} backdrop-blur rounded-3xl p-8 md:p-10 border ${theme.borderCard} flex flex-col h-full`}>
+              <div className={`relative ${theme.bgCardSolid} ${theme.shadowXl} rounded-3xl p-8 md:p-10 border ${theme.borderCard} flex flex-col h-full`}>
                 <div className={`inline-flex self-start items-center gap-2 px-3 py-1 ${theme.bgHighlight} rounded-full ${theme.accentText} text-sm font-medium mb-6`}>
                   <span className="w-1.5 h-1.5 bg-emerald-400 rounded-full animate-pulse" />
                   The Cannasol Solution
@@ -660,7 +660,7 @@ export default function KavaLandingPage() {
       {/* Features Section */}
       <AnimatedSection className="relative py-24 md:py-32">
         <div className="max-w-7xl mx-auto px-6">
-          <motion.div variants={fadeInUp} className={`${theme.bgCard} backdrop-blur-xl border ${theme.borderCard} rounded-3xl p-8 md:p-10 mb-16 text-center ${theme.shadowCard}`}>
+          <motion.div variants={fadeInUp} className={`${theme.bgCard} border ${theme.borderCard} rounded-3xl p-8 md:p-10 mb-16 text-center ${theme.shadowCard}`}>
             <h2 className={`text-3xl md:text-5xl font-bold mb-4 ${theme.text}`}>
               The Future of
               <span className={`bg-gradient-to-r ${theme.accentGradientAlt} bg-clip-text text-transparent`}> Kava Consumption</span>
@@ -682,7 +682,7 @@ export default function KavaLandingPage() {
               >
                 {/* Glow effect on hover */}
                 <div className="absolute -inset-0.5 bg-gradient-to-r from-emerald-500 to-teal-500 rounded-2xl blur opacity-0 group-hover:opacity-20 transition-all duration-500" />
-                <div className={`relative h-full ${theme.bgCard} ${theme.shadowCard} backdrop-blur-xl rounded-2xl p-6 border ${theme.borderCard} group-hover:border-emerald-500/50 transition-all duration-300`}>
+                <div className={`relative h-full ${theme.bgCard} ${theme.shadowCard} rounded-2xl p-6 border ${theme.borderCard} group-hover:border-emerald-500/50 transition-all duration-300`}>
                   {/* Subtle inner glow */}
                   <div className="absolute inset-0 rounded-2xl bg-gradient-to-br from-emerald-500/5 via-transparent to-teal-500/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
                   <div className="relative">
@@ -739,7 +739,7 @@ export default function KavaLandingPage() {
                 whileHover={{ y: -5 }}
                 transition={{ type: "spring", stiffness: 300, damping: 20 }}
               >
-                <div className={`relative ${theme.bgCardSolid} ${theme.shadowCard} backdrop-blur-xl rounded-2xl p-6 border ${theme.borderCard} group-hover:border-emerald-500/40 transition-all duration-300`}>
+                <div className={`relative ${theme.bgCardSolid} ${theme.shadowCard} rounded-2xl p-6 border ${theme.borderCard} group-hover:border-emerald-500/40 transition-all duration-300`}>
                   {/* Step number with glow */}
                   <div className="relative mb-4">
                     <div className="absolute inset-0 bg-emerald-500/20 blur-xl rounded-full opacity-0 group-hover:opacity-100 transition-opacity" />
@@ -782,7 +782,7 @@ export default function KavaLandingPage() {
               transition={{ type: "spring", stiffness: 300, damping: 20 }}
             >
               <div className="absolute inset-0 bg-gradient-to-r from-emerald-500/10 to-teal-500/10 rounded-2xl blur-xl opacity-60 group-hover:opacity-100 transition-opacity duration-300" />
-              <div className={`relative ${theme.bgCardAlt} ${theme.shadowCard} backdrop-blur rounded-2xl p-8 border ${theme.borderCard} h-full transition-all duration-300 group-hover:border-emerald-500/40 group-hover:shadow-lg group-hover:shadow-emerald-500/10`}>
+              <div className={`relative ${theme.bgCardAlt} ${theme.shadowCard} rounded-2xl p-8 border ${theme.borderCard} h-full transition-all duration-300 group-hover:border-emerald-500/40 group-hover:shadow-lg group-hover:shadow-emerald-500/10`}>
                 <div className="flex items-center gap-4 mb-6">
                   <div className={`w-16 h-16 rounded-xl ${theme.bgIconBox} flex items-center justify-center`}>
                     <Beaker className={`w-8 h-8 ${theme.accentText}`} />
@@ -810,7 +810,7 @@ export default function KavaLandingPage() {
               transition={{ type: "spring", stiffness: 300, damping: 20 }}
             >
               <div className="absolute inset-0 bg-gradient-to-r from-emerald-500/10 to-teal-500/10 rounded-2xl blur-xl opacity-60 group-hover:opacity-100 transition-opacity duration-300" />
-              <div className={`relative ${theme.bgCardAlt} ${theme.shadowCard} backdrop-blur rounded-2xl p-8 border ${theme.borderCard} h-full transition-all duration-300 group-hover:border-emerald-500/40 group-hover:shadow-lg group-hover:shadow-emerald-500/10`}>
+              <div className={`relative ${theme.bgCardAlt} ${theme.shadowCard} rounded-2xl p-8 border ${theme.borderCard} h-full transition-all duration-300 group-hover:border-emerald-500/40 group-hover:shadow-lg group-hover:shadow-emerald-500/10`}>
                 <div className="flex items-center gap-4 mb-6">
                   <div className={`w-16 h-16 rounded-xl ${theme.bgIconBox} flex items-center justify-center`}>
                     <Award className={`w-8 h-8 ${theme.accentText}`} />
@@ -863,7 +863,7 @@ export default function KavaLandingPage() {
             className="relative"
           >
             <div className="absolute inset-0 bg-gradient-to-r from-emerald-500/20 via-teal-500/20 to-cyan-500/20 rounded-3xl blur-2xl" />
-            <div className={`relative ${theme.bgCard} ${theme.shadowXl} backdrop-blur rounded-3xl p-8 md:p-12 border ${theme.borderCta}`}>
+            <div className={`relative ${theme.bgCard} ${theme.shadowXl} rounded-3xl p-8 md:p-12 border ${theme.borderCta}`}>
               <div className="text-center mb-10">
                 <motion.div
                   className={`inline-flex items-center justify-center w-16 h-16 rounded-full bg-gradient-to-r ${theme.accent} mb-6`}

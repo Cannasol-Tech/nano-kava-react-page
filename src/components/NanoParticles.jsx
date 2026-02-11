@@ -1,8 +1,11 @@
 import React, { useRef, useEffect, useCallback } from 'react';
+import { registerAnimation, unregisterAnimation } from '../utils/animationLoop';
 
 const PARTICLE_COUNT = 55;
 const CONNECTION_DISTANCE = 130;
+const CONNECTION_DISTANCE_SQ = CONNECTION_DISTANCE * CONNECTION_DISTANCE;
 const MOUSE_RADIUS = 180;
+const MOUSE_RADIUS_SQ = MOUSE_RADIUS * MOUSE_RADIUS;
 const BASE_SPEED = 0.2;
 
 function createParticle(width, height) {
@@ -26,9 +29,7 @@ export default function NanoParticles({ isDark = true }) {
   const canvasRef = useRef(null);
   const particlesRef = useRef([]);
   const mouseRef = useRef({ x: -1000, y: -1000 });
-  const animFrameRef = useRef(null);
   const timeRef = useRef(0);
-  const pausedRef = useRef(false);
   const visibleRef = useRef(true);
 
   const getColors = useCallback(() => {
@@ -56,6 +57,7 @@ export default function NanoParticles({ isDark = true }) {
 
     const ctx = canvas.getContext('2d');
     let width, height;
+    let cachedRect = canvas.getBoundingClientRect();
 
     function resize() {
       const dpr = window.devicePixelRatio || 1;
@@ -67,6 +69,7 @@ export default function NanoParticles({ isDark = true }) {
       canvas.style.width = `${width}px`;
       canvas.style.height = `${height}px`;
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      cachedRect = canvas.getBoundingClientRect();
 
       if (particlesRef.current.length === 0) {
         particlesRef.current = Array.from({ length: PARTICLE_COUNT }, () =>
@@ -79,9 +82,8 @@ export default function NanoParticles({ isDark = true }) {
     window.addEventListener('resize', resize);
 
     function handleMouseMove(e) {
-      const rect = canvas.getBoundingClientRect();
-      mouseRef.current.x = e.clientX - rect.left;
-      mouseRef.current.y = e.clientY - rect.top;
+      mouseRef.current.x = e.clientX - cachedRect.left;
+      mouseRef.current.y = e.clientY - cachedRect.top;
     }
 
     function handleMouseLeave() {
@@ -89,8 +91,8 @@ export default function NanoParticles({ isDark = true }) {
       mouseRef.current.y = -1000;
     }
 
-    canvas.addEventListener('mousemove', handleMouseMove);
-    canvas.addEventListener('mouseleave', handleMouseLeave);
+    canvas.addEventListener('mousemove', handleMouseMove, { passive: true });
+    canvas.addEventListener('mouseleave', handleMouseLeave, { passive: true });
 
     // Pause rendering when canvas scrolls offscreen
     const observer = new IntersectionObserver(([entry]) => {
@@ -98,28 +100,11 @@ export default function NanoParticles({ isDark = true }) {
     }, { threshold: 0 });
     observer.observe(canvas);
 
-    function handleVisibilityChange() {
-      if (document.hidden) {
-        pausedRef.current = true;
-        if (animFrameRef.current) {
-          cancelAnimationFrame(animFrameRef.current);
-          animFrameRef.current = null;
-        }
-      } else {
-        pausedRef.current = false;
-        if (!animFrameRef.current) {
-          animFrameRef.current = requestAnimationFrame(animate);
-        }
-      }
-    }
-    document.addEventListener('visibilitychange', handleVisibilityChange);
+    const animId = Symbol('nanoParticles');
 
-    function animate() {
-      if (pausedRef.current) return;
-      if (!visibleRef.current) {
-        animFrameRef.current = requestAnimationFrame(animate);
-        return;
-      }
+    registerAnimation(animId, () => {
+      if (!visibleRef.current) return;
+
       timeRef.current += 1;
       const t = timeRef.current;
       const colors = getColors();
@@ -139,8 +124,9 @@ export default function NanoParticles({ isDark = true }) {
 
         const dx = p.x - mouse.x;
         const dy = p.y - mouse.y;
-        const dist = Math.sqrt(dx * dx + dy * dy);
-        if (dist < MOUSE_RADIUS && dist > 0) {
+        const distSq = dx * dx + dy * dy;
+        if (distSq < MOUSE_RADIUS_SQ && distSq > 0) {
+          const dist = Math.sqrt(distSq);
           const force = (MOUSE_RADIUS - dist) / MOUSE_RADIUS;
           p.vx += (dx / dist) * force * 0.6;
           p.vy += (dy / dist) * force * 0.6;
@@ -157,61 +143,51 @@ export default function NanoParticles({ isDark = true }) {
         p.size = p.baseSize + Math.sin(t * p.pulseSpeed + p.pulseOffset) * 0.4;
       }
 
-      // Draw connections — thinner, subtler
+      // Draw connections — batched into a single path
+      ctx.lineWidth = 0.5;
+      ctx.strokeStyle = `hsla(151, ${colors.lineSat}, ${colors.lineLight}, 0.08)`;
+      ctx.beginPath();
       for (let i = 0; i < particles.length; i++) {
         for (let j = i + 1; j < particles.length; j++) {
           const a = particles[i];
           const b = particles[j];
           const dx = a.x - b.x;
           const dy = a.y - b.y;
-          const dist = Math.sqrt(dx * dx + dy * dy);
-
-          if (dist < CONNECTION_DISTANCE) {
-            const alpha = (1 - dist / CONNECTION_DISTANCE) * 0.15;
-            const avgHue = (a.hue + b.hue) / 2;
-            ctx.beginPath();
+          if (dx * dx + dy * dy < CONNECTION_DISTANCE_SQ) {
             ctx.moveTo(a.x, a.y);
             ctx.lineTo(b.x, b.y);
-            ctx.strokeStyle = `hsla(${avgHue}, ${colors.lineSat}, ${colors.lineLight}, ${alpha})`;
-            ctx.lineWidth = 0.5;
-            ctx.stroke();
           }
         }
       }
+      ctx.stroke();
 
-      // Draw particles
+      // Draw particles — no per-frame gradient creation
       for (let i = 0; i < particles.length; i++) {
         const p = particles[i];
         const pulseAlpha = p.opacity + Math.sin(t * p.pulseSpeed + p.pulseOffset) * 0.1;
 
-        // Soft glow
-        const glowGrad = ctx.createRadialGradient(p.x, p.y, 0, p.x, p.y, p.size * 5);
-        glowGrad.addColorStop(0, `hsla(${p.hue}, ${colors.particleSat}, ${colors.particleLight}, ${pulseAlpha * colors.glowAlpha})`);
-        glowGrad.addColorStop(1, `hsla(${p.hue}, ${colors.particleSat}, ${colors.particleLight}, 0)`);
+        // Soft glow — solid circle with low alpha instead of radial gradient
+        ctx.globalAlpha = pulseAlpha * colors.glowAlpha;
+        ctx.fillStyle = `hsl(${p.hue}, ${colors.particleSat}, ${colors.particleLight})`;
         ctx.beginPath();
         ctx.arc(p.x, p.y, p.size * 5, 0, Math.PI * 2);
-        ctx.fillStyle = glowGrad;
         ctx.fill();
 
-        // Core
-        const coreGrad = ctx.createRadialGradient(
-          p.x - p.size * 0.3, p.y - p.size * 0.3, 0,
-          p.x, p.y, p.size
-        );
-        coreGrad.addColorStop(0, `hsla(${p.hue + 8}, 80%, 60%, ${pulseAlpha})`);
-        coreGrad.addColorStop(0.6, `hsla(${p.hue}, ${colors.particleSat}, ${colors.particleLight}, ${pulseAlpha * 0.85})`);
-        coreGrad.addColorStop(1, `hsla(${p.hue - 5}, ${colors.particleSat}, ${colors.particleLight}, ${pulseAlpha * 0.3})`);
+        // Core — brighter solid
+        ctx.globalAlpha = pulseAlpha;
+        ctx.fillStyle = `hsl(${p.hue + 8}, 80%, 60%)`;
         ctx.beginPath();
         ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
-        ctx.fillStyle = coreGrad;
         ctx.fill();
 
         // Tiny specular
-        const specSize = p.size * 0.3;
+        ctx.globalAlpha = pulseAlpha * 0.35;
+        ctx.fillStyle = `hsl(${p.hue + 15}, 100%, 85%)`;
         ctx.beginPath();
-        ctx.arc(p.x - p.size * 0.2, p.y - p.size * 0.2, specSize, 0, Math.PI * 2);
-        ctx.fillStyle = `hsla(${p.hue + 15}, 100%, 85%, ${pulseAlpha * 0.35})`;
+        ctx.arc(p.x - p.size * 0.2, p.y - p.size * 0.2, p.size * 0.3, 0, Math.PI * 2);
         ctx.fill();
+
+        ctx.globalAlpha = 1;
       }
 
       // Mouse glow
@@ -225,25 +201,18 @@ export default function NanoParticles({ isDark = true }) {
         ctx.fillStyle = ringGrad;
         ctx.fill();
       }
-
-      animFrameRef.current = requestAnimationFrame(animate);
-    }
+    });
 
     particlesRef.current = Array.from({ length: PARTICLE_COUNT }, () =>
       createParticle(width, height)
     );
 
-    animFrameRef.current = requestAnimationFrame(animate);
-
     return () => {
+      unregisterAnimation(animId);
       observer.disconnect();
-      document.removeEventListener('visibilitychange', handleVisibilityChange);
       window.removeEventListener('resize', resize);
       canvas.removeEventListener('mousemove', handleMouseMove);
       canvas.removeEventListener('mouseleave', handleMouseLeave);
-      if (animFrameRef.current) {
-        cancelAnimationFrame(animFrameRef.current);
-      }
     };
   }, [getColors]);
 
