@@ -361,9 +361,9 @@ export default function KavaLandingPage() {
                 </Tag>
               );
             })}
-            <Link 
-              to="/contact" 
-              className="block w-full text-center px-5 py-3 bg-gradient-to-r from-emerald-500 to-teal-500 text-slate-900 font-semibold rounded-full"
+            <Link
+              to="/contact"
+              className="btn-shine block w-full text-center px-5 py-3 bg-gradient-to-r from-emerald-500 to-teal-500 text-slate-900 font-semibold rounded-full"
               onClick={() => setMobileMenuOpen(false)}
             >
               Contact Us
@@ -851,7 +851,7 @@ export default function KavaLandingPage() {
               <div className="grid md:grid-cols-3 gap-4 mb-8">
                 <Link to="/contact">
                   <motion.div
-                    className={`flex items-center justify-center gap-3 px-6 py-4 bg-gradient-to-r ${theme.accent} text-slate-900 font-bold rounded-xl text-lg`}
+                    className={`btn-shine flex items-center justify-center gap-3 px-6 py-4 bg-gradient-to-r ${theme.accent} text-slate-900 font-bold rounded-xl text-lg`}
                     whileHover={{ scale: 1.02, boxShadow: '0 0 30px rgba(16, 185, 129, 0.4)' }}
                     whileTap={{ scale: 0.98 }}
                   >
@@ -861,7 +861,7 @@ export default function KavaLandingPage() {
                 </Link>
                 <motion.a
                   href="tel:+12169212240"
-                  className={`flex items-center justify-center gap-3 px-6 py-4 ${theme.bgButton} ${theme.text} font-semibold rounded-xl text-lg border ${theme.borderCard} hover:border-emerald-500/50 transition-colors`}
+                  className={`btn-shine flex items-center justify-center gap-3 px-6 py-4 ${theme.bgButton} ${theme.text} font-semibold rounded-xl text-lg border ${theme.borderCard} hover:border-emerald-500/50 transition-colors`}
                   whileHover={{ scale: 1.02 }}
                   whileTap={{ scale: 0.98 }}
                 >
@@ -870,7 +870,7 @@ export default function KavaLandingPage() {
                 </motion.a>
                 <motion.a
                   href="mailto:josh.detzel@cannasolusa.com"
-                  className={`flex items-center justify-center gap-3 px-6 py-4 ${theme.bgButton} ${theme.text} font-semibold rounded-xl text-lg border ${theme.borderCard} hover:border-emerald-500/50 transition-colors`}
+                  className={`btn-shine flex items-center justify-center gap-3 px-6 py-4 ${theme.bgButton} ${theme.text} font-semibold rounded-xl text-lg border ${theme.borderCard} hover:border-emerald-500/50 transition-colors`}
                   whileHover={{ scale: 1.02 }}
                   whileTap={{ scale: 0.98 }}
                 >

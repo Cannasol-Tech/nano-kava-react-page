@@ -261,7 +261,7 @@ function MushroomsLandingPage() {
               <motion.div variants={fadeInUp} className="mt-10 flex flex-col sm:flex-row gap-4">
                 <Link
                   to="/contact"
-                  className={`inline-flex items-center justify-center gap-2 px-6 py-3 bg-gradient-to-r ${theme.accent} text-slate-900 font-semibold rounded-xl`}
+                  className={`btn-shine inline-flex items-center justify-center gap-2 px-6 py-3 bg-gradient-to-r ${theme.accent} text-slate-900 font-semibold rounded-xl`}
                 >
                   Request Samples
                   <ArrowRight className="w-4 h-4" />
@@ -269,7 +269,7 @@ function MushroomsLandingPage() {
 
                 <a
                   href="#offerings"
-                  className={`inline-flex items-center justify-center gap-2 px-6 py-3 ${theme.bgButton} border ${theme.borderCard} rounded-xl ${theme.text} hover:opacity-90 transition-opacity`}
+                  className={`btn-shine inline-flex items-center justify-center gap-2 px-6 py-3 ${theme.bgButton} border ${theme.borderCard} rounded-xl ${theme.text} hover:opacity-90 transition-opacity`}
                 >
                   View Offerings
                   <ArrowRight className="w-4 h-4" />
@@ -281,12 +281,14 @@ function MushroomsLandingPage() {
 
         <section id="offerings" className="max-w-7xl mx-auto px-6 py-20">
           <motion.div initial="hidden" whileInView="visible" viewport={{ once: true, margin: '-80px' }} variants={stagger}>
-            <motion.h2 variants={fadeInUp} className="text-3xl md:text-4xl font-bold">
-              Three flagship nanoemulsified offerings
-            </motion.h2>
-            <motion.p variants={fadeInUp} className={`mt-4 text-lg ${theme.textSecondary} max-w-3xl`}>
-              Built for B2B formulation teams that need consistency, clean sensory profiles, and predictable performance across production runs.
-            </motion.p>
+            <motion.div variants={fadeInUp} className={`${theme.bgCard} backdrop-blur-xl border ${theme.borderCard} rounded-3xl p-8 md:p-10 mb-10 ${theme.shadowCard}`}>
+              <h2 className="text-3xl md:text-4xl font-bold">
+                Three flagship nanoemulsified offerings
+              </h2>
+              <p className={`mt-4 text-lg ${theme.textSecondary} max-w-3xl`}>
+                Built for B2B formulation teams that need consistency, clean sensory profiles, and predictable performance across production runs.
+              </p>
+            </motion.div>
 
             <div className="grid md:grid-cols-3 gap-6 mt-10">
               {products.map((p) => {
@@ -330,7 +332,7 @@ function MushroomsLandingPage() {
           </motion.div>
         </section>
 
-        <section className={`${theme.bgSecondary} transition-colors duration-500`}>
+        <section className={`${theme.bgSecondary} backdrop-blur-xl transition-colors duration-500`}>
           <div className="max-w-7xl mx-auto px-6 py-20">
             <motion.div initial="hidden" whileInView="visible" viewport={{ once: true, margin: '-80px' }} variants={stagger}>
               <motion.h2 variants={fadeInUp} className="text-3xl md:text-4xl font-bold">
@@ -388,7 +390,7 @@ function MushroomsLandingPage() {
               <motion.div variants={fadeInUp} className="mt-8 flex flex-col sm:flex-row gap-4">
                 <Link
                   to="/contact"
-                  className={`inline-flex items-center justify-center gap-2 px-7 py-3 bg-gradient-to-r ${theme.accent} text-slate-900 font-bold rounded-xl text-lg`}
+                  className={`btn-shine inline-flex items-center justify-center gap-2 px-7 py-3 bg-gradient-to-r ${theme.accent} text-slate-900 font-bold rounded-xl text-lg`}
                 >
                   Contact Sales
                   <ArrowRight className="w-5 h-5" />
@@ -396,7 +398,7 @@ function MushroomsLandingPage() {
 
                 <a
                   href="tel:+12169212240"
-                  className={`inline-flex items-center justify-center gap-2 px-7 py-3 ${theme.bgButton} border ${theme.borderCard} rounded-xl ${theme.text} hover:opacity-90 transition-opacity`}
+                  className={`btn-shine inline-flex items-center justify-center gap-2 px-7 py-3 ${theme.bgButton} border ${theme.borderCard} rounded-xl ${theme.text} hover:opacity-90 transition-opacity`}
                 >
                   Call: (216) 921-2240
                 </a>

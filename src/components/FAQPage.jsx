@@ -265,7 +265,7 @@ export default function FAQPage() {
             
             <Link
               to="/contact"
-              className={`hidden sm:inline-flex px-5 py-2.5 bg-gradient-to-r ${theme.accent} text-slate-900 font-semibold rounded-full`}
+              className={`btn-shine hidden sm:inline-flex px-5 py-2.5 bg-gradient-to-r ${theme.accent} text-slate-900 font-semibold rounded-full`}
             >
               Contact Us
             </Link>
@@ -323,14 +323,14 @@ export default function FAQPage() {
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Link
               to="/contact"
-              className={`inline-flex items-center justify-center gap-2 px-8 py-4 bg-gradient-to-r ${theme.accent} text-slate-900 font-bold rounded-full text-lg`}
+              className={`btn-shine inline-flex items-center justify-center gap-2 px-8 py-4 bg-gradient-to-r ${theme.accent} text-slate-900 font-bold rounded-full text-lg`}
             >
               <MessageCircle className="w-5 h-5" />
               Contact Us
             </Link>
             <a
               href="tel:+12169212240"
-              className={`inline-flex items-center justify-center gap-2 px-8 py-4 ${theme.bgCard} ${theme.text} font-semibold rounded-full text-lg border ${theme.borderCard}`}
+              className={`btn-shine inline-flex items-center justify-center gap-2 px-8 py-4 ${theme.bgCard} ${theme.text} font-semibold rounded-full text-lg border ${theme.borderCard}`}
             >
               Call: (216) 921-2240
             </a>
