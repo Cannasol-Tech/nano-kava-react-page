@@ -241,10 +241,19 @@ export default function NanoScene({ isDark = true }) {
     }, { threshold: 0 });
     observer.observe(canvas);
 
+    // Cache rect to avoid forced layout on every mousemove (#10)
+    let cachedRect = { left: 0, top: 0 };
+
+    // Cache vignette on offscreen canvas — only regenerated on resize (#18)
+    const vignetteCanvas = document.createElement('canvas');
+    const vignetteCtx = vignetteCanvas.getContext('2d');
+    let vignetteValid = false;
+
     function resize() {
       dpr = window.devicePixelRatio || 1;
       const rect = canvas.parentElement.getBoundingClientRect();
       w = rect.width; h = rect.height;
+      cachedRect = canvas.getBoundingClientRect();
       canvas.width = w * dpr; canvas.height = h * dpr;
       canvas.style.width = `${w}px`; canvas.style.height = `${h}px`;
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
@@ -265,19 +274,22 @@ export default function NanoScene({ isDark = true }) {
       if (particlesRef.current.length === 0) {
         particlesRef.current = Array.from({ length: P_COUNT }, () => createParticle(w, h));
       }
+      vignetteValid = false;
     }
 
     resize();
     window.addEventListener('resize', resize);
 
     function handleMouseMove(e) {
-      const r = canvas.getBoundingClientRect();
-      mouseRef.current.x = e.clientX - r.left;
-      mouseRef.current.y = e.clientY - r.top;
+      mouseRef.current.x = e.clientX - cachedRect.left;
+      mouseRef.current.y = e.clientY - cachedRect.top;
     }
     function handleMouseLeave() { mouseRef.current.x = -1000; mouseRef.current.y = -1000; }
-    canvas.addEventListener('mousemove', handleMouseMove);
-    canvas.addEventListener('mouseleave', handleMouseLeave);
+    canvas.addEventListener('mousemove', handleMouseMove, { passive: true });
+    canvas.addEventListener('mouseleave', handleMouseLeave, { passive: true });
+
+    // Pre-allocate sphere position array — mutated in-place each frame (#11)
+    const spPos = SPHERES.map(() => ({ cx: 0, cy: 0, R: 0 }));
 
     const animId = Symbol('nanoScene');
 
@@ -292,15 +304,16 @@ export default function NanoScene({ isDark = true }) {
       const mouse = mouseRef.current;
       const minDim = Math.min(w, h);
 
-      // Sphere floating positions (computed every frame for smooth motion)
-      const spPos = [];
+      // Sphere floating positions — mutated in-place (#11)
       for (let si = 0; si < SPHERES.length; si++) {
         const s = SPHERES[si];
         const R = minDim * s.sizeR;
         const cx = w * s.xr;
         const floatY = Math.sin(t * s.floatSpdA + s.floatPhA) * s.floatA
                       + Math.cos(t * s.floatSpdB + s.floatPhB) * s.floatB;
-        spPos[si] = { cx, cy: h * s.yr + floatY, R };
+        spPos[si].cx = cx;
+        spPos[si].cy = h * s.yr + floatY;
+        spPos[si].R = R;
       }
 
       // ── Render spheres to offscreen canvases at 30fps (every other frame) ──
@@ -327,8 +340,10 @@ export default function NanoScene({ isDark = true }) {
       for (let i = 0; i < particles.length; i++) {
         const p = particles[i];
 
-        p.vx += (Math.random() - 0.5) * 0.022;
-        p.vy += (Math.random() - 0.5) * 0.022;
+        if (frame % 4 === 0) {
+          p.vx += (Math.random() - 0.5) * 0.088;
+          p.vy += (Math.random() - 0.5) * 0.088;
+        }
         p.vx *= 0.993;
         p.vy *= 0.993;
 
@@ -446,12 +461,19 @@ export default function NanoScene({ isDark = true }) {
           oc.cssSize, oc.cssSize);
       }
 
-      // ── Vignette ──
-      const vG = ctx.createRadialGradient(w / 2, h / 2, Math.min(w, h) * 0.3, w / 2, h / 2, Math.max(w, h) * 0.72);
-      vG.addColorStop(0, 'rgba(0,0,0,0)');
-      vG.addColorStop(1, isDark ? 'rgba(2,6,23,0.4)' : 'rgba(255,255,255,0.28)');
-      ctx.fillStyle = vG;
-      ctx.fillRect(0, 0, w, h);
+      // ── Vignette — cached on offscreen canvas (#18) ──
+      if (!vignetteValid) {
+        vignetteCanvas.width = Math.ceil(w * dpr);
+        vignetteCanvas.height = Math.ceil(h * dpr);
+        vignetteCtx.setTransform(dpr, 0, 0, dpr, 0, 0);
+        const vG = vignetteCtx.createRadialGradient(w / 2, h / 2, Math.min(w, h) * 0.3, w / 2, h / 2, Math.max(w, h) * 0.72);
+        vG.addColorStop(0, 'rgba(0,0,0,0)');
+        vG.addColorStop(1, isDark ? 'rgba(2,6,23,0.4)' : 'rgba(255,255,255,0.28)');
+        vignetteCtx.fillStyle = vG;
+        vignetteCtx.fillRect(0, 0, w, h);
+        vignetteValid = true;
+      }
+      ctx.drawImage(vignetteCanvas, 0, 0, vignetteCanvas.width, vignetteCanvas.height, 0, 0, w, h);
     });
 
     particlesRef.current = Array.from({ length: P_COUNT }, () => createParticle(w, h));

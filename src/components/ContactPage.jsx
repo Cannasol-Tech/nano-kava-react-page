@@ -312,7 +312,7 @@ function ContactForm({ theme }) {
  */
 function ContactInfoCard({ icon: Icon, title, children, theme, href }) {
   const content = (
-    <div className={`${theme.bgCard} backdrop-blur-xl rounded-xl border ${theme.borderCard} p-4 flex items-start gap-4`}>
+    <div className={`${theme.bgCard} rounded-xl border ${theme.borderCard} p-4 flex items-start gap-4`}>
       <div className={`w-10 h-10 rounded-lg bg-gradient-to-br ${theme.accent} flex items-center justify-center flex-shrink-0`}>
         <Icon className="w-5 h-5 text-slate-900" />
       </div>
@@ -353,7 +353,7 @@ export default function ContactPage() {
 
       {/* Navigation */}
       <motion.nav 
-        className={`fixed top-0 left-0 right-0 z-50 backdrop-blur-xl ${theme.bgNav} border-b ${theme.border}/50 transition-colors duration-500`}
+        className={`fixed top-0 left-0 right-0 z-50 ${theme.bgNav} border-b ${theme.border}/50 transition-colors duration-500`}
         initial={{ y: -100 }}
         animate={{ y: 0 }}
         transition={{ duration: 0.6 }}
@@ -427,7 +427,7 @@ export default function ContactPage() {
             transition={{ duration: 0.6, delay: 0.1 }}
             className="lg:col-span-2"
           >
-            <div className={`${isDark ? theme.bgCard : 'bg-white/40'} backdrop-blur-xl rounded-3xl border ${theme.borderCard} p-8 md:p-10`}>
+            <div className={`${isDark ? theme.bgCard : 'bg-white/40'} rounded-3xl border ${theme.borderCard} p-8 md:p-10`}>
               <h2 className={`text-2xl font-bold mb-6 ${theme.text}`}>Send Us a Message</h2>
               <ContactForm theme={theme} />
             </div>
@@ -475,7 +475,7 @@ export default function ContactPage() {
             </ContactInfoCard>
 
             {/* Quick Links */}
-            <div className={`${theme.bgCard} backdrop-blur-xl rounded-xl border ${theme.borderCard} p-4`}>
+            <div className={`${theme.bgCard} rounded-xl border ${theme.borderCard} p-4`}>
               <h3 className={`font-semibold ${theme.text} text-sm mb-3`}>Quick Links</h3>
               <div className="space-y-2 text-sm">
                 <Link 
