@@ -32,6 +32,7 @@ const inquiryTypes = [
   { value: 'formulation', label: 'Formulation Support', icon: Briefcase },
   { value: 'partnership', label: 'Partnership Inquiry', icon: Briefcase },
   { value: 'general', label: 'General Question', icon: MessageSquare },
+  { value: 'other', label: 'Other', icon: MessageSquare },
 ];
 
 /**
@@ -43,7 +44,7 @@ function ContactForm({ theme }) {
     email: '',
     company: '',
     phone: '',
-    inquiryType: '',
+    inquiryTypes: [],
     message: '',
   });
   const [status, setStatus] = useState('idle'); // idle, submitting, success, error
@@ -57,8 +58,8 @@ function ContactForm({ theme }) {
     } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
       newErrors.email = 'Please enter a valid email';
     }
-    if (!formData.inquiryType) newErrors.inquiryType = 'Please select an inquiry type';
-    if (!formData.message.trim()) newErrors.message = 'Message is required';
+    if (formData.inquiryTypes.length === 0) newErrors.inquiryTypes = 'Please select at least one inquiry type';
+    if (formData.inquiryTypes.includes('other') && !formData.message.trim()) newErrors.message = 'Please describe your inquiry';
     
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
@@ -78,7 +79,7 @@ function ContactForm({ theme }) {
         email: formData.email,
         company: formData.company || '',
         phone: formData.phone || '',
-        inquiryType: inquiryTypes.find(t => t.value === formData.inquiryType)?.label || 'General',
+        inquiryType: formData.inquiryTypes.map(v => inquiryTypes.find(t => t.value === v)?.label || v).join(', '),
         message: formData.message
       };
 
@@ -147,7 +148,7 @@ function ContactForm({ theme }) {
               email: '',
               company: '',
               phone: '',
-              inquiryType: '',
+              inquiryTypes: [],
               message: '',
             });
           }}
@@ -237,37 +238,45 @@ function ContactForm({ theme }) {
         </div>
       </div>
 
-      {/* Inquiry Type */}
+      {/* Inquiry Type — multi-select */}
       <div>
         <label className={`block text-sm font-medium ${theme.textSecondary} mb-2`}>
-          What can we help you with? *
+          What can we help you with? (select all that apply) *
         </label>
         <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-3">
-          {inquiryTypes.map((type) => (
-            <button
-              key={type.value}
-              type="button"
-              onClick={() => {
-                setFormData(prev => ({ ...prev, inquiryType: type.value }));
-                if (errors.inquiryType) setErrors(prev => ({ ...prev, inquiryType: '' }));
-              }}
-              className={`p-4 rounded-xl border text-left transition-all ${
-                formData.inquiryType === type.value
-                  ? `bg-gradient-to-r ${theme.accent} text-slate-900 border-transparent`
-                  : `${theme.bgInput} ${theme.text} ${theme.borderInput} hover:border-emerald-500/50`
-              }`}
-            >
-              <span className="font-medium">{type.label}</span>
-            </button>
-          ))}
+          {inquiryTypes.map((type) => {
+            const isSelected = formData.inquiryTypes.includes(type.value);
+            return (
+              <button
+                key={type.value}
+                type="button"
+                onClick={() => {
+                  setFormData(prev => ({
+                    ...prev,
+                    inquiryTypes: isSelected
+                      ? prev.inquiryTypes.filter(v => v !== type.value)
+                      : [...prev.inquiryTypes, type.value],
+                  }));
+                  if (errors.inquiryTypes) setErrors(prev => ({ ...prev, inquiryTypes: '' }));
+                }}
+                className={`p-4 rounded-xl border text-left transition-all ${
+                  isSelected
+                    ? `bg-gradient-to-r ${theme.accent} text-slate-900 border-transparent`
+                    : `${theme.bgInput} ${theme.text} ${theme.borderInput} hover:border-emerald-500/50`
+                }`}
+              >
+                <span className="font-medium">{type.label}</span>
+              </button>
+            );
+          })}
         </div>
-        {errors.inquiryType && <p className="text-red-500 text-sm mt-2">{errors.inquiryType}</p>}
+        {errors.inquiryTypes && <p className="text-red-500 text-sm mt-2">{errors.inquiryTypes}</p>}
       </div>
 
       {/* Message */}
       <div>
         <label className={`block text-sm font-medium ${theme.textSecondary} mb-2`}>
-          Your Message *
+          Your Message {formData.inquiryTypes.includes('other') ? '*' : '(optional)'}
         </label>
         <div className="relative">
           <MessageSquare className={`absolute left-4 top-4 w-5 h-5 ${theme.textMuted}`} />

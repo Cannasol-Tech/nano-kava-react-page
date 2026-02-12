@@ -38,6 +38,19 @@ exports.sendContactEmail = functions
         return res.status(400).json({ error: 'Invalid email format' });
       }
 
+      // Parse inquiry types (may be comma-separated for multi-select)
+      const types = inquiryType
+        ? inquiryType.split(',').map(t => t.trim()).filter(Boolean)
+        : [];
+      const inquiryLabel = types.length > 1
+        ? `${types[0]} + ${types.length - 1} more`
+        : types[0] || 'General Inquiry';
+      const inquiryBadges = types.length > 0
+        ? types.map(t =>
+            `<span style="display:inline-block;background-color:#d1fae5;color:#065f46;padding:4px 10px;border-radius:12px;font-size:13px;margin:2px 4px 2px 0;">${t}</span>`
+          ).join('')
+        : '<span style="color:#6b7280;">General</span>';
+
       // Email to your team
       const emailToTeam = {
         to: ['stephen.boyett@cannasolusa.com', 'josh.detzel@cannasolusa.com'],
@@ -46,7 +59,7 @@ exports.sendContactEmail = functions
           name: 'Cannasol Technologies - Kava Landing Page'
         },
         replyTo: email,
-        subject: `New Contact Form Submission: ${inquiryType || 'General Inquiry'}`,
+        subject: `New Contact Form Submission: ${inquiryLabel}`,
         text: `
 New Contact Form Submission
 
@@ -54,7 +67,7 @@ Name: ${name}
 Email: ${email}
 Company: ${company || 'Not provided'}
 Phone: ${phone || 'Not provided'}
-Inquiry Type: ${inquiryType || 'General'}
+Inquiry Type: ${types.length > 0 ? types.join(', ') : 'General'}
 
 Message:
 ${message}
@@ -73,7 +86,7 @@ This email was sent from the Cannasol Nano Kava landing page contact form.
               <p style="margin: 10px 0;"><strong>Email:</strong> <a href="mailto:${email}">${email}</a></p>
               <p style="margin: 10px 0;"><strong>Company:</strong> ${company || 'Not provided'}</p>
               <p style="margin: 10px 0;"><strong>Phone:</strong> ${phone ? `<a href="tel:${phone}">${phone}</a>` : 'Not provided'}</p>
-              <p style="margin: 10px 0;"><strong>Inquiry Type:</strong> ${inquiryType || 'General'}</p>
+              <p style="margin: 10px 0;"><strong>Inquiry Type:</strong><br>${inquiryBadges}</p>
             </div>
 
             <div style="margin: 20px 0;">
