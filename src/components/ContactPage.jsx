@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Helmet } from 'react-helmet-async';
 import { motion } from 'framer-motion';
-import { Link } from 'react-router-dom';
+import { Link, useSearchParams } from 'react-router-dom';
 import { useTheme } from '../context/ThemeContext';
 import {
   ArrowLeft,
@@ -38,14 +38,19 @@ const inquiryTypes = [
 /**
  * Contact Form Component
  */
-function ContactForm({ theme }) {
+const productMessages = {
+  'nano-kava': 'I\'m interested in receiving a free Nano Kava Emulsion sample for evaluation.',
+  'nano-mushrooms': 'I\'m interested in receiving a free Nano Mushroom Emulsion sample pack for evaluation.',
+};
+
+function ContactForm({ theme, initialInquiry, initialProduct }) {
   const [formData, setFormData] = useState({
     name: '',
     email: '',
     company: '',
     phone: '',
-    inquiryTypes: [],
-    message: '',
+    inquiryTypes: initialInquiry ? [initialInquiry] : [],
+    message: (initialProduct && productMessages[initialProduct]) || '',
   });
   const [status, setStatus] = useState('idle'); // idle, submitting, success, error
   const [errors, setErrors] = useState({});
@@ -355,6 +360,9 @@ function ContactInfoCard({ icon: Icon, title, children, theme, href, onClick }) 
 export default function ContactPage() {
   const { isDark, setIsDark } = useTheme();
   const theme = isDark ? themes.dark : themes.light;
+  const [searchParams] = useSearchParams();
+  const inquiryParam = searchParams.get('inquiry');
+  const productParam = searchParams.get('product');
 
   return (
     <div className={`min-h-screen ${theme.text} transition-colors duration-500`}>
@@ -445,7 +453,7 @@ export default function ContactPage() {
           >
             <div className={`${isDark ? theme.bgCard : 'bg-white/40'} rounded-3xl border ${theme.borderCard} p-8 md:p-10`}>
               <h2 className={`text-2xl font-bold mb-6 ${theme.text}`}>Send Us a Message</h2>
-              <ContactForm theme={theme} />
+              <ContactForm theme={theme} initialInquiry={inquiryParam} initialProduct={productParam} />
             </div>
           </motion.div>
 

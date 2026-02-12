@@ -46,7 +46,7 @@ const themes = {
     toggleMenuBg: 'bg-slate-800/60',
     toggleMenuBorder: 'border-slate-700/50',
 
-    logo: '/cannasol-logo.png',
+    logo: '/cannasol-logo-white.png',
 
     gradientOrbs: {
       emerald: 'bg-emerald-500/15',
@@ -104,7 +104,7 @@ const themes = {
     toggleMenuBg: 'bg-slate-200',
     toggleMenuBorder: 'border-slate-300',
 
-    logo: '/cannasol-logoW.png',
+    logo: '/cannasol-logo.png',
 
     gradientOrbs: {
       emerald: 'bg-emerald-500/20',

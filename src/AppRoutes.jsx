@@ -15,10 +15,23 @@ function ScrollToTop() {
   return null;
 }
 
+// Signal to the prerenderer that the page is fully rendered
+function PrerenderReady() {
+  useEffect(() => {
+    // Delay to let react-helmet-async update <head> tags
+    const id = setTimeout(() => {
+      document.dispatchEvent(new Event('app-rendered'));
+    }, 2000);
+    return () => clearTimeout(id);
+  }, []);
+  return null;
+}
+
 function AppRoutes() {
   return (
     <Suspense fallback={<div className="min-h-screen" />}>
       <ScrollToTop />
+      <PrerenderReady />
       <Routes>
         <Route path="/" element={<KavaLandingPage />} />
         <Route path="/mushrooms" element={<MushroomsLandingPage />} />

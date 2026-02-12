@@ -80,16 +80,18 @@ const scaleIn = {
 function AnimatedCounter({ value, suffix = '', prefix = '' }) {
   const ref = useRef(null);
   const isInView = useInView(ref, { once: true, margin: "-100px" });
-  const [count, setCount] = useState(0);
-  
+  const numValue = parseInt(value.replace(/[^0-9]/g, ''));
+  // Start at target value so prerendered HTML shows correct numbers for SEO
+  const [count, setCount] = useState(numValue);
+
   React.useEffect(() => {
     if (isInView) {
-      const numValue = parseInt(value.replace(/[^0-9]/g, ''));
       const duration = 2000;
       const steps = 60;
       const increment = numValue / steps;
       let current = 0;
-      
+      setCount(0);
+
       const timer = setInterval(() => {
         current += increment;
         if (current >= numValue) {
@@ -99,11 +101,11 @@ function AnimatedCounter({ value, suffix = '', prefix = '' }) {
           setCount(Math.floor(current));
         }
       }, duration / steps);
-      
+
       return () => clearInterval(timer);
     }
   }, [isInView, value]);
-  
+
   return <span ref={ref}>{prefix}{count}{suffix}</span>;
 }
 
