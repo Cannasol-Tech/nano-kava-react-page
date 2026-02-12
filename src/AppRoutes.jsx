@@ -15,14 +15,25 @@ function ScrollToTop() {
   return null;
 }
 
-// Signal to the prerenderer that the page is fully rendered
+// Signal to the prerenderer that the page is fully rendered.
+// Polls for Helmet's data-rh tags instead of using a fixed delay,
+// so lazy routes that take longer to load still get correct meta tags.
 function PrerenderReady() {
   useEffect(() => {
-    // Delay to let react-helmet-async update <head> tags
-    const id = setTimeout(() => {
-      document.dispatchEvent(new Event('app-rendered'));
-    }, 2000);
-    return () => clearTimeout(id);
+    const MAX_WAIT = 10000;
+    const POLL_INTERVAL = 100;
+    let elapsed = 0;
+
+    const poll = setInterval(() => {
+      elapsed += POLL_INTERVAL;
+      const hasHelmet = document.querySelector('[data-rh="true"]');
+      if (hasHelmet || elapsed >= MAX_WAIT) {
+        clearInterval(poll);
+        document.dispatchEvent(new Event('app-rendered'));
+      }
+    }, POLL_INTERVAL);
+
+    return () => clearInterval(poll);
   }, []);
   return null;
 }
