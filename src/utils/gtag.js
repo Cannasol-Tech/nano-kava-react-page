@@ -5,7 +5,7 @@
  * Configure conversion tags and triggers in the GTM console:
  *   https://tagmanager.google.com/
  *
- * Container ID: GTM-PWRXHZ8S
+ * Container ID: GTM-57TMCR6T
  *
  * GTM trigger setup (Custom Events):
  *   - "form_submission" → Google Ads Conversion tag for form submits
@@ -27,23 +27,28 @@ export function trackPageView(path, title) {
   });
 }
 
-/** Track contact form submission. */
-export function trackFormConversion({ email } = {}) {
+/** Track contact form submission with user-provided data for enhanced conversions. */
+export function trackFormConversion({ email, name, phone, company } = {}) {
   const data = {};
-  if (email) {
-    data.user_email = email;
-  }
+  if (email) data.user_email = email;
+  if (name) data.user_name = name;
+  if (phone) data.user_phone = phone;
+  if (company) data.user_company = company;
   pushEvent('form_submission', data);
 }
 
 /** Track phone call click. */
 export function trackPhoneConversion() {
-  pushEvent('phone_click');
+  pushEvent('phone_click', {
+    click_page: window.location.pathname,
+  });
 }
 
 /** Track email click. */
 export function trackEmailConversion() {
-  pushEvent('email_click');
+  pushEvent('email_click', {
+    click_page: window.location.pathname,
+  });
 }
 
 /** Generic event tracking for future use. */

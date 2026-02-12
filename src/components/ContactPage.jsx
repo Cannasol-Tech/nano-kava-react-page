@@ -98,7 +98,12 @@ function ContactForm({ theme }) {
 
       if (response.ok && data.success) {
         setStatus('success');
-        trackFormConversion({ email: formData.email });
+        trackFormConversion({
+          email: formData.email,
+          name: formData.name,
+          phone: formData.phone,
+          company: formData.company,
+        });
       } else {
         throw new Error(data.error || 'Form submission failed');
       }
