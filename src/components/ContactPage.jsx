@@ -3,12 +3,12 @@ import { Helmet } from 'react-helmet-async';
 import { motion } from 'framer-motion';
 import { Link } from 'react-router-dom';
 import { useTheme } from '../context/ThemeContext';
-import { 
-  ArrowLeft, 
-  Send, 
-  Phone, 
-  Mail, 
-  MapPin, 
+import {
+  ArrowLeft,
+  Send,
+  Phone,
+  Mail,
+  MapPin,
   Clock,
   CheckCircle,
   AlertCircle,
@@ -20,6 +20,7 @@ import {
   Moon
 } from 'lucide-react';
 import themesConfig from '../theme/themes';
+import { trackFormConversion, trackPhoneConversion, trackEmailConversion } from '../utils/gtag';
 
 // Theme configuration - matches other pages
 const themes = themesConfig;
@@ -97,6 +98,7 @@ function ContactForm({ theme }) {
 
       if (response.ok && data.success) {
         setStatus('success');
+        trackFormConversion({ email: formData.email });
       } else {
         throw new Error(data.error || 'Form submission failed');
       }
@@ -128,7 +130,7 @@ function ContactForm({ theme }) {
         <h3 className={`text-2xl font-bold mb-4 ${theme.text}`}>Message Sent!</h3>
         <p className={`${theme.textSecondary} mb-8`}>
           Thanks for reaching out! Josh will get back to you within 24 hours. In the meantime, feel free to call us at{' '}
-          <a href="tel:+12169212240" className={theme.accentText}>
+          <a href="tel:+12169212240" onClick={() => trackPhoneConversion()} className={theme.accentText}>
             (216) 921-2240
           </a>
         </p>
@@ -310,7 +312,7 @@ function ContactForm({ theme }) {
 /**
  * Contact Info Card Component - Compact version
  */
-function ContactInfoCard({ icon: Icon, title, children, theme, href }) {
+function ContactInfoCard({ icon: Icon, title, children, theme, href, onClick }) {
   const content = (
     <div className={`${theme.bgCard} rounded-xl border ${theme.borderCard} p-4 flex items-start gap-4`}>
       <div className={`w-10 h-10 rounded-lg bg-gradient-to-br ${theme.accent} flex items-center justify-center flex-shrink-0`}>
@@ -325,7 +327,7 @@ function ContactInfoCard({ icon: Icon, title, children, theme, href }) {
 
   if (href) {
     return (
-      <a href={href} className="block hover:scale-[1.02] transition-transform">
+      <a href={href} onClick={onClick} className="block hover:scale-[1.02] transition-transform">
         {content}
       </a>
     );
@@ -440,20 +442,22 @@ export default function ContactPage() {
             transition={{ duration: 0.6, delay: 0.2 }}
             className="space-y-3"
           >
-            <ContactInfoCard 
-              icon={Phone} 
-              title="Call Us" 
+            <ContactInfoCard
+              icon={Phone}
+              title="Call Us"
               theme={theme}
               href="tel:+12169212240"
+              onClick={() => trackPhoneConversion()}
             >
               <p className="font-medium">(216) 921-2240</p>
             </ContactInfoCard>
 
-            <ContactInfoCard 
-              icon={Mail} 
-              title="Email Us" 
+            <ContactInfoCard
+              icon={Mail}
+              title="Email Us"
               theme={theme}
               href="mailto:josh.detzel@cannasolusa.com"
+              onClick={() => trackEmailConversion()}
             >
               <p className="font-medium break-all">josh.detzel@cannasolusa.com</p>
             </ContactInfoCard>

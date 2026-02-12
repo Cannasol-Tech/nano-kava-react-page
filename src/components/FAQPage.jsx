@@ -3,6 +3,7 @@ import { Helmet } from 'react-helmet-async';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Link } from 'react-router-dom';
 import { useTheme } from '../context/ThemeContext';
+import { trackPhoneConversion } from '../utils/gtag';
 import { 
   ChevronDown, 
   ArrowLeft, 
@@ -343,6 +344,7 @@ export default function FAQPage() {
             </Link>
             <a
               href="tel:+12169212240"
+              onClick={() => trackPhoneConversion()}
               className={`btn-shine inline-flex items-center justify-center gap-2 px-8 py-4 ${theme.bgCard} ${theme.text} font-semibold rounded-full text-lg border ${theme.borderCard}`}
             >
               Call: (216) 921-2240

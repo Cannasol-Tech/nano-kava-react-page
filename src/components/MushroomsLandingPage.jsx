@@ -3,6 +3,7 @@ import { Helmet } from 'react-helmet-async';
 import { Link } from 'react-router-dom';
 import { useTheme } from '../context/ThemeContext';
 import { motion } from 'framer-motion';
+import { trackPhoneConversion } from '../utils/gtag';
 import { ArrowLeft, Leaf, Sparkles, Sun, Moon, ArrowRight, Beaker, Droplets, ShieldCheck, Dumbbell, Phone, Menu, X } from 'lucide-react';
 
 import themesConfig from '../theme/themes';
@@ -221,6 +222,7 @@ function MushroomsLandingPage() {
             </Link>
             <a
               href="tel:+12169212240"
+              onClick={() => trackPhoneConversion()}
               className="flex items-center justify-center gap-2 text-emerald-400 py-2"
             >
               <Phone className="w-4 h-4" />
@@ -408,6 +410,7 @@ function MushroomsLandingPage() {
 
                 <a
                   href="tel:+12169212240"
+                  onClick={() => trackPhoneConversion()}
                   className={`btn-shine inline-flex items-center justify-center gap-2 px-7 py-3 ${theme.bgButton} border ${theme.borderCard} rounded-xl ${theme.text} hover:opacity-90 transition-opacity`}
                 >
                   Call: (216) 921-2240
