@@ -25,3 +25,6 @@ npm-debug.log*
 
 # Vite
 .vite/
+
+# Performance reports
+perf-reports/

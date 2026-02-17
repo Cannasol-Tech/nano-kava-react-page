@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
 import { Helmet } from 'react-helmet-async';
-import { motion, AnimatePresence } from 'framer-motion';
 import { Link } from 'react-router-dom';
 import { useTheme } from '../context/ThemeContext';
 import { trackPhoneConversion } from '../utils/gtag';
@@ -19,6 +18,7 @@ import {
   Moon
 } from 'lucide-react';
 import themesConfig from '../theme/themes';
+import { useInView } from '../hooks/useInView';
 
 // Theme configuration - matches KavaLandingPage
 const themes = themesConfig;
@@ -146,29 +146,27 @@ function FAQItem({ question, answer, isOpen, onClick, theme }) {
           className={`w-full py-5 px-6 flex items-center justify-between text-left ${theme.text} hover:${theme.accentText} transition-colors`}
         >
           <span className="font-medium pr-8">{question}</span>
-          <motion.div
-            animate={{ rotate: isOpen ? 180 : 0 }}
-            transition={{ duration: 0.2 }}
+          <div
+            className="transition-transform duration-200"
+            style={{ transform: isOpen ? 'rotate(180deg)' : 'rotate(0deg)' }}
           >
             <ChevronDown className={`w-5 h-5 ${theme.textMuted}`} />
-          </motion.div>
+          </div>
         </button>
       </h3>
-      <AnimatePresence>
-        {isOpen && (
-          <motion.div
-            initial={{ height: 0, opacity: 0 }}
-            animate={{ height: 'auto', opacity: 1 }}
-            exit={{ height: 0, opacity: 0 }}
-            transition={{ duration: 0.3 }}
-            className="overflow-hidden"
-          >
-            <p className={`px-6 pb-5 ${theme.textSecondary} leading-relaxed`}>
-              {answer}
-            </p>
-          </motion.div>
-        )}
-      </AnimatePresence>
+      <div
+        className="grid transition-[grid-template-rows,opacity] duration-300"
+        style={{
+          gridTemplateRows: isOpen ? '1fr' : '0fr',
+          opacity: isOpen ? 1 : 0,
+        }}
+      >
+        <div className="overflow-hidden">
+          <p className={`px-6 pb-5 ${theme.textSecondary} leading-relaxed`}>
+            {answer}
+          </p>
+        </div>
+      </div>
     </div>
   );
 }
@@ -178,13 +176,12 @@ function FAQItem({ question, answer, isOpen, onClick, theme }) {
  */
 function FAQCategory({ category, openItems, toggleItem, theme }) {
   const Icon = category.icon;
-  
+  const [ref, isInView] = useInView();
+
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 20 }}
-      whileInView={{ opacity: 1, y: 0 }}
-      viewport={{ once: true }}
-      className="mb-12"
+    <div
+      ref={ref}
+      className={`mb-12 ${isInView ? 'scroll-visible' : 'scroll-hidden'}`}
     >
       <div className="flex items-center gap-3 mb-6">
         <div className={`w-10 h-10 rounded-xl bg-gradient-to-br ${theme.accent} flex items-center justify-center`}>
@@ -208,7 +205,7 @@ function FAQCategory({ category, openItems, toggleItem, theme }) {
           );
         })}
       </div>
-    </motion.div>
+    </div>
   );
 }
 
@@ -218,6 +215,7 @@ function FAQCategory({ category, openItems, toggleItem, theme }) {
 export default function FAQPage() {
   const { isDark, setIsDark } = useTheme();
   const [openItems, setOpenItems] = useState([]);
+  const [ctaRef, ctaInView] = useInView();
   
   const theme = isDark ? themes.dark : themes.light;
   
@@ -241,11 +239,8 @@ export default function FAQPage() {
       </Helmet>
 
       {/* Navigation */}
-      <motion.nav 
-        className={`fixed top-0 left-0 right-0 z-50 ${theme.bgNav} border-b ${theme.border}/50 transition-colors duration-500`}
-        initial={{ y: -100 }}
-        animate={{ y: 0 }}
-        transition={{ duration: 0.6 }}
+      <nav
+        className={`animate-slide-down fixed top-0 left-0 right-0 z-50 ${theme.bgNav} border-b ${theme.border}/50 transition-colors duration-500`}
       >
         <div className="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
           <div className="flex items-center gap-4">
@@ -267,14 +262,12 @@ export default function FAQPage() {
           </div>
           
           <div className="flex items-center gap-4">
-            <motion.button
+            <button
               onClick={() => setIsDark(!isDark)}
-              className={`p-2 rounded-full ${theme.toggleBg} ${theme.toggleText} transition-colors`}
-              whileHover={{ scale: 1.1 }}
-              whileTap={{ scale: 0.95 }}
+              className={`p-2 rounded-full ${theme.toggleBg} ${theme.toggleText} transition-colors interactive-btn hover-scale active-press-sm`}
             >
               {isDark ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
-            </motion.button>
+            </button>
             
             <Link
               to="/contact"
@@ -284,16 +277,12 @@ export default function FAQPage() {
             </Link>
           </div>
         </div>
-      </motion.nav>
+      </nav>
 
       {/* Hero Section */}
       <div className="pt-32 pb-16 px-6">
         <div className="max-w-4xl mx-auto text-center">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6 }}
-          >
+          <div className="animate-fade-in-up">
             <h1 className={`text-4xl md:text-6xl font-bold mb-6 ${theme.text}`}>
               Frequently Asked
               <span className={`bg-gradient-to-r ${theme.accentGradientAlt} bg-clip-text text-transparent`}> Questions</span>
@@ -302,7 +291,7 @@ export default function FAQPage() {
             <p className={`text-xl ${theme.textSecondary} max-w-2xl mx-auto`}>
               Everything you need to know about our nano Kava emulsion, formulation, ordering, and partnership opportunities.
             </p>
-          </motion.div>
+          </div>
         </div>
       </div>
 
@@ -319,11 +308,9 @@ export default function FAQPage() {
         ))}
         
         {/* CTA Section */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          className={`mt-16 ${theme.bgCard} rounded-3xl border ${theme.borderCard} p-8 md:p-12 text-center`}
+        <div
+          ref={ctaRef}
+          className={`mt-16 ${theme.bgCard} rounded-3xl border ${theme.borderCard} p-8 md:p-12 text-center ${ctaInView ? 'scroll-visible' : 'scroll-hidden'}`}
         >
           <div className={`w-16 h-16 mx-auto mb-6 rounded-full bg-gradient-to-r ${theme.accent} flex items-center justify-center`}>
             <MessageCircle className="w-8 h-8 text-slate-900" />
@@ -350,7 +337,7 @@ export default function FAQPage() {
               Call: (216) 921-2240
             </a>
           </div>
-        </motion.div>
+        </div>
       </div>
 
       {/* Footer */}

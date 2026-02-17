@@ -114,6 +114,7 @@ body {
   pointer-events: none;
   z-index: 20;
   opacity: 0;
+  will-change: transform, opacity;
 }
 
 /* Layer 2: Tight trailing sparkle for depth */
@@ -136,6 +137,7 @@ body {
   z-index: 20;
   opacity: 0;
   filter: blur(0.5px);
+  will-change: transform, opacity;
 }
 
 /* Emerald glow halo on hover */
@@ -155,17 +157,17 @@ body {
 }
 
 @keyframes btn-shine-sweep {
-  0%   { left: -110%; opacity: 0; }
+  0%   { transform: translateX(0); opacity: 0; }
   10%  { opacity: 1; }
   80%  { opacity: 1; }
-  100% { left: 150%; opacity: 0; }
+  100% { transform: translateX(325%); opacity: 0; }
 }
 
 @keyframes btn-shine-trail {
-  0%   { left: -110%; opacity: 0; }
+  0%   { transform: translateX(0); opacity: 0; }
   15%  { opacity: 0.8; }
   75%  { opacity: 0.8; }
-  100% { left: 170%; opacity: 0; }
+  100% { transform: translateX(400%); opacity: 0; }
 }
 
 /* Custom animations */
@@ -178,21 +180,54 @@ body {
   }
 }
 
-@keyframes glow {
-  0%, 100% {
-    box-shadow: 0 0 20px rgba(16, 185, 129, 0.3);
-  }
-  50% {
-    box-shadow: 0 0 40px rgba(16, 185, 129, 0.6);
-  }
+@keyframes glow-fade {
+  0%, 100% { opacity: 0.5; }
+  50% { opacity: 1; }
 }
 
 .animate-float {
   animation: float 6s ease-in-out infinite;
+  will-change: transform;
 }
 
 .animate-glow {
-  animation: glow 2s ease-in-out infinite;
+  position: relative;
+}
+.animate-glow::after {
+  content: '';
+  position: absolute;
+  inset: -8px;
+  border-radius: inherit;
+  background: radial-gradient(circle, rgba(16, 185, 129, 0.45) 0%, transparent 70%);
+  animation: glow-fade 2s ease-in-out infinite;
+  pointer-events: none;
+  z-index: -1;
+  will-change: opacity;
+}
+
+/* Glow orb — replaces Framer Motion scale+opacity animation */
+@keyframes glow-orb {
+  0%, 100% { transform: scale(1); opacity: 0.3; }
+  50% { transform: scale(1.2); opacity: 0.5; }
+}
+
+/* Hero heading gradient — wider sweep, linear */
+.animate-gradient-slow {
+  background-size: 400% 100%;
+  animation: gradient-shift 4s linear infinite;
+}
+
+/* Pulsing opacity for decorative glow backgrounds */
+@keyframes pulse-opacity {
+  0%, 100% { opacity: 0.25; }
+  50% { opacity: 0.5; }
+}
+
+/* Hover glow for hero CTA (stronger than btn-shine default) */
+.hover-glow-intense:hover {
+  box-shadow:
+    0 0 30px rgba(16, 185, 129, 0.4),
+    0 0 50px rgba(16, 185, 129, 0.2);
 }
 
 /* Hexagon clip path utility */
@@ -221,6 +256,118 @@ a:focus-visible {
   outline-offset: 2px;
 }
 
+/* ── Entrance animations (replace Framer Motion) ── */
+
+/* Nav slide-down */
+@keyframes slide-down {
+  from { transform: translateY(-100%); }
+  to { transform: translateY(0); }
+}
+.animate-slide-down {
+  animation: slide-down 0.6s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+/* Fade-in-up (page load + scroll-triggered) */
+@keyframes fade-in-up {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.animate-fade-in-up {
+  animation: fade-in-up 0.6s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+/* Hero headline — larger travel, slower */
+@keyframes fade-in-up-hero {
+  from { opacity: 0; transform: translateY(30px) scale(0.95); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+.animate-fade-in-up-hero {
+  animation: fade-in-up-hero 1s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+/* Stagger delays */
+.anim-delay-100 { animation-delay: 0.1s; }
+.anim-delay-200 { animation-delay: 0.2s; }
+.anim-delay-300 { animation-delay: 0.3s; }
+.anim-delay-400 { animation-delay: 0.4s; }
+.anim-delay-600 { animation-delay: 0.6s; }
+.anim-delay-800 { animation-delay: 0.8s; }
+
+/* Scroll-triggered: hidden until IntersectionObserver fires */
+.scroll-hidden {
+  opacity: 0;
+  transform: translateY(20px);
+}
+.scroll-visible {
+  opacity: 1;
+  transform: translateY(0);
+  transition: opacity 0.6s cubic-bezier(0.22, 1, 0.36, 1),
+              transform 0.6s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+/* ── Interactive hover/tap (replace FM whileHover/whileTap) ── */
+.interactive-btn {
+  transition: transform 0.15s ease;
+}
+.interactive-card {
+  transition: transform 0.3s cubic-bezier(0.22, 1, 0.36, 1);
+}
+.hover-scale:hover { transform: scale(1.05); }
+.hover-scale-sm:hover { transform: scale(1.02); }
+.hover-scale-xs:hover { transform: scale(1.03); }
+.hover-lift:hover { transform: translateY(-8px); }
+.hover-lift-sm:hover { transform: translateY(-5px); }
+.hover-lift-xs:hover { transform: scale(1.03) translateY(-4px); }
+.active-press:active { transform: scale(0.98); }
+.active-press-sm:active { transform: scale(0.95); }
+
+/* ── Infinite animations ── */
+
+/* Scroll indicator bounce */
+@keyframes bounce-slow {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(10px); }
+}
+@keyframes bounce-dot {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(12px); }
+}
+
+/* Connecting line shimmer */
+@keyframes line-shimmer {
+  0%, 100% { transform: translateX(0); }
+  50% { transform: translateX(300%); }
+}
+
+/* ── Performance optimizations ── */
+
+/* content-visibility: auto — skips layout/paint for below-fold sections */
+.content-auto {
+  content-visibility: auto;
+  contain-intrinsic-size: auto 500px;
+}
+
+/* will-change hints — promotes animated elements to GPU layers */
+.will-change-transform {
+  will-change: transform;
+}
+.will-change-opacity {
+  will-change: opacity;
+}
+.will-change-transform-opacity {
+  will-change: transform, opacity;
+}
+
+/* Apply will-change to all scroll-animated and hover-animated elements */
+.scroll-hidden,
+.scroll-visible,
+.animate-fade-in-up,
+.animate-fade-in-up-hero,
+.interactive-btn,
+.interactive-card {
+  will-change: transform, opacity;
+}
+
 /* Reduced motion */
 @media (prefers-reduced-motion: reduce) {
   *,
@@ -230,7 +377,7 @@ a:focus-visible {
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
   }
-  
+
   html {
     scroll-behavior: auto;
   }

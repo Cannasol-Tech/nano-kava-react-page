@@ -44,13 +44,20 @@ const SPHERES = [
 
 // ── Background particle config ──
 const P_COUNT = 55;
+const P_COUNT_SAFARI = 22; // Reduced particle count for Safari performance (595→231 comparisons)
 const CONN_DIST = 120;
+const CONN_DIST_SAFARI = 100; // Shorter connection distance on Safari for fewer lines
 const CONN_DIST_SQ = CONN_DIST * CONN_DIST;
+const CONN_DIST_SAFARI_SQ = CONN_DIST_SAFARI * CONN_DIST_SAFARI;
 const MOUSE_R = 180;
 const MOUSE_R_SQ = MOUSE_R * MOUSE_R;
 
 // Offscreen canvas padding as multiple of sphere radius (must contain shadow + outer glow)
 const OC_PAD = 1.8;
+
+// Safari's createRadialGradient is 2-3x slower — throttle entire animation loop to 30fps
+const IS_SAFARI = typeof navigator !== 'undefined'
+  && /^((?!chrome|android).)*safari/i.test(navigator.userAgent);
 
 function createParticle(w, h) {
   const size = Math.random() * 2.2 + 0.8;
@@ -249,6 +256,16 @@ export default function NanoScene({ isDark = true }) {
     const vignetteCtx = vignetteCanvas.getContext('2d');
     let vignetteValid = false;
 
+    // Cache particle sprite — render gradient once, blit 55 times (#25)
+    const particleSpriteSize = 80; // Large enough for max particle size * 4
+    const particleSprite = document.createElement('canvas');
+    particleSprite.width = particleSpriteSize;
+    particleSprite.height = particleSpriteSize;
+    const particleSpriteCtx = particleSprite.getContext('2d');
+    const spriteCenter = particleSpriteSize / 2;
+    const spriteRadius = 20; // Base radius for the sprite
+    let particleSpriteValid = false;
+
     function resize() {
       dpr = window.devicePixelRatio || 1;
       const rect = canvas.parentElement.getBoundingClientRect();
@@ -272,9 +289,11 @@ export default function NanoScene({ isDark = true }) {
       }
 
       if (particlesRef.current.length === 0) {
-        particlesRef.current = Array.from({ length: P_COUNT }, () => createParticle(w, h));
+        const particleCount = IS_SAFARI ? P_COUNT_SAFARI : P_COUNT;
+        particlesRef.current = Array.from({ length: particleCount }, () => createParticle(w, h));
       }
       vignetteValid = false;
+      particleSpriteValid = false;
     }
 
     resize();
@@ -291,14 +310,37 @@ export default function NanoScene({ isDark = true }) {
     // Pre-allocate sphere position array — mutated in-place each frame (#11)
     const spPos = SPHERES.map(() => ({ cx: 0, cy: 0, R: 0 }));
 
+    // Safari: 30fps render, 15fps physics for optimal performance
+    let lastSafariFrame = 0;
+    let lastSafariPhysicsFrame = 0;
+    const SAFARI_FRAME_INTERVAL = 1000 / 30; // 33.33ms between renders
+    const SAFARI_PHYSICS_INTERVAL = 1000 / 15; // 66.67ms between physics updates
+
     const animId = Symbol('nanoScene');
 
-    registerAnimation(animId, (_timestamp, _frameCount) => {
+    registerAnimation(animId, (timestamp, _frameCount) => {
       if (!visibleRef.current) return;
+
+      // Safari: throttle rendering to 30fps for consistent performance
+      if (IS_SAFARI) {
+        const elapsed = timestamp - lastSafariFrame;
+        if (elapsed < SAFARI_FRAME_INTERVAL) return;
+        lastSafariFrame = timestamp - (elapsed % SAFARI_FRAME_INTERVAL);
+      }
 
       tRef.current += 1;
       const frame = tRef.current;
-      const t = frame * 0.0025;
+
+      // Safari: update physics at 15fps (every other render frame)
+      const shouldUpdatePhysics = IS_SAFARI
+        ? (timestamp - lastSafariPhysicsFrame) >= SAFARI_PHYSICS_INTERVAL
+        : true; // Chrome: always update physics at 60fps
+
+      if (IS_SAFARI && shouldUpdatePhysics) {
+        lastSafariPhysicsFrame = timestamp - ((timestamp - lastSafariPhysicsFrame) % SAFARI_PHYSICS_INTERVAL);
+      }
+      // Time-based rotation (consistent speed regardless of FPS)
+      const t = timestamp * 0.00015;
       const colors = getColors();
       const particles = particlesRef.current;
       const mouse = mouseRef.current;
@@ -316,9 +358,10 @@ export default function NanoScene({ isDark = true }) {
         spPos[si].R = R;
       }
 
-      // ── Render spheres to offscreen canvases at 30fps (every other frame) ──
-      // Compositing (drawImage) runs at 60fps for smooth float motion
-      if (frame % 2 === 0) {
+      // ── Render spheres to offscreen canvases ──
+      // Safari: 30fps (entire loop throttled) — createRadialGradient is 2-3x slower
+      // Chrome/others: 60fps for smooth rotation
+      if (true) {
         for (let si = 0; si < SPHERES.length; si++) {
           const s = SPHERES[si];
           const oc = offscreens[si];
@@ -336,57 +379,66 @@ export default function NanoScene({ isDark = true }) {
 
       ctx.clearRect(0, 0, w, h);
 
-      // ── Update particles (60fps — cheap physics) ──
-      for (let i = 0; i < particles.length; i++) {
-        const p = particles[i];
+      // ── Update particles (60fps Chrome, 15fps Safari — physics) ──
+      if (shouldUpdatePhysics) {
+        for (let i = 0; i < particles.length; i++) {
+          const p = particles[i];
 
-        if (frame % 4 === 0) {
-          p.vx += (Math.random() - 0.5) * 0.088;
-          p.vy += (Math.random() - 0.5) * 0.088;
-        }
-        p.vx *= 0.993;
-        p.vy *= 0.993;
+          if (frame % 4 === 0) {
+            p.vx += (Math.random() - 0.5) * 0.088;
+            p.vy += (Math.random() - 0.5) * 0.088;
+          }
+          p.vx *= 0.993;
+          p.vy *= 0.993;
 
-        // Mouse repulsion
-        const mdx = p.x - mouse.x, mdy = p.y - mouse.y;
-        const mDistSq = mdx * mdx + mdy * mdy;
-        if (mDistSq < MOUSE_R_SQ && mDistSq > 0) {
-          const mDist = Math.sqrt(mDistSq);
-          const f = (MOUSE_R - mDist) / MOUSE_R;
-          p.vx += (mdx / mDist) * f * 0.5;
-          p.vy += (mdy / mDist) * f * 0.5;
-        }
+          // Mouse repulsion
+          const mdx = p.x - mouse.x, mdy = p.y - mouse.y;
+          const mDistSq = mdx * mdx + mdy * mdy;
+          if (mDistSq < MOUSE_R_SQ && mDistSq > 0) {
+            const mDist = Math.sqrt(mDistSq);
+            const f = (MOUSE_R - mDist) / MOUSE_R;
+            p.vx += (mdx / mDist) * f * 0.5;
+            p.vy += (mdy / mDist) * f * 0.5;
+          }
 
-        // Sphere influence (orbit + repel from core)
-        for (let si = 0; si < spPos.length; si++) {
-          const sp = spPos[si];
-          const sdx = p.x - sp.cx, sdy = p.y - sp.cy;
-          const sDistSq = sdx * sdx + sdy * sdy;
-          const influenceR = sp.R * 2.8;
-          if (sDistSq < influenceR * influenceR && sDistSq > 0) {
-            const sDist = Math.sqrt(sDistSq);
-            const innerR = sp.R * 1.15;
-            if (sDist < innerR) {
-              const push = (innerR - sDist) / innerR;
-              p.vx += (sdx / sDist) * push * 0.4;
-              p.vy += (sdy / sDist) * push * 0.4;
-            } else {
-              const pull = (1 - sDist / influenceR) * 0.012;
-              p.vx += (-sdy / sDist) * pull;
-              p.vy += (sdx / sDist) * pull;
-              p.vx -= (sdx / sDist) * pull * 0.3;
-              p.vy -= (sdy / sDist) * pull * 0.3;
+          // Sphere influence (orbit + repel from core)
+          const influenceMult = IS_SAFARI ? 2.2 : 2.8; // Reduced influence distance on Safari
+          for (let si = 0; si < spPos.length; si++) {
+            const sp = spPos[si];
+            const sdx = p.x - sp.cx, sdy = p.y - sp.cy;
+            const sDistSq = sdx * sdx + sdy * sdy;
+            const influenceR = sp.R * influenceMult;
+            if (sDistSq < influenceR * influenceR && sDistSq > 0) {
+              const sDist = Math.sqrt(sDistSq);
+              const innerR = sp.R * 1.15;
+              if (sDist < innerR) {
+                const push = (innerR - sDist) / innerR;
+                p.vx += (sdx / sDist) * push * 0.4;
+                p.vy += (sdy / sDist) * push * 0.4;
+              } else {
+                const pull = (1 - sDist / influenceR) * 0.012;
+                p.vx += (-sdy / sDist) * pull;
+                p.vy += (sdx / sDist) * pull;
+                p.vx -= (sdx / sDist) * pull * 0.3;
+                p.vy -= (sdy / sDist) * pull * 0.3;
+              }
             }
           }
-        }
 
-        p.x += p.vx; p.y += p.vy;
-        if (p.x < -20) p.x = w + 20; if (p.x > w + 20) p.x = -20;
-        if (p.y < -20) p.y = h + 20; if (p.y > h + 20) p.y = -20;
+          p.x += p.vx; p.y += p.vy;
+          if (p.x < -20) p.x = w + 20; if (p.x > w + 20) p.x = -20;
+          if (p.y < -20) p.y = h + 20; if (p.y > h + 20) p.y = -20;
+        }
+      }
+
+      // ── Update particle visuals (every frame for smooth animation) ──
+      for (let i = 0; i < particles.length; i++) {
+        const p = particles[i];
         p.size = p.baseSize + Math.sin(frame * p.pulseSp + p.pulseOff) * 0.35;
       }
 
       // ── Draw connections + bridge lines (batched into single path) ──
+      const connDistSq = IS_SAFARI ? CONN_DIST_SAFARI_SQ : CONN_DIST_SQ;
       ctx.lineWidth = 0.4;
       ctx.strokeStyle = `hsla(222, ${colors.lSat}, ${colors.lLight}, 0.06)`;
       ctx.beginPath();
@@ -394,7 +446,7 @@ export default function NanoScene({ isDark = true }) {
         for (let j = i + 1; j < particles.length; j++) {
           const a = particles[i], b = particles[j];
           const dx = a.x - b.x, dy = a.y - b.y;
-          if (dx * dx + dy * dy < CONN_DIST_SQ) {
+          if (dx * dx + dy * dy < connDistSq) {
             ctx.moveTo(a.x, a.y); ctx.lineTo(b.x, b.y);
           }
         }
@@ -404,13 +456,14 @@ export default function NanoScene({ isDark = true }) {
       ctx.lineWidth = 0.3;
       ctx.strokeStyle = `hsla(220, ${colors.lSat}, ${colors.lLight}, 0.04)`;
       ctx.beginPath();
+      const bridgeMult = IS_SAFARI ? 1.8 : 2.0; // Slightly reduced bridge distance on Safari
       for (let i = 0; i < particles.length; i++) {
         const p = particles[i];
         for (let si = 0; si < spPos.length; si++) {
           const sp = spPos[si];
           const dx = p.x - sp.cx, dy = p.y - sp.cy;
           const distSq = dx * dx + dy * dy;
-          const bridgeDist = sp.R * 2.0;
+          const bridgeDist = sp.R * bridgeMult;
           const innerR = sp.R * 1.05;
           if (distSq < bridgeDist * bridgeDist && distSq > innerR * innerR) {
             const dist = Math.sqrt(distSq);
@@ -423,16 +476,33 @@ export default function NanoScene({ isDark = true }) {
       ctx.stroke();
 
       // ── Draw particles (60fps) ──
+      // Render particle sprite once per theme change (#25)
+      if (!particleSpriteValid) {
+        particleSpriteCtx.clearRect(0, 0, particleSpriteSize, particleSpriteSize);
+        const gG = particleSpriteCtx.createRadialGradient(spriteCenter, spriteCenter, 0, spriteCenter, spriteCenter, spriteRadius);
+        // Average hue ~222, full opacity
+        gG.addColorStop(0, `hsla(232, 92%, 80%, 1)`);
+        gG.addColorStop(0.2, `hsla(222, ${colors.pSat}, ${colors.pLight}, 0.85)`);
+        gG.addColorStop(0.4, `hsla(222, ${colors.pSat}, ${colors.pLight}, 0.3)`);
+        gG.addColorStop(1, `hsla(222, ${colors.pSat}, ${colors.pLight}, 0)`);
+        particleSpriteCtx.beginPath();
+        particleSpriteCtx.arc(spriteCenter, spriteCenter, spriteRadius, 0, Math.PI * 2);
+        particleSpriteCtx.fillStyle = gG;
+        particleSpriteCtx.fill();
+        particleSpriteValid = true;
+      }
+
       for (let i = 0; i < particles.length; i++) {
         const p = particles[i];
         const pa = p.opacity + Math.sin(frame * p.pulseSp + p.pulseOff) * 0.08;
 
         let glowBoost = 0;
+        const glowThresholdMult = IS_SAFARI ? 2.2 : 2.5; // Match reduced influence on Safari
         for (let si = 0; si < spPos.length; si++) {
           const sp = spPos[si];
           const dx = p.x - sp.cx, dy = p.y - sp.cy;
           const distSq = dx * dx + dy * dy;
-          const threshold = sp.R * 2.5;
+          const threshold = sp.R * glowThresholdMult;
           if (distSq < threshold * threshold) {
             const dist = Math.sqrt(distSq);
             const boost = (1 - dist / threshold) * 0.18;
@@ -441,13 +511,16 @@ export default function NanoScene({ isDark = true }) {
         }
         const fa = pa + glowBoost;
 
-        const gG = ctx.createRadialGradient(p.x, p.y, 0, p.x, p.y, p.size * 4);
-        gG.addColorStop(0, `hsla(${p.hue + 10}, 92%, 80%, ${fa})`);
-        gG.addColorStop(0.2, `hsla(${p.hue}, ${colors.pSat}, ${colors.pLight}, ${fa * 0.85})`);
-        gG.addColorStop(0.4, `hsla(${p.hue}, ${colors.pSat}, ${colors.pLight}, ${fa * 0.3})`);
-        gG.addColorStop(1, `hsla(${p.hue}, ${colors.pSat}, ${colors.pLight}, 0)`);
-        ctx.beginPath(); ctx.arc(p.x, p.y, p.size * 4, 0, Math.PI * 2);
-        ctx.fillStyle = gG; ctx.fill();
+        // Blit cached sprite with scale and alpha (#25)
+        const scale = (p.size * 4) / spriteRadius;
+        const drawSize = particleSpriteSize * scale;
+        ctx.save();
+        ctx.globalAlpha = fa;
+        ctx.drawImage(particleSprite,
+          0, 0, particleSpriteSize, particleSpriteSize,
+          p.x - drawSize / 2, p.y - drawSize / 2,
+          drawSize, drawSize);
+        ctx.restore();
       }
 
       // ── Composite spheres from offscreen canvases (60fps — just a drawImage blit) ──
@@ -476,7 +549,8 @@ export default function NanoScene({ isDark = true }) {
       ctx.drawImage(vignetteCanvas, 0, 0, vignetteCanvas.width, vignetteCanvas.height, 0, 0, w, h);
     });
 
-    particlesRef.current = Array.from({ length: P_COUNT }, () => createParticle(w, h));
+    const particleCount = IS_SAFARI ? P_COUNT_SAFARI : P_COUNT;
+    particlesRef.current = Array.from({ length: particleCount }, () => createParticle(w, h));
 
     return () => {
       unregisterAnimation(animId);
@@ -491,7 +565,11 @@ export default function NanoScene({ isDark = true }) {
     <canvas
       ref={canvasRef}
       className="absolute inset-0 w-full h-full"
-      style={{ pointerEvents: 'none' }}
+      style={{
+        pointerEvents: 'none',
+        willChange: 'contents',
+        transform: 'translateZ(0)',
+      }}
     />
   );
 }

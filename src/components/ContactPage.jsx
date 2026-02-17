@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
 import { Helmet } from 'react-helmet-async';
-import { motion } from 'framer-motion';
 import { Link, useSearchParams } from 'react-router-dom';
 import { useTheme } from '../context/ThemeContext';
 import {
@@ -130,10 +129,8 @@ function ContactForm({ theme, initialInquiry, initialProduct }) {
 
   if (status === 'success') {
     return (
-      <motion.div
-        initial={{ opacity: 0, scale: 0.95 }}
-        animate={{ opacity: 1, scale: 1 }}
-        className={`${theme.bgCard} rounded-3xl border ${theme.borderCard} p-12 text-center`}
+      <div
+        className={`animate-fade-in-up ${theme.bgCard} rounded-3xl border ${theme.borderCard} p-12 text-center`}
       >
         <div className={`w-20 h-20 mx-auto mb-6 rounded-full bg-gradient-to-r ${theme.accent} flex items-center justify-center`}>
           <CheckCircle className="w-10 h-10 text-slate-900" />
@@ -161,7 +158,7 @@ function ContactForm({ theme, initialInquiry, initialProduct }) {
         >
           Send Another Message
         </button>
-      </motion.div>
+      </div>
     );
   }
 
@@ -181,7 +178,7 @@ function ContactForm({ theme, initialInquiry, initialProduct }) {
               value={formData.name}
               onChange={handleChange}
               placeholder="John Smith"
-              className={`w-full pl-12 pr-4 py-3 ${theme.bgInput} ${theme.text} ${theme.placeholder} border ${errors.name ? 'border-red-500' : theme.borderInput} rounded-xl focus:outline-none focus:ring-2 ${theme.focusRing} transition-all`}
+              className={`w-full pl-12 pr-4 py-3 ${theme.bgInput} ${theme.text} ${theme.placeholder} border ${errors.name ? 'border-red-500' : theme.borderInput} rounded-xl focus:outline-none focus:ring-2 ${theme.focusRing} transition-[border-color,box-shadow]`}
             />
           </div>
           {errors.name && <p className="text-red-500 text-sm mt-1">{errors.name}</p>}
@@ -199,7 +196,7 @@ function ContactForm({ theme, initialInquiry, initialProduct }) {
               value={formData.email}
               onChange={handleChange}
               placeholder="john@company.com"
-              className={`w-full pl-12 pr-4 py-3 ${theme.bgInput} ${theme.text} ${theme.placeholder} border ${errors.email ? 'border-red-500' : theme.borderInput} rounded-xl focus:outline-none focus:ring-2 ${theme.focusRing} transition-all`}
+              className={`w-full pl-12 pr-4 py-3 ${theme.bgInput} ${theme.text} ${theme.placeholder} border ${errors.email ? 'border-red-500' : theme.borderInput} rounded-xl focus:outline-none focus:ring-2 ${theme.focusRing} transition-[border-color,box-shadow]`}
             />
           </div>
           {errors.email && <p className="text-red-500 text-sm mt-1">{errors.email}</p>}
@@ -220,7 +217,7 @@ function ContactForm({ theme, initialInquiry, initialProduct }) {
               value={formData.company}
               onChange={handleChange}
               placeholder="Your Company"
-              className={`w-full pl-12 pr-4 py-3 ${theme.bgInput} ${theme.text} ${theme.placeholder} border ${theme.borderInput} rounded-xl focus:outline-none focus:ring-2 ${theme.focusRing} transition-all`}
+              className={`w-full pl-12 pr-4 py-3 ${theme.bgInput} ${theme.text} ${theme.placeholder} border ${theme.borderInput} rounded-xl focus:outline-none focus:ring-2 ${theme.focusRing} transition-[border-color,box-shadow]`}
             />
           </div>
         </div>
@@ -237,7 +234,7 @@ function ContactForm({ theme, initialInquiry, initialProduct }) {
               value={formData.phone}
               onChange={handleChange}
               placeholder="+1 (555) 000-0000"
-              className={`w-full pl-12 pr-4 py-3 ${theme.bgInput} ${theme.text} ${theme.placeholder} border ${theme.borderInput} rounded-xl focus:outline-none focus:ring-2 ${theme.focusRing} transition-all`}
+              className={`w-full pl-12 pr-4 py-3 ${theme.bgInput} ${theme.text} ${theme.placeholder} border ${theme.borderInput} rounded-xl focus:outline-none focus:ring-2 ${theme.focusRing} transition-[border-color,box-shadow]`}
             />
           </div>
         </div>
@@ -264,7 +261,7 @@ function ContactForm({ theme, initialInquiry, initialProduct }) {
                   }));
                   if (errors.inquiryTypes) setErrors(prev => ({ ...prev, inquiryTypes: '' }));
                 }}
-                className={`p-4 rounded-xl border text-left transition-all ${
+                className={`p-4 rounded-xl border text-left transition-colors ${
                   isSelected
                     ? `bg-gradient-to-r ${theme.accent} text-slate-900 border-transparent`
                     : `${theme.bgInput} ${theme.text} ${theme.borderInput} hover:border-emerald-500/50`
@@ -291,19 +288,17 @@ function ContactForm({ theme, initialInquiry, initialProduct }) {
             onChange={handleChange}
             placeholder="Tell us about your project, product goals, or any questions you have..."
             rows={5}
-            className={`w-full pl-12 pr-4 py-3 ${theme.bgInput} ${theme.text} ${theme.placeholder} border ${errors.message ? 'border-red-500' : theme.borderInput} rounded-xl focus:outline-none focus:ring-2 ${theme.focusRing} transition-all resize-none`}
+            className={`w-full pl-12 pr-4 py-3 ${theme.bgInput} ${theme.text} ${theme.placeholder} border ${errors.message ? 'border-red-500' : theme.borderInput} rounded-xl focus:outline-none focus:ring-2 ${theme.focusRing} transition-[border-color,box-shadow] resize-none`}
           />
         </div>
         {errors.message && <p className="text-red-500 text-sm mt-1">{errors.message}</p>}
       </div>
 
       {/* Submit Button */}
-      <motion.button
+      <button
         type="submit"
         disabled={status === 'submitting'}
-        className={`btn-shine w-full py-4 bg-gradient-to-r ${theme.accent} text-slate-900 font-bold rounded-xl text-lg flex items-center justify-center gap-3 disabled:opacity-50 disabled:cursor-not-allowed`}
-        whileHover={{ scale: 1.02 }}
-        whileTap={{ scale: 0.98 }}
+        className={`btn-shine interactive-btn hover-scale-sm active-press w-full py-4 bg-gradient-to-r ${theme.accent} text-slate-900 font-bold rounded-xl text-lg flex items-center justify-center gap-3 disabled:opacity-50 disabled:cursor-not-allowed`}
       >
         {status === 'submitting' ? (
           <>
@@ -316,7 +311,7 @@ function ContactForm({ theme, initialInquiry, initialProduct }) {
             Send Message
           </>
         )}
-      </motion.button>
+      </button>
 
       {status === 'error' && (
         <div className="flex items-center gap-2 text-red-500 justify-center">
@@ -376,11 +371,8 @@ export default function ContactPage() {
       </Helmet>
 
       {/* Navigation */}
-      <motion.nav 
-        className={`fixed top-0 left-0 right-0 z-50 ${theme.bgNav} border-b ${theme.border}/50 transition-colors duration-500`}
-        initial={{ y: -100 }}
-        animate={{ y: 0 }}
-        transition={{ duration: 0.6 }}
+      <nav
+        className={`animate-slide-down fixed top-0 left-0 right-0 z-50 ${theme.bgNav} border-b ${theme.border}/50 transition-colors duration-500`}
       >
         <div className="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
           <div className="flex items-center gap-4">
@@ -402,14 +394,12 @@ export default function ContactPage() {
           </div>
           
           <div className="flex items-center gap-4">
-            <motion.button
+            <button
               onClick={() => setIsDark(!isDark)}
-              className={`p-2 rounded-full ${theme.toggleBg} ${theme.toggleText} transition-colors`}
-              whileHover={{ scale: 1.1 }}
-              whileTap={{ scale: 0.95 }}
+              className={`p-2 rounded-full ${theme.toggleBg} ${theme.toggleText} transition-colors interactive-btn hover-scale active-press-sm`}
             >
               {isDark ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
-            </motion.button>
+            </button>
             
             <Link
               to="/faq"
@@ -419,16 +409,12 @@ export default function ContactPage() {
             </Link>
           </div>
         </div>
-      </motion.nav>
+      </nav>
 
       {/* Hero Section */}
       <div className="pt-32 pb-12 px-6">
         <div className="max-w-4xl mx-auto text-center">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6 }}
-          >
+          <div className="animate-fade-in-up">
             <h1 className={`text-4xl md:text-6xl font-bold mb-6 ${theme.text}`}>
               Let's
               <span className={`bg-gradient-to-r ${theme.accentGradientAlt} bg-clip-text text-transparent`}> Connect</span>
@@ -437,7 +423,7 @@ export default function ContactPage() {
             <p className={`text-xl ${theme.textSecondary} max-w-2xl mx-auto`}>
               Ready to revolutionize your Kava products? Whether you need samples, pricing, or formulation support—Josh is here to help.
             </p>
-          </motion.div>
+          </div>
         </div>
       </div>
 
@@ -445,25 +431,15 @@ export default function ContactPage() {
       <div className="max-w-6xl mx-auto px-6 pb-24">
         <div className="grid lg:grid-cols-3 gap-8">
           {/* Contact Form - Takes 2 columns */}
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, delay: 0.1 }}
-            className="lg:col-span-2"
-          >
+          <div className="lg:col-span-2 animate-fade-in-up anim-delay-100">
             <div className={`${isDark ? theme.bgCard : 'bg-white/40'} rounded-3xl border ${theme.borderCard} p-8 md:p-10`}>
               <h2 className={`text-2xl font-bold mb-6 ${theme.text}`}>Send Us a Message</h2>
               <ContactForm theme={theme} initialInquiry={inquiryParam} initialProduct={productParam} />
             </div>
-          </motion.div>
+          </div>
 
           {/* Contact Info Sidebar */}
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, delay: 0.2 }}
-            className="space-y-3"
-          >
+          <div className="space-y-3 animate-fade-in-up anim-delay-200">
             <ContactInfoCard
               icon={Phone}
               title="Call Us"
@@ -528,7 +504,7 @@ export default function ContactPage() {
                 </a>
               </div>
             </div>
-          </motion.div>
+          </div>
         </div>
       </div>
 
