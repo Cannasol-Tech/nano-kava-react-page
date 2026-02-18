@@ -13,6 +13,16 @@
     })(window,document,'script','dataLayer','GTM-57TMCR6T');},0);});</script>
     <!-- End Google Tag Manager -->
 
+    <!-- Google Analytics 4 (GA4 data stream) -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-99DRP76V36"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+      gtag('config', 'G-99DRP76V36');
+    </script>
+    <!-- End Google Analytics 4 -->
+
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     
@@ -70,7 +80,44 @@
       ]
     }
     </script>
-    
+
+    <!-- Structured Data - LocalBusiness (B2B Ingredient Supplier) -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "LocalBusiness",
+      "name": "Cannasol Technologies",
+      "image": "https://enjoynano.com/cannasol-logo.png",
+      "url": "https://enjoynano.com",
+      "telephone": "+1-216-921-2240",
+      "email": "josh.detzel@cannasolusa.com",
+      "priceRange": "$$",
+      "address": {
+        "@type": "PostalAddress",
+        "streetAddress": "Sarasota",
+        "addressLocality": "Sarasota",
+        "addressRegion": "FL",
+        "addressCountry": "US"
+      },
+      "geo": {
+        "@type": "GeoCoordinates",
+        "latitude": 27.3364,
+        "longitude": -82.5307
+      },
+      "openingHoursSpecification": {
+        "@type": "OpeningHoursSpecification",
+        "dayOfWeek": ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"],
+        "opens": "09:00",
+        "closes": "17:00"
+      },
+      "areaServed": {
+        "@type": "Country",
+        "name": "United States"
+      },
+      "description": "B2B supplier of nano-emulsified functional beverage ingredients including Nano Kava (~18nm particle size) and nano mushroom extracts. Serving beverage brands, co-packers, and formulators nationwide."
+    }
+    </script>
+
     <!-- Structured Data - Product -->
     <script type="application/ld+json">
     {
@@ -168,52 +215,30 @@
     }
     </script>
 
-    <!-- Structured Data - FAQ (Top Questions) -->
+    <!-- Structured Data - FAQ (All Questions - SEO Enhanced) -->
     <script type="application/ld+json">
     {
       "@context": "https://schema.org",
       "@type": "FAQPage",
       "mainEntity": [
-        {
-          "@type": "Question",
-          "name": "What is nano Kava?",
-          "acceptedAnswer": {
-            "@type": "Answer",
-            "text": "Nano Kava is a nanoemulsified form of Kava extract where particles are reduced to approximately 18 nanometers in size. This dramatically increases bioavailability (up to 10x compared to traditional Kava) and reduces onset time to just 5 minutes."
-          }
-        },
-        {
-          "@type": "Question",
-          "name": "How fast does nano Kava work?",
-          "acceptedAnswer": {
-            "@type": "Answer",
-            "text": "Most users report feeling effects within 5 minutes of consumption, compared to 30-45 minutes for traditional Kava. This rapid onset is due to the ultra-small particle size allowing for immediate absorption."
-          }
-        },
-        {
-          "@type": "Question",
-          "name": "What makes Cannasol's ~18nm particle size special?",
-          "acceptedAnswer": {
-            "@type": "Answer",
-            "text": "Our ~18nm particle size is the smallest in the industry. Smaller particles mean faster absorption, higher bioavailability of kavalactones, crystal-clear formulations with no cloudiness, and better shelf stability with no separation."
-          }
-        },
-        {
-          "@type": "Question",
-          "name": "Will nano Kava make my beverage cloudy?",
-          "acceptedAnswer": {
-            "@type": "Answer",
-            "text": "No! One of the key benefits of our ~18nm particle size is crystal-clear formulations. Traditional Kava extracts create cloudy beverages. Our nano Kava stays perfectly clear and stable."
-          }
-        },
-        {
-          "@type": "Question",
-          "name": "Can I get samples before ordering?",
-          "acceptedAnswer": {
-            "@type": "Answer",
-            "text": "Absolutely! We encourage all potential partners to test our nano Kava in their formulations before committing to an order. Contact us to request samples."
-          }
-        }
+        {"@type":"Question","name":"What is nano Kava?","acceptedAnswer":{"@type":"Answer","text":"Nano Kava is a nanoemulsified form of Kava extract where particles are reduced to approximately 18 nanometers in size. This is achieved through our proprietary NanoOptimizer™ surfactant system and ultrasonic processing technology. The ultra-small particle size dramatically increases bioavailability (up to 10x compared to traditional Kava) and reduces onset time to just 5 minutes."}},
+        {"@type":"Question","name":"What makes Cannasol's ~18nm particle size special?","acceptedAnswer":{"@type":"Answer","text":"Our ~18nm particle size is the smallest in the industry—no competitor has achieved this. Smaller particles mean: (1) Faster absorption through cell membranes, (2) Higher bioavailability of kavalactones, (3) Crystal-clear formulations with no cloudiness, and (4) Better shelf stability with no separation. We achieve this through our partnership with QSonica, the #1 ultrasonic liquid processing equipment manufacturer."}},
+        {"@type":"Question","name":"How does nano Kava compare to traditional Kava extract?","acceptedAnswer":{"@type":"Answer","text":"Traditional Kava extracts are hydrophobic (water-fearing), poorly absorbed, and take 30-45 minutes to feel effects. Only 10-15% of kavalactones are typically absorbed. Our nano Kava is water-soluble, absorbs in minutes, and delivers 80-90% kavalactone absorption. The result: faster onset, stronger effects at lower doses, and better-tasting products."}},
+        {"@type":"Question","name":"What is the NanoOptimizer™ surfactant system?","acceptedAnswer":{"@type":"Answer","text":"NanoOptimizer™ is our proprietary blend of food-grade surfactants that encapsulate Kava particles, making them water-soluble and stable. This system prevents particle re-aggregation, ensures consistent dosing, and allows the nano Kava to remain suspended indefinitely without separation or settling."}},
+        {"@type":"Question","name":"How fast does nano Kava work?","acceptedAnswer":{"@type":"Answer","text":"Most users report feeling effects within 5 minutes of consumption, compared to 30-45 minutes for traditional Kava. This rapid onset is due to the ultra-small particle size allowing for immediate absorption through the oral mucosa and GI tract."}},
+        {"@type":"Question","name":"What dosage should I use in my products?","acceptedAnswer":{"@type":"Answer","text":"Dosing depends on your target effects and product format. We recommend starting with 50-100mg of kavalactones per serving for mild relaxation, 100-200mg for moderate effects, and 200-300mg for stronger effects. Because of the increased bioavailability, you may need less nano Kava than traditional extracts to achieve the same effects. We work directly with each client to dial in the perfect dosage for your specific product."}},
+        {"@type":"Question","name":"Is nano Kava safe?","acceptedAnswer":{"@type":"Answer","text":"Kava has been consumed safely for thousands of years in Pacific Island cultures. Our nano Kava uses the same kavalactones, just in a more bioavailable form. We use only noble Kava varieties and test for purity and potency. As with any supplement, we recommend following standard Kava safety guidelines and consulting with regulatory experts for your specific market."}},
+        {"@type":"Question","name":"What products can I make with nano Kava?","acceptedAnswer":{"@type":"Answer","text":"Our nano Kava is ideal for: Kava seltzers and sparkling beverages, functional shots and elixirs, RTD (ready-to-drink) relaxation beverages, wellness tonics, mocktails and alcohol alternatives—plus any water-based formulation where you need fast-acting, great-tasting Kava."}},
+        {"@type":"Question","name":"Will nano Kava make my beverage cloudy?","acceptedAnswer":{"@type":"Answer","text":"No! One of the key benefits of our ~18nm particle size is crystal-clear formulations. Traditional Kava extracts create cloudy, unappealing beverages. Our nano Kava stays perfectly clear and stable, giving your products a premium, professional appearance."}},
+        {"@type":"Question","name":"Does nano Kava taste bitter like traditional Kava?","acceptedAnswer":{"@type":"Answer","text":"Our nano Kava has a significantly reduced bitter taste compared to traditional extracts. Additionally, we offer bitter blocker bundles—proprietary flavor-masking ingredients that can virtually eliminate any remaining Kava taste. This allows you to create smooth, palatable products your customers will actually enjoy drinking."}},
+        {"@type":"Question","name":"How stable is nano Kava in beverages?","acceptedAnswer":{"@type":"Answer","text":"Our nano Kava emulsion is highly stable with a shelf life of 12+ months when stored properly. The NanoOptimizer™ system prevents particle re-aggregation, so there's no separation, settling, or ring around the bottle. Your products will look as good on day 365 as they did on day 1."}},
+        {"@type":"Question","name":"What is the minimum order quantity?","acceptedAnswer":{"@type":"Answer","text":"We work with brands of all sizes, from startups to established beverage companies. Minimum order quantities vary based on your needs. Contact us directly to discuss your specific requirements—we're flexible and want to help you succeed."}},
+        {"@type":"Question","name":"Can I get samples before ordering?","acceptedAnswer":{"@type":"Answer","text":"Absolutely! We encourage all potential partners to test our nano Kava in their formulations before committing to an order. Contact us to request samples and we'll get them shipped to you promptly."}},
+        {"@type":"Question","name":"What's the process to get started?","acceptedAnswer":{"@type":"Answer","text":"Getting started is simple: (1) Schedule a discovery call with Josh to discuss your product vision, (2) Receive samples to test in your formulations, (3) Work with us to refine your product and dial in the perfect dosage, (4) Place your order and scale production. Josh works directly with every client to ensure your success."}},
+        {"@type":"Question","name":"Do you offer white-label or private-label services?","acceptedAnswer":{"@type":"Answer","text":"We primarily supply nano Kava as a bulk ingredient for your own branded products. We don't currently offer finished product manufacturing, but we can recommend trusted co-packers and formulators if needed."}},
+        {"@type":"Question","name":"What quality certifications do you have?","acceptedAnswer":{"@type":"Answer","text":"We maintain strict quality control standards and can provide Certificates of Analysis (COA) for all batches. Our facility follows GMP (Good Manufacturing Practice) guidelines. We test for potency, purity, heavy metals, and microbial contamination."}},
+        {"@type":"Question","name":"Is your Kava sourced from noble varieties?","acceptedAnswer":{"@type":"Answer","text":"Yes, we exclusively use noble Kava varieties, which are the traditional, safe varieties that have been consumed for centuries. We never use tudei (two-day) Kava or other non-noble varieties that have been associated with adverse effects."}},
+        {"@type":"Question","name":"Can you provide documentation for regulatory compliance?","acceptedAnswer":{"@type":"Answer","text":"Yes, we provide full documentation including COAs, specifications sheets, and safety data. We can work with your regulatory team to ensure you have everything needed for compliance in your target markets."}}
       ]
     }
     </script>

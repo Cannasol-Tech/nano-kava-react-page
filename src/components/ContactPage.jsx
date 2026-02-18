@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Helmet } from 'react-helmet-async';
 import { Link, useSearchParams } from 'react-router-dom';
+import toast from 'react-hot-toast';
 import { useTheme } from '../context/ThemeContext';
 import {
   ArrowLeft,
@@ -19,7 +20,7 @@ import {
   Moon
 } from 'lucide-react';
 import themesConfig from '../theme/themes';
-import { trackFormConversion, trackPhoneConversion, trackEmailConversion } from '../utils/gtag';
+import { trackFormConversion, trackPhoneClick, trackEmailClick } from '../utils/gtag';
 
 // Theme configuration - matches other pages
 const themes = themesConfig;
@@ -103,6 +104,9 @@ function ContactForm({ theme, initialInquiry, initialProduct }) {
 
       if (response.ok && data.success) {
         setStatus('success');
+        toast.success('Message sent successfully! Josh will get back to you within 24 hours.', {
+          duration: 5000,
+        });
         trackFormConversion({
           email: formData.email,
           name: formData.name,
@@ -115,6 +119,9 @@ function ContactForm({ theme, initialInquiry, initialProduct }) {
     } catch (error) {
       console.error('Form submission error:', error);
       setStatus('error');
+      toast.error('Failed to send message. Please try again or call us at (216) 921-2240.', {
+        duration: 6000,
+      });
     }
   };
 
@@ -138,7 +145,7 @@ function ContactForm({ theme, initialInquiry, initialProduct }) {
         <h3 className={`text-2xl font-bold mb-4 ${theme.text}`}>Message Sent!</h3>
         <p className={`${theme.textSecondary} mb-8`}>
           Thanks for reaching out! Josh will get back to you within 24 hours. In the meantime, feel free to call us at{' '}
-          <a href="tel:+12169212240" onClick={() => trackPhoneConversion()} className={theme.accentText}>
+          <a href="tel:+12169212240" onClick={() => trackPhoneClick()} className={theme.accentText}>
             (216) 921-2240
           </a>
         </p>
@@ -373,6 +380,7 @@ export default function ContactPage() {
       {/* Navigation */}
       <nav
         className={`animate-slide-down fixed top-0 left-0 right-0 z-50 ${theme.bgNav} border-b ${theme.border}/50 transition-colors duration-500`}
+        aria-label="Main navigation"
       >
         <div className="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
           <div className="flex items-center gap-4">
@@ -445,7 +453,7 @@ export default function ContactPage() {
               title="Call Us"
               theme={theme}
               href="tel:+12169212240"
-              onClick={() => trackPhoneConversion()}
+              onClick={() => trackPhoneClick()}
             >
               <p className="font-medium">(216) 921-2240</p>
             </ContactInfoCard>
@@ -455,7 +463,7 @@ export default function ContactPage() {
               title="Email Us"
               theme={theme}
               href="mailto:josh.detzel@cannasolusa.com"
-              onClick={() => trackEmailConversion()}
+              onClick={() => trackEmailClick()}
             >
               <p className="font-medium break-all">josh.detzel@cannasolusa.com</p>
             </ContactInfoCard>

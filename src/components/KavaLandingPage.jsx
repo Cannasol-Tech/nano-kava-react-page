@@ -1,7 +1,7 @@
 import React, { useState, useRef, useMemo } from 'react';
 import { Helmet } from 'react-helmet-async';
 import { Link } from 'react-router-dom';
-import { trackPhoneConversion, trackEmailConversion } from '../utils/gtag';
+import { trackPhoneClick, trackEmailClick, trackCTAClick } from '../utils/gtag';
 import {
   Beaker,
   Zap,
@@ -28,6 +28,7 @@ import {
 import { useTheme } from '../context/ThemeContext';
 import { useInView } from '../hooks/useInView';
 import { useScrollTransform } from '../hooks/useScrollTransform';
+import { useScrollDepth } from '../hooks/useScrollDepth';
 import themesConfig from '../theme/themes';
 
 // Theme configuration - Single source of truth for all colors
@@ -115,10 +116,13 @@ export default function KavaLandingPage() {
   const [formData, setFormData] = useState({ name: '', email: '', company: '', message: '' });
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const { isDark, setIsDark } = useTheme();
-  
+
   const theme = isDark ? themes.dark : themes.light;
   const heroRef = useRef(null);
   const heroStyle = useScrollTransform(heroRef);
+
+  // Track scroll depth milestones for analytics
+  useScrollDepth();
 
   const stats = useMemo(() => [
     { value: '18', prefix: '~', suffix: 'nm', label: 'Particle Size', icon: Droplets },
@@ -186,6 +190,7 @@ export default function KavaLandingPage() {
       {/* Navigation */}
       <nav
         className={`animate-slide-down fixed top-0 left-0 right-0 z-50 ${theme.bgNav} border-b ${theme.border}/50 transition-colors duration-500`}
+        aria-label="Main navigation"
       >
         <div className="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
           <div className="flex items-center gap-3 interactive-btn hover-scale-xs">
@@ -239,6 +244,7 @@ export default function KavaLandingPage() {
 
             <a
               href="#contact"
+              onClick={() => trackCTAClick('Get Started', 'nav')}
               className={`btn-shine px-5 py-2.5 bg-gradient-to-r ${theme.accent} text-slate-900 font-semibold rounded-full interactive-btn hover-scale-sm active-press-sm`}
             >
               Get Started
@@ -303,13 +309,16 @@ export default function KavaLandingPage() {
               <Link
                 to="/contact"
                 className="btn-shine block w-full text-center px-5 py-3 bg-gradient-to-r from-emerald-500 to-teal-500 text-slate-900 font-semibold rounded-full"
-                onClick={() => setMobileMenuOpen(false)}
+                onClick={() => {
+                  trackCTAClick('Contact Us', 'mobile-menu');
+                  setMobileMenuOpen(false);
+                }}
               >
                 Contact Us
               </Link>
               <a
                 href="tel:+12169212240"
-                onClick={() => trackPhoneConversion()}
+                onClick={() => trackPhoneClick()}
                 className="flex items-center justify-center gap-2 text-emerald-400 py-2"
               >
                 <Phone className="w-4 h-4" />
@@ -410,6 +419,7 @@ export default function KavaLandingPage() {
           >
             <a
               href="#contact"
+              onClick={() => trackCTAClick('Request Sample', 'hero')}
               className={`btn-shine hover-glow-intense animate-gradient group relative inline-flex items-center justify-center gap-2 px-8 py-4 bg-gradient-to-r ${theme.accent} text-slate-900 font-bold rounded-full text-lg overflow-hidden interactive-btn hover-scale-sm active-press-sm`}
             >
               <span className="relative z-10 flex items-center gap-2">
@@ -419,7 +429,7 @@ export default function KavaLandingPage() {
             </a>
             <a
               href="tel:+12169212240"
-              onClick={() => trackPhoneConversion()}
+              onClick={() => trackPhoneClick()}
               className={`btn-shine inline-flex items-center justify-center gap-2 px-8 py-4 ${theme.bgBadge} ${theme.shadowCard} ${theme.text} font-semibold rounded-full text-lg border ${theme.borderCard} hover:border-emerald-500/50 transition-colors interactive-btn hover-scale-xs active-press-sm`}
               style={isDark ? { boxShadow: '0 4px 24px rgba(0,0,0,0.4)' } : { boxShadow: '0 2px 12px rgba(0,0,0,0.1)' }}
             >
@@ -749,7 +759,7 @@ export default function KavaLandingPage() {
               </div>
 
               <div className="grid md:grid-cols-3 gap-4 mb-8">
-                <Link to="/contact">
+                <Link to="/contact" onClick={() => trackCTAClick('Contact Form', 'cta-section')}>
                   <div
                     className={`btn-shine flex items-center justify-center gap-3 px-6 py-4 bg-gradient-to-r ${theme.accent} text-slate-900 font-bold rounded-xl text-lg interactive-btn hover-scale-xs active-press-sm`}
                   >
@@ -759,7 +769,7 @@ export default function KavaLandingPage() {
                 </Link>
                 <a
                   href="tel:+12169212240"
-                  onClick={() => trackPhoneConversion()}
+                  onClick={() => trackPhoneClick()}
                   className={`btn-shine flex items-center justify-center gap-3 px-6 py-4 ${theme.bgButton} ${theme.text} font-semibold rounded-xl text-lg border ${theme.borderCard} hover:border-emerald-500/50 transition-colors interactive-btn hover-scale-xs active-press-sm`}
                 >
                   <Phone className="w-5 h-5" />
@@ -767,7 +777,7 @@ export default function KavaLandingPage() {
                 </a>
                 <a
                   href="mailto:josh.detzel@cannasolusa.com"
-                  onClick={() => trackEmailConversion()}
+                  onClick={() => trackEmailClick()}
                   className={`btn-shine flex items-center justify-center gap-3 px-6 py-4 ${theme.bgButton} ${theme.text} font-semibold rounded-xl text-lg border ${theme.borderCard} hover:border-emerald-500/50 transition-colors interactive-btn hover-scale-xs active-press-sm`}
                 >
                   <Mail className="w-5 h-5" />

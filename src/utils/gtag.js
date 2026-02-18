@@ -51,7 +51,61 @@ export function trackEmailConversion() {
   });
 }
 
+/**
+ * Track phone click with toast notification.
+ * Import toast dynamically to avoid circular dependencies.
+ */
+export function trackPhoneClick() {
+  trackPhoneConversion();
+  import('react-hot-toast').then(({ default: toast }) => {
+    toast('📞 Opening phone dialer...', { duration: 2000 });
+  });
+}
+
+/**
+ * Track email click with toast notification.
+ * Import toast dynamically to avoid circular dependencies.
+ */
+export function trackEmailClick() {
+  trackEmailConversion();
+  import('react-hot-toast').then(({ default: toast }) => {
+    toast('✉️ Opening email client...', { duration: 2000 });
+  });
+}
+
 /** Generic event tracking for future use. */
 export function trackEvent(eventName, eventParams = {}) {
   pushEvent(eventName, eventParams);
+}
+
+/** Track scroll depth milestones (25%, 50%, 75%, 100%). */
+export function trackScrollDepth(percentage) {
+  pushEvent('scroll_depth', {
+    depth: percentage,
+    page: window.location.pathname,
+  });
+}
+
+/** Track CTA (Call-to-Action) button clicks. */
+export function trackCTAClick(ctaName, location) {
+  pushEvent('cta_click', {
+    cta_name: ctaName,
+    page_location: location || window.location.pathname,
+  });
+}
+
+/** Track product view interactions. */
+export function trackProductView(productName) {
+  pushEvent('view_item', {
+    item_name: productName,
+    page: window.location.pathname,
+  });
+}
+
+/** Track sample request submissions. */
+export function trackSampleRequest(productType) {
+  pushEvent('sample_request', {
+    product_type: productType,
+    page: window.location.pathname,
+  });
 }

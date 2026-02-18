@@ -565,6 +565,8 @@ export default function NanoScene({ isDark = true }) {
     <canvas
       ref={canvasRef}
       className="absolute inset-0 w-full h-full"
+      role="img"
+      aria-label="Animated visualization of nano-emulsified particles demonstrating the nanoemulsification technology"
       style={{
         pointerEvents: 'none',
         willChange: 'contents',

@@ -89,6 +89,7 @@ function MushroomsLandingPage() {
 
       <nav
         className={`animate-slide-down fixed top-0 left-0 right-0 z-50 ${theme.bgNav} border-b ${theme.border}/50 transition-colors duration-500`}
+        aria-label="Main navigation"
       >
         <div className="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
           <div className="flex items-center gap-3 interactive-btn hover-scale-xs">
