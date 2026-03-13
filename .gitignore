@@ -25,3 +25,9 @@ npm-debug.log*
 
 # Vite
 .vite/
+
+# Next.js standalone app build artifacts
+nano-mushrooms-page/.next/
+nano-mushrooms-page/out/
+nano-mushrooms-page/node_modules/
+nano-mushrooms-page/.env*.local

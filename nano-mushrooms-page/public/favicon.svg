@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
+  <defs>
+    <linearGradient id="green" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#2ECC71"/>
+      <stop offset="100%" style="stop-color:#27AE60"/>
+    </linearGradient>
+    <linearGradient id="teal" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#17A2B8"/>
+      <stop offset="100%" style="stop-color:#138496"/>
+    </linearGradient>
+  </defs>
+  <!-- Left hexagon (C) -->
+  <polygon points="25,10 45,20 45,45 25,55 5,45 5,20" fill="url(#green)"/>
+  <text x="25" y="40" font-family="Arial, sans-serif" font-size="20" font-weight="bold" fill="white" text-anchor="middle">C</text>
+  <!-- Right hexagon (T) -->
+  <polygon points="55,20 75,30 75,55 55,65 35,55 35,30" fill="url(#teal)"/>
+  <text x="55" y="50" font-family="Arial, sans-serif" font-size="20" font-weight="bold" fill="white" text-anchor="middle">T</text>
+</svg>
