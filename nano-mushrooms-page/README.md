@@ -1,6 +1,6 @@
 # Nano Mushrooms Page — Cannasol Technologies
 
-[![Built with Next.js](https://img.shields.io/badge/Built%20with-Next.js%2014-black?logo=next.js)](https://nextjs.org)
+[![Built with Next.js](https://img.shields.io/badge/Built%20with-Next.js%2015-black?logo=next.js)](https://nextjs.org)
 [![SEO Optimized](https://img.shields.io/badge/SEO-Fully%20Optimized-green)](https://mushrooms.cannasoltechnologies.com)
 
 Standalone landing page for **Cannasol Technologies' nano emulsified functional mushroom ingredients** — Lion's Mane, Reishi, and Cordyceps.
@@ -11,7 +11,7 @@ Standalone landing page for **Cannasol Technologies' nano emulsified functional 
 
 ## Why Next.js for SEO?
 
-This application is built with **Next.js 14** configured for **static site generation (SSG)** — the gold standard for SEO-optimized web applications:
+This application is built with **Next.js 15** configured for **static site generation (SSG)** — the gold standard for SEO-optimized web applications:
 
 | Feature | Benefit |
 |---------|---------|
@@ -144,7 +144,7 @@ https://mushrooms.cannasoltechnologies.com
 
 | Tool | Version | Purpose |
 |------|---------|---------|
-| Next.js | 14.2.35 | Framework (SSG, metadata API, sitemap/robots) |
+| Next.js | 15.2.9 | Framework (SSG, metadata API, sitemap/robots) |
 | React | 18.3.1 | UI components |
 | Tailwind CSS | 3.4.0 | Utility-first styling |
 | Framer Motion | 11.0.0 | Animations (progressive enhancement) |
