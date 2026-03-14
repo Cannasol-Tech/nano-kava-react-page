@@ -26,7 +26,7 @@ export default function ProofSection() {
 
   return (
     <section
-      className={`relative overflow-hidden transition-colors duration-500 ${
+      className={`section-divider-top relative overflow-hidden transition-colors duration-500 ${
         isDark ? 'bg-slate-900/60' : 'bg-emerald-50/50'
       }`}
       aria-label="Technology Proven at Commercial Scale"

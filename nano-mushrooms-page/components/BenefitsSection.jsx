@@ -46,7 +46,8 @@ export default function BenefitsSection() {
 
   return (
     <section
-      className={`relative transition-colors duration-500 ${
+      id="benefits"
+      className={`section-divider-top relative transition-colors duration-500 ${
         isDark ? 'bg-slate-900/50' : 'bg-slate-50'
       }`}
       aria-label="Why Nanoemulsification for Mushrooms"

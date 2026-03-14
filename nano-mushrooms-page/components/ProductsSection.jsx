@@ -68,7 +68,7 @@ export default function ProductsSection() {
   return (
     <section
       id="offerings"
-      className="max-w-7xl mx-auto px-6 py-20"
+      className="section-divider-top max-w-7xl mx-auto px-6 py-20"
       aria-label="Our Nano Emulsified Mushroom Offerings"
     >
       <motion.div

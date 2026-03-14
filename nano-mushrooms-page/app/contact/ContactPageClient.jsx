@@ -102,7 +102,7 @@ function ContactForm() {
             <div className={`h-5 w-px ${isDark ? 'bg-slate-700/40' : 'bg-slate-300/40'}`} />
             <Link href="/" className="flex items-center gap-3">
               <Image
-                src={isDark ? '/cannasol-logo.png' : '/cannasol-logoW.png'}
+                src={isDark ? '/cannasol-logoW.png' : '/cannasol-logo.png'}
                 alt="Cannasol Technologies Logo"
                 width={120}
                 height={36}

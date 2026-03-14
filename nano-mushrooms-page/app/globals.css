@@ -73,15 +73,27 @@ body {
   animation: glow-pulse 2.8s ease-in-out infinite;
 }
 
-/* Shimmer sweep for marquee trust bar */
-@keyframes marquee {
-  0% { transform: translateX(0); }
-  100% { transform: translateX(-50%); }
+/* Section gradient divider utility */
+.section-divider-top {
+  position: relative;
+}
+.section-divider-top::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background: linear-gradient(
+    to right,
+    transparent 0%,
+    rgba(16, 185, 129, 0.25) 30%,
+    rgba(20, 184, 166, 0.35) 50%,
+    rgba(16, 185, 129, 0.25) 70%,
+    transparent 100%
+  );
 }
 
-.marquee-track {
-  animation: marquee 28s linear infinite;
-}
 
 /* Ensure animations respect reduced motion preference */
 @media (prefers-reduced-motion: reduce) {

@@ -25,7 +25,7 @@ export default function CTASection() {
   const { isDark } = useTheme();
 
   return (
-    <section className="max-w-7xl mx-auto px-6 py-20" aria-label="Request Samples CTA">
+    <section className="section-divider-top max-w-7xl mx-auto px-6 py-20" aria-label="Request Samples CTA">
       <motion.div
         initial="hidden"
         animate="visible"
