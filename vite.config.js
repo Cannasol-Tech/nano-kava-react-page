@@ -10,7 +10,7 @@ export default defineConfig({
     react(),
     vitePrerender({
       staticDir: path.join(__dirname, 'dist'),
-      routes: ['/', '/faq', '/contact', '/mushrooms'],
+      routes: ['/', '/faq', '/contact'],
       renderer: new Renderer({
         renderAfterDocumentEvent: 'app-rendered',
       }),

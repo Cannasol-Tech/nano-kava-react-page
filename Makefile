@@ -1,7 +1,7 @@
 # Cannasol Nano Kava Landing Page - Makefile
 # ============================================
 
-.PHONY: help install preview preview-mushrooms dev build clean deploy
+.PHONY: help install preview dev build clean deploy
 
 # Default target
 help:
@@ -12,12 +12,15 @@ help:
 	@echo "Available targets:"
 	@echo "  make install   - Install dependencies"
 	@echo "  make preview   - Start dev server and open in browser"
-	@echo "  make preview-mushrooms - Start dev server and open /mushrooms in browser"
 	@echo "  make dev       - Start dev server (no auto-open)"
 	@echo "  make build     - Build for production"
 	@echo "  make clean     - Remove build artifacts and node_modules"
 	@echo "  make deploy    - Build and prepare for deployment"
 	@echo ""
+
+
+claude-code:
+	claude --allow-dangerously-skip-permissions
 
 # Install dependencies
 install:
@@ -29,11 +32,6 @@ preview:
 	@echo "Starting preview server..."
 	@echo "Opening http://localhost:3000 in your browser..."
 	npm run dev -- --open
-
-preview-mushrooms:
-	@echo "Starting preview server..."
-	@echo "Opening http://localhost:3000/mushrooms in your browser..."
-	npm run dev -- --open /mushrooms
 
 # Start dev server without opening browser
 dev:

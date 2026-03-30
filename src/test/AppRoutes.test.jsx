@@ -19,18 +19,11 @@ function renderRoute(initialPath) {
 }
 
 describe('AppRoutes', () => {
-  it('renders the mushrooms landing page at /mushrooms', async () => {
-    renderRoute('/mushrooms');
+  it('renders the kava landing page at /', async () => {
+    renderRoute('/');
 
     expect(
-      await screen.findByRole('heading', { name: /nanoemulsified\s+functional\s+mushrooms/i })
+      await screen.findByRole('heading', { name: /nano.*kava/i })
     ).toBeInTheDocument();
-
-    expect(screen.getByText(/lion's mane/i)).toBeInTheDocument();
-    expect(screen.getByText(/reishi/i)).toBeInTheDocument();
-    expect(screen.getByText(/cordyceps/i)).toBeInTheDocument();
-
-    const contactSales = screen.getAllByRole('link', { name: /contact sales/i })[0];
-    expect(contactSales).toHaveAttribute('href', '/contact');
   });
 });
