@@ -1,0 +1,108 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --font-inter: 'Inter', system-ui, -apple-system, sans-serif;
+}
+
+* {
+  box-sizing: border-box;
+  padding: 0;
+  margin: 0;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+html.dark {
+  color-scheme: dark;
+}
+
+html.light {
+  color-scheme: light;
+}
+
+body {
+  font-family: var(--font-inter);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Custom focus styles for accessibility */
+:focus-visible {
+  outline: 2px solid #10b981;
+  outline-offset: 2px;
+}
+
+/* Gradient text utility */
+.gradient-text {
+  background-clip: text;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+/* Smooth scroll for anchor links */
+@media (prefers-reduced-motion: no-preference) {
+  html {
+    scroll-behavior: smooth;
+  }
+}
+
+/* Reishi card — animated emerald glow border (dark mode only) */
+@keyframes glow-pulse {
+  0%,
+  100% {
+    box-shadow:
+      0 0 0 1px rgba(16, 185, 129, 0.22),
+      0 8px 32px rgba(0, 0, 0, 0.25);
+  }
+  50% {
+    box-shadow:
+      0 0 0 1.5px rgba(16, 185, 129, 0.7),
+      0 0 40px rgba(16, 185, 129, 0.2),
+      0 0 80px rgba(20, 184, 166, 0.1),
+      0 8px 32px rgba(0, 0, 0, 0.25);
+  }
+}
+
+.glow-reishi {
+  animation: glow-pulse 2.8s ease-in-out infinite;
+}
+
+/* Section gradient divider utility */
+.section-divider-top {
+  position: relative;
+}
+.section-divider-top::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background: linear-gradient(
+    to right,
+    transparent 0%,
+    rgba(16, 185, 129, 0.25) 30%,
+    rgba(20, 184, 166, 0.35) 50%,
+    rgba(16, 185, 129, 0.25) 70%,
+    transparent 100%
+  );
+}
+
+
+/* Ensure animations respect reduced motion preference */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
