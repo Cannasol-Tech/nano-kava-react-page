@@ -8,6 +8,12 @@ import NanoScene from './components/NanoScene';
 import { trackPageView } from './utils/gtag';
 import './index.css';
 
+// Canvas particle animation only runs smoothly on Chrome/Chromium.
+// Detect once at module level so every render doesn't re-sniff.
+const isChrome = typeof navigator !== 'undefined'
+  && /chrome|chromium/i.test(navigator.userAgent)
+  && !/edg/i.test(navigator.userAgent);
+
 function AppContent() {
   const { isDark } = useTheme();
   const location = useLocation();
@@ -23,7 +29,7 @@ function AppContent() {
       {/* Fixed background animation layer — behind all content */}
       <div className="fixed inset-0 -z-10 pointer-events-none">
         <div className={`absolute inset-0 transition-colors duration-500 ${isDark ? 'bg-slate-950' : 'bg-gray-50'}`} />
-        <NanoScene isDark={isDark} />
+        {isChrome && <NanoScene isDark={isDark} />}
       </div>
       {/* Toast notifications */}
       <Toaster
