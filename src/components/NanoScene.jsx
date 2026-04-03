@@ -219,6 +219,10 @@ function drawSphere(ctx, cx, cy, R, rya, rxa, isDark, shell, sortBuf) {
 
 // ── Main component ──
 export default function NanoScene({ isDark = true }) {
+  // Skip entire canvas animation on Safari — too slow due to createRadialGradient perf
+  if (IS_SAFARI) return null;
+  // Skip entire canvas animation on Safari — too slow due to createRadialGradient perf
+  if (IS_SAFARI) return null;
   const canvasRef = useRef(null);
   const particlesRef = useRef([]);
   const mouseRef = useRef({ x: -1000, y: -1000 });
