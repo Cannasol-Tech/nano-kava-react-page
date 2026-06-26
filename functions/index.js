@@ -6,14 +6,8 @@ const cors = require('cors')({ origin: true });
 
 // Define the secrets
 const sendgridApiKey = defineSecret('SENDGRID_API_KEY');
-// Mailchimp secrets are temporarily disabled until they are created in Secret
-// Manager. NOTE: Firebase requires every defineSecret() declared at module scope
-// to exist at deploy time (even if not listed in runWith), so these must stay
-// commented out — not just removed from runWith — to keep the deploy clean.
-// To re-enable: uncomment these, add them back to runWith, and restore the
-// addLeadToMailchimp() call below.
-// const mailchimpApiKey = defineSecret('MAILCHIMP_API_KEY');
-// const mailchimpAudienceId = defineSecret('MAILCHIMP_AUDIENCE_ID');
+const mailchimpApiKey = defineSecret('MAILCHIMP_API_KEY');
+const mailchimpAudienceId = defineSecret('MAILCHIMP_AUDIENCE_ID');
 
 /**
  * Add a contact-form lead to the Mailchimp audience.
@@ -105,11 +99,8 @@ async function addLeadToMailchimp({ email, name, phone, company, types, message 
  * Cloud Function to handle contact form submissions
  * Sends email via SendGrid
  */
-// NOTE: Mailchimp is temporarily disabled until its secrets (MAILCHIMP_API_KEY,
-// MAILCHIMP_AUDIENCE_ID) are created in Secret Manager. To re-enable, add them
-// back to the secrets array below and restore the addLeadToMailchimp() call.
 exports.sendContactEmail = functions
-  .runWith({ secrets: [sendgridApiKey] })
+  .runWith({ secrets: [sendgridApiKey, mailchimpApiKey, mailchimpAudienceId] })
   .https.onRequest((req, res) => {
   // Initialize SendGrid with the secret value
   sgMail.setApiKey(sendgridApiKey.value());
@@ -256,14 +247,13 @@ This is an automated confirmation email. Please do not reply to this message.
       // Capture the lead in Mailchimp first, independently of email. This is
       // best-effort and never blocks the response: if it fails the lead is still
       // emailed; if the email later fails, the lead is still safe in Mailchimp.
-      // TEMPORARILY DISABLED until Mailchimp secrets are configured (see note above).
       let mailchimpOk = false;
-      // try {
-      //   const result = await addLeadToMailchimp({ email, name, phone, company, types, message });
-      //   mailchimpOk = result.ok;
-      // } catch (mcErr) {
-      //   console.error('Mailchimp capture failed (lead still emailed):', mcErr.message);
-      // }
+      try {
+        const result = await addLeadToMailchimp({ email, name, phone, company, types, message });
+        mailchimpOk = result.ok;
+      } catch (mcErr) {
+        console.error('Mailchimp capture failed (lead still emailed):', mcErr.message);
+      }
 
       // Send both emails (primary path — its success determines the response)
       await Promise.all([
