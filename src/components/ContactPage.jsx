@@ -54,26 +54,33 @@ function ContactForm({ theme, initialInquiry, initialProduct }) {
   });
   const [status, setStatus] = useState('idle'); // idle, submitting, success, error
   const [errors, setErrors] = useState({});
+  const [touched, setTouched] = useState({});
 
-  const validateForm = () => {
+  // Pure validator — returns an errors object for the given form state
+  // without touching React state, so it can be reused for live + submit checks.
+  const getErrors = (data) => {
     const newErrors = {};
-    if (!formData.name.trim()) newErrors.name = 'Name is required';
-    if (!formData.email.trim()) {
+    if (!data.name.trim()) newErrors.name = 'Name is required';
+    if (!data.email.trim()) {
       newErrors.email = 'Email is required';
-    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
+    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(data.email)) {
       newErrors.email = 'Please enter a valid email';
     }
-    if (formData.inquiryTypes.length === 0) newErrors.inquiryTypes = 'Please select at least one inquiry type';
-    if (formData.inquiryTypes.includes('other') && !formData.message.trim()) newErrors.message = 'Please describe your inquiry';
-    
-    setErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
+    if (data.inquiryTypes.length === 0) newErrors.inquiryTypes = 'Please select at least one inquiry type';
+    if (data.inquiryTypes.includes('other') && !data.message.trim()) newErrors.message = 'Please describe your inquiry';
+    return newErrors;
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    if (!validateForm()) return;
+    const formErrors = getErrors(formData);
+    if (Object.keys(formErrors).length > 0) {
+      // Reveal every error and mark all fields touched so they stay live.
+      setErrors(formErrors);
+      setTouched({ name: true, email: true, inquiryTypes: true, message: true });
+      return;
+    }
 
     setStatus('submitting');
 
@@ -127,11 +134,21 @@ function ContactForm({ theme, initialInquiry, initialProduct }) {
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setFormData(prev => ({ ...prev, [name]: value }));
-    // Clear error when user starts typing
-    if (errors[name]) {
-      setErrors(prev => ({ ...prev, [name]: '' }));
+    const next = { ...formData, [name]: value };
+    setFormData(next);
+    // Once a field has been blurred, validate it live on every keystroke so the
+    // error message clears the moment the input becomes valid.
+    if (touched[name]) {
+      const fieldErrors = getErrors(next);
+      setErrors(prev => ({ ...prev, [name]: fieldErrors[name] || '' }));
     }
+  };
+
+  const handleBlur = (e) => {
+    const { name } = e.target;
+    setTouched(prev => ({ ...prev, [name]: true }));
+    const fieldErrors = getErrors(formData);
+    setErrors(prev => ({ ...prev, [name]: fieldErrors[name] || '' }));
   };
 
   if (status === 'success') {
@@ -160,6 +177,8 @@ function ContactForm({ theme, initialInquiry, initialProduct }) {
               inquiryTypes: [],
               message: '',
             });
+            setErrors({});
+            setTouched({});
           }}
           className={`btn-shine px-6 py-3 ${theme.bgInput} ${theme.text} rounded-full border ${theme.borderCard}`}
         >
@@ -184,6 +203,8 @@ function ContactForm({ theme, initialInquiry, initialProduct }) {
               name="name"
               value={formData.name}
               onChange={handleChange}
+              onBlur={handleBlur}
+              aria-invalid={!!errors.name}
               placeholder="John Smith"
               className={`w-full pl-12 pr-4 py-3 ${theme.bgInput} ${theme.text} ${theme.placeholder} border ${errors.name ? 'border-red-500' : theme.borderInput} rounded-xl focus:outline-none focus:ring-2 ${theme.focusRing} transition-[border-color,box-shadow]`}
             />
@@ -202,6 +223,8 @@ function ContactForm({ theme, initialInquiry, initialProduct }) {
               name="email"
               value={formData.email}
               onChange={handleChange}
+              onBlur={handleBlur}
+              aria-invalid={!!errors.email}
               placeholder="john@company.com"
               className={`w-full pl-12 pr-4 py-3 ${theme.bgInput} ${theme.text} ${theme.placeholder} border ${errors.email ? 'border-red-500' : theme.borderInput} rounded-xl focus:outline-none focus:ring-2 ${theme.focusRing} transition-[border-color,box-shadow]`}
             />
@@ -260,13 +283,21 @@ function ContactForm({ theme, initialInquiry, initialProduct }) {
                 key={type.value}
                 type="button"
                 onClick={() => {
-                  setFormData(prev => ({
-                    ...prev,
+                  const next = {
+                    ...formData,
                     inquiryTypes: isSelected
-                      ? prev.inquiryTypes.filter(v => v !== type.value)
-                      : [...prev.inquiryTypes, type.value],
+                      ? formData.inquiryTypes.filter(v => v !== type.value)
+                      : [...formData.inquiryTypes, type.value],
+                  };
+                  setFormData(next);
+                  setTouched(prev => ({ ...prev, inquiryTypes: true }));
+                  // Re-validate selection plus the message rule, which depends on "Other".
+                  const fieldErrors = getErrors(next);
+                  setErrors(prev => ({
+                    ...prev,
+                    inquiryTypes: fieldErrors.inquiryTypes || '',
+                    message: touched.message ? (fieldErrors.message || '') : prev.message,
                   }));
-                  if (errors.inquiryTypes) setErrors(prev => ({ ...prev, inquiryTypes: '' }));
                 }}
                 className={`p-4 rounded-xl border text-left transition-colors ${
                   isSelected
@@ -293,6 +324,8 @@ function ContactForm({ theme, initialInquiry, initialProduct }) {
             name="message"
             value={formData.message}
             onChange={handleChange}
+            onBlur={handleBlur}
+            aria-invalid={!!errors.message}
             placeholder="Tell us about your project, product goals, or any questions you have..."
             rows={5}
             className={`w-full pl-12 pr-4 py-3 ${theme.bgInput} ${theme.text} ${theme.placeholder} border ${errors.message ? 'border-red-500' : theme.borderInput} rounded-xl focus:outline-none focus:ring-2 ${theme.focusRing} transition-[border-color,box-shadow] resize-none`}
