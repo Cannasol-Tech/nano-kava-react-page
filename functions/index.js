@@ -6,8 +6,14 @@ const cors = require('cors')({ origin: true });
 
 // Define the secrets
 const sendgridApiKey = defineSecret('SENDGRID_API_KEY');
-const mailchimpApiKey = defineSecret('MAILCHIMP_API_KEY');
-const mailchimpAudienceId = defineSecret('MAILCHIMP_AUDIENCE_ID');
+// Mailchimp secrets are temporarily disabled until they are created in Secret
+// Manager. NOTE: Firebase requires every defineSecret() declared at module scope
+// to exist at deploy time (even if not listed in runWith), so these must stay
+// commented out — not just removed from runWith — to keep the deploy clean.
+// To re-enable: uncomment these, add them back to runWith, and restore the
+// addLeadToMailchimp() call below.
+// const mailchimpApiKey = defineSecret('MAILCHIMP_API_KEY');
+// const mailchimpAudienceId = defineSecret('MAILCHIMP_AUDIENCE_ID');
 
 /**
  * Add a contact-form lead to the Mailchimp audience.
