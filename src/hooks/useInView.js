@@ -6,9 +6,15 @@ import { useRef, useState, useEffect } from 'react';
  */
 export function useInView({ once = true, margin = '-100px' } = {}) {
   const ref = useRef(null);
-  const [isInView, setIsInView] = useState(false);
+  // scripts/prerender.mjs sets this flag. Snapshotting sections already revealed keeps the
+  // static HTML fully visible — legible to crawlers and to anyone whose JS never runs —
+  // rather than freezing half the page at opacity 0. Real visitors still get the animation.
+  const prerendering = typeof window !== 'undefined' && window.__PRERENDER__ === true;
+  const [isInView, setIsInView] = useState(prerendering);
 
   useEffect(() => {
+    if (prerendering) return;
+
     const el = ref.current;
     if (!el) return;
 
@@ -26,7 +32,7 @@ export function useInView({ once = true, margin = '-100px' } = {}) {
 
     observer.observe(el);
     return () => observer.disconnect();
-  }, [once, margin]);
+  }, [once, margin, prerendering]);
 
   return [ref, isInView];
 }

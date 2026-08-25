@@ -1,44 +1,153 @@
-import { defineConfig } from 'vite';
+/**
+ * @file: vite.config.js
+ * @author: Stephen Boyett
+ *
+ * @description:
+ *     Vite build, dev server and vitest configuration. Also mounts a serve-only
+ *     plugin that answers POST /api/chat and POST /api/sendContactEmail locally by
+ *     reusing the CommonJS cores in functions/lib/, so the widget works under
+ *     `make preview` with no Firebase emulator. The lead endpoint is a DRY RUN and
+ *     never sends mail. The plugin is a no-op during `vite build`.
+ *
+ * @See Also:
+ *     functions/lib/chat.js
+ *
+ * ---
+ * @Copyright © 2026 Cannasol Technologies LLC. All Rights Reserved.
+ * ---
+ */
+
+import { defineConfig, loadEnv } from 'vite';
 import react from '@vitejs/plugin-react';
-import vitePrerender from 'vite-plugin-prerender-k';
-import path from 'path';
+import { createRequire } from 'node:module';
 
-const Renderer = vitePrerender.PuppeteerRenderer;
+const CHAT_ROUTE = '/api/chat';
+const LEAD_ROUTE = '/api/sendContactEmail';
+const MAX_BODY_BYTES = 256 * 1024;
+const DRY_RUN = '[bula dev] DRY RUN - no email sent';
 
-export default defineConfig({
+/** Prints what Josh would have received, so a local Send can be verified without mailing anyone. */
+function logDryRun({ name, email, company, phone, inquiryType, message }) {
+  const fields = [
+    ['Name', name],
+    ['Email', email],
+    ['Company', company],
+    ['Phone', phone],
+    ['Inquiry Type', inquiryType],
+  ];
+  console.log(`${DRY_RUN} — would have emailed stephen.boyett@ + josh.detzel@cannasolusa.com`);
+  for (const [label, value] of fields) console.log(`${DRY_RUN}   ${label}: ${value || '(not provided)'}`);
+  console.log(`${DRY_RUN}   Message:`);
+  for (const line of String(message ?? '').split('\n')) console.log(`${DRY_RUN}     ${line}`);
+}
+
+function readJsonBody(req) {
+  return new Promise((resolve, reject) => {
+    let raw = '';
+    req.on('data', (chunk) => {
+      raw += chunk;
+      if (raw.length > MAX_BODY_BYTES) reject(new Error('Request body too large'));
+    });
+    req.on('end', () => {
+      try {
+        resolve(JSON.parse(raw || '{}'));
+      } catch (err) {
+        reject(err);
+      }
+    });
+    req.on('error', reject);
+  });
+}
+
+/** Serves the chat and lead endpoints locally; see functions/CLAUDE.md § Local development. */
+function chatDevServer(mode) {
+  const apiKey = loadEnv(mode, process.cwd(), '').GOOGLE_AI_API_KEY;
+  const require = createRequire(import.meta.url);
+
+  const sendJson = (res, status, payload) => {
+    res.statusCode = status;
+    res.setHeader('Content-Type', 'application/json');
+    res.end(JSON.stringify(payload));
+  };
+
+  // Never sends: the deployed function is the only path allowed to mail a real person.
+  const handleLead = async (req, res) => {
+    try {
+      const { validateLead } = require('./functions/lib/leads.js');
+      const body = await readJsonBody(req);
+      const { name, email, phone, message } = body;
+
+      const validation = validateLead({ name, email, phone, message });
+      if (!validation.ok) return sendJson(res, 400, { error: validation.error });
+
+      logDryRun(body);
+      return sendJson(res, 200, { success: true, message: 'Dry run - no email sent', dryRun: true });
+    } catch (err) {
+      console.error(`${DRY_RUN} — handler failed:`, err);
+      return sendJson(res, 500, { error: 'Failed to send email', details: err.message });
+    }
+  };
+
+  const handleChat = async (req, res) => {
+    res.setHeader('Content-Type', 'text/event-stream');
+    res.setHeader('Cache-Control', 'no-cache');
+    res.setHeader('Connection', 'keep-alive');
+    res.setHeader('X-Accel-Buffering', 'no');
+    const send = (event) => res.write(`data: ${JSON.stringify(event)}\n\n`);
+
+    if (!apiKey) {
+      return res.end(`data: ${JSON.stringify({ type: 'error', message: 'GOOGLE_AI_API_KEY is not set in .env' })}\n\n`);
+    }
+
+    try {
+      // Required lazily so a missing key or uninstalled functions/node_modules cannot break the build.
+      const { streamChat, validateChatRequest, rateLimit } = require('./functions/lib/chat.js');
+      const body = await readJsonBody(req);
+
+      const limit = rateLimit(req.socket.remoteAddress);
+      if (!limit.ok) {
+        send({ type: 'error', message: 'Too many messages. Try again shortly.' });
+        return res.end();
+      }
+
+      const validation = validateChatRequest(body);
+      if (!validation.ok) {
+        send({ type: 'error', message: validation.error });
+        return res.end();
+      }
+
+      await streamChat({ apiKey, messages: validation.messages, onEvent: send });
+    } catch (err) {
+      console.error('[chat dev]', err);
+      send({ type: 'error', message: 'Chat failed locally — see the Vite terminal output.' });
+    }
+
+    return res.end();
+  };
+
+  const handle = (req, res, next) => {
+    if (req.method !== 'POST') return next();
+    if (req.url.startsWith(CHAT_ROUTE)) return handleChat(req, res);
+    if (req.url.startsWith(LEAD_ROUTE)) return handleLead(req, res);
+    return next();
+  };
+
+  return {
+    name: 'nano-kava-chat-dev',
+    apply: 'serve',
+    configureServer(server) {
+      server.middlewares.use(handle);
+    },
+    configurePreviewServer(server) {
+      server.middlewares.use(handle);
+    },
+  };
+}
+
+export default defineConfig(({ mode }) => ({
   plugins: [
     react(),
-    vitePrerender({
-      staticDir: path.join(__dirname, 'dist'),
-      routes: ['/', '/faq', '/contact', '/mushrooms'],
-      renderer: new Renderer({
-        renderAfterDocumentEvent: 'app-rendered',
-      }),
-      postProcess(renderedRoute) {
-        // react-helmet-async adds correct per-page tags with data-rh="true"
-        // but the original static tags from index.html remain as duplicates.
-        // Remove static duplicates when Helmet versions exist.
-        if (renderedRoute.html.includes('data-rh="true"')) {
-          // Remove static meta tags that Helmet has replaced
-          const tagsToDedup = [
-            'name="description"',
-            'property="og:title"',
-            'property="og:description"',
-            'property="og:url"',
-          ];
-          for (const attr of tagsToDedup) {
-            // Match the static tag (without data-rh) and remove it
-            // Negative lookahead inside the tag ensures we only remove non-Helmet tags
-            const staticRegex = new RegExp(
-              `<meta ${attr}(?![^>]*data-rh)[^>]*>`,
-              'i'
-            );
-            renderedRoute.html = renderedRoute.html.replace(staticRegex, '');
-          }
-        }
-        return renderedRoute;
-      },
-    }),
+    chatDevServer(mode),
   ],
   server: {
     port: 3000,
@@ -53,4 +162,4 @@ export default defineConfig({
     outDir: 'dist',
     sourcemap: false
   }
-});
+}));

@@ -1,5 +1,7 @@
 import React, { useMemo } from 'react';
 import { Helmet } from 'react-helmet-async';
+import JsonLd from '../seo/JsonLd';
+import { mushroomsSchema } from '../seo/structuredData';
 import { Link } from 'react-router-dom';
 import { useTheme } from '../context/ThemeContext';
 import { trackPhoneConversion } from '../utils/gtag';
@@ -85,7 +87,12 @@ function MushroomsLandingPage() {
         <meta property="og:title" content="Nano Mushroom Extracts — Nanoemulsified Functional Mushrooms" />
         <meta property="og:description" content="Nanoemulsified functional mushroom extracts: Lion's Mane, Reishi, Cordyceps with maximum bioavailability." />
         <meta property="og:url" content="https://enjoynano.com/mushrooms" />
+        <link rel="alternate" type="text/markdown" href="https://enjoynano.com/mushrooms.md" />
+        <meta property="og:type" content="website" />
+        <meta property="og:image" content="https://enjoynano.com/og-image.png" />
+        <meta name="twitter:image" content="https://enjoynano.com/og-image.png" />
       </Helmet>
+      <JsonLd data={mushroomsSchema} />
 
       <nav
         className={`animate-slide-down fixed top-0 left-0 right-0 z-50 ${theme.bgNav} border-b ${theme.border}/50 transition-colors duration-500`}

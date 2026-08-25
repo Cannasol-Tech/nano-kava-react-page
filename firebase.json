@@ -2,6 +2,7 @@
   "hosting": {
     "public": "dist",
     "cleanUrls": true,
+    "trailingSlash": false,
     "ignore": [
       "firebase.json",
       "**/.*",
@@ -9,12 +10,24 @@
     ],
     "rewrites": [
       {
-        "source": "/mushrooms/**",
-        "destination": "/mushrooms/index.html"
+        "source": "/.well-known/security.txt",
+        "destination": "/well-known/security.txt"
       },
       {
-        "source": "**",
-        "destination": "/index.html"
+        "source": "/.well-known/llms.txt",
+        "destination": "/llms.txt"
+      },
+      {
+        "source": "/faq",
+        "destination": "/faq/index.html"
+      },
+      {
+        "source": "/contact",
+        "destination": "/contact/index.html"
+      },
+      {
+        "source": "/mushrooms",
+        "destination": "/mushrooms/index.html"
       }
     ],
     "headers": [
@@ -34,7 +47,91 @@
           {
             "key": "Cache-Control",
             "value": "no-cache, no-store, must-revalidate"
+          },
+          {
+            "key": "Link",
+            "value": "</llms.txt>; rel=\"describedby\"; type=\"text/markdown\", </feed.xml>; rel=\"alternate\"; type=\"application/atom+xml\""
+          },
+          {
+            "key": "X-Robots-Tag",
+            "value": "index, follow, max-snippet:-1, max-image-preview:large"
           }
+        ]
+      },
+      {
+        "source": "/",
+        "headers": [
+          {
+            "key": "Link",
+            "value": "</index.md>; rel=\"alternate\"; type=\"text/markdown\", </llms.txt>; rel=\"describedby\"; type=\"text/markdown\", </feed.xml>; rel=\"alternate\"; type=\"application/atom+xml\""
+          }
+        ]
+      },
+      {
+        "source": "/faq",
+        "headers": [
+          {
+            "key": "Link",
+            "value": "</faq.md>; rel=\"alternate\"; type=\"text/markdown\", </llms.txt>; rel=\"describedby\"; type=\"text/markdown\""
+          }
+        ]
+      },
+      {
+        "source": "/mushrooms",
+        "headers": [
+          {
+            "key": "Link",
+            "value": "</mushrooms.md>; rel=\"alternate\"; type=\"text/markdown\", </llms.txt>; rel=\"describedby\"; type=\"text/markdown\""
+          }
+        ]
+      },
+      {
+        "source": "/contact",
+        "headers": [
+          {
+            "key": "Link",
+            "value": "</contact.md>; rel=\"alternate\"; type=\"text/markdown\", </llms.txt>; rel=\"describedby\"; type=\"text/markdown\""
+          }
+        ]
+      },
+      {
+        "source": "**/*.md",
+        "headers": [
+          { "key": "Content-Type", "value": "text/markdown; charset=utf-8" },
+          { "key": "Access-Control-Allow-Origin", "value": "*" },
+          { "key": "Cache-Control", "value": "public, max-age=3600" },
+          { "key": "X-Robots-Tag", "value": "index, follow" }
+        ]
+      },
+      {
+        "source": "**/llms*.txt",
+        "headers": [
+          { "key": "Content-Type", "value": "text/markdown; charset=utf-8" },
+          { "key": "Access-Control-Allow-Origin", "value": "*" },
+          { "key": "Cache-Control", "value": "public, max-age=3600" }
+        ]
+      },
+      {
+        "source": "/feed.xml",
+        "headers": [
+          { "key": "Content-Type", "value": "application/atom+xml; charset=utf-8" },
+          { "key": "Access-Control-Allow-Origin", "value": "*" },
+          { "key": "Cache-Control", "value": "public, max-age=3600" }
+        ]
+      },
+      {
+        "source": "/feed.json",
+        "headers": [
+          { "key": "Content-Type", "value": "application/feed+json; charset=utf-8" },
+          { "key": "Access-Control-Allow-Origin", "value": "*" },
+          { "key": "Cache-Control", "value": "public, max-age=3600" }
+        ]
+      },
+      {
+        "source": "/sitemap.xml",
+        "headers": [
+          { "key": "Content-Type", "value": "application/xml; charset=utf-8" },
+          { "key": "Cache-Control", "value": "public, max-age=3600" }
         ]
       },
       {

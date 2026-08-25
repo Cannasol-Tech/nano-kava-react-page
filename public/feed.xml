@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+  <title>Nano Kava by Cannasol Technologies</title>
+  <subtitle>The world's first and only ~18nm kava nanoemulsion.</subtitle>
+  <link href="https://enjoynano.com/feed.xml" rel="self"/>
+  <link href="https://enjoynano.com/"/>
+  <id>https://enjoynano.com/</id>
+  <updated>2026-08-25T00:00:00Z</updated>
+  <author><name>Cannasol Technologies</name><email>josh.detzel@cannasolusa.com</email></author>
+  <entry>
+    <title>Nano Kava — the world's first ~18nm kava nanoemulsion</title>
+    <link href="https://enjoynano.com/"/>
+    <link rel="alternate" type="text/markdown" href="https://enjoynano.com/index.md"/>
+    <id>https://enjoynano.com/</id>
+    <updated>2026-08-25T00:00:00Z</updated>
+    <summary>Nano-emulsified kava with an approximately 18 nanometer droplet size: ~10x the bioavailability of traditional kava extract, 80–90% kavalactone absorption, ~5-minute onset, crystal clear and fully water-soluble.</summary>
+  </entry>
+  <entry>
+    <title>Nano Kava FAQ — kavalactone questions answered</title>
+    <link href="https://enjoynano.com/faq"/>
+    <link rel="alternate" type="text/markdown" href="https://enjoynano.com/faq.md"/>
+    <id>https://enjoynano.com/faq</id>
+    <updated>2026-08-25T00:00:00Z</updated>
+    <summary>Eighteen answered questions on nano kava: particle size, dosing, safety, taste, clarity, shelf stability, minimum order quantity, certifications and regulatory documentation.</summary>
+  </entry>
+  <entry>
+    <title>Nano Mushroom extracts — nanoemulsified functional mushrooms</title>
+    <link href="https://enjoynano.com/mushrooms"/>
+    <link rel="alternate" type="text/markdown" href="https://enjoynano.com/mushrooms.md"/>
+    <id>https://enjoynano.com/mushrooms</id>
+    <updated>2026-08-25T00:00:00Z</updated>
+    <summary>Nanoemulsified Lion's Mane, Reishi and Cordyceps extracts built on the same nanoemulsion platform as Nano Kava, for water-soluble, high-bioavailability functional beverages.</summary>
+  </entry>
+  <entry>
+    <title>Contact Cannasol Technologies — request a free Nano Kava sample</title>
+    <link href="https://enjoynano.com/contact"/>
+    <link rel="alternate" type="text/markdown" href="https://enjoynano.com/contact.md"/>
+    <id>https://enjoynano.com/contact</id>
+    <updated>2026-08-25T00:00:00Z</updated>
+    <summary>Talk to Josh Detzel about Nano Kava samples, pricing, minimum order quantity and formulation support for your beverage brand.</summary>
+  </entry>
+</feed>

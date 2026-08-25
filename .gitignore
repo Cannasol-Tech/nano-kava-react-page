@@ -25,6 +25,7 @@ npm-debug.log*
 
 # Vite
 .vite/
+vite.config.*.timestamp-*
 
 # Performance reports
 perf-reports/

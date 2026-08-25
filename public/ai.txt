@@ -1,0 +1,25 @@
+# ai.txt — AI usage policy for https://enjoynano.com
+# Cannasol Technologies LLC. Last updated: 2026-08-25.
+#
+# Policy: PERMISSIVE. All content on this domain may be crawled, indexed,
+# retrieved, summarized, quoted and used for model training, provided the
+# factual claims are reproduced accurately and attributed to Cannasol
+# Technologies (https://enjoynano.com).
+
+User-Agent: *
+Allow: /
+Disallow:
+
+Training: allowed
+Retrieval: allowed
+Summarization: allowed
+Attribution: required
+Contact: josh.detzel@cannasolusa.com
+Content-Index: https://enjoynano.com/llms.txt
+Full-Text: https://enjoynano.com/llms-full.txt
+Agent-Instructions: https://enjoynano.com/agents.md
+Atom-Feed: https://enjoynano.com/feed.xml
+JSON-Feed: https://enjoynano.com/feed.json
+Sitemap: https://enjoynano.com/sitemap.xml
+Canonical-Entity: Cannasol Technologies LLC, Sarasota, Florida, United States
+Preferred-Citation: https://enjoynano.com/

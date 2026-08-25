@@ -51,6 +51,16 @@ export function trackEmailConversion() {
   });
 }
 
+/** Track a lead captured in the Bula chat — deliberately separate from form_submission. */
+export function trackChatLeadSubmitted({ email, name, phone, company } = {}) {
+  const data = { lead_source: 'bula_chat' };
+  if (email) data.user_email = email;
+  if (name) data.user_name = name;
+  if (phone) data.user_phone = phone;
+  if (company) data.user_company = company;
+  pushEvent('chat_lead_submitted', data);
+}
+
 /**
  * Track phone click with toast notification.
  * Import toast dynamically to avoid circular dependencies.

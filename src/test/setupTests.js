@@ -25,9 +25,9 @@ if (typeof globalThis.ResizeObserver === 'undefined') {
   globalThis.ResizeObserver = MockResizeObserver;
 }
 
-// Mock canvas context for NanoScene tests
-if (typeof HTMLCanvasElement.prototype.getContext === 'undefined') {
-  HTMLCanvasElement.prototype.getContext = function(contextType) {
+// Mock canvas context for NanoScene tests. jsdom defines getContext as a stub that throws,
+// so this must overwrite unconditionally rather than only filling in a missing method.
+HTMLCanvasElement.prototype.getContext = function (contextType) {
     if (contextType === '2d') {
       return {
         fillStyle: '',
@@ -57,6 +57,5 @@ if (typeof HTMLCanvasElement.prototype.getContext === 'undefined') {
         restore: () => {},
       };
     }
-    return null;
-  };
-}
+  return null;
+};

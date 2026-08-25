@@ -1,9 +1,11 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, fireEvent } from '@testing-library/react';
+import { renderWithProviders } from './renderWithProviders';
 import { MemoryRouter } from 'react-router-dom';
 import KavaLandingPage from '../components/KavaLandingPage';
 import { ThemeProvider } from '../context/ThemeContext';
 import * as gtag from '../utils/gtag';
+import { useScrollDepth } from '../hooks/useScrollDepth';
 
 // Mock dependencies
 vi.mock('../components/NanoScene', () => ({
@@ -30,15 +32,7 @@ describe('Analytics Tracking', () => {
 
   describe('Scroll Depth Tracking', () => {
     it('should initialize scroll depth hook on mount', () => {
-      const { useScrollDepth } = require('../hooks/useScrollDepth');
-
-      render(
-        <MemoryRouter>
-          <ThemeProvider>
-            <KavaLandingPage />
-          </ThemeProvider>
-        </MemoryRouter>
-      );
+      renderWithProviders(<KavaLandingPage />);
 
       expect(useScrollDepth).toHaveBeenCalled();
     });
@@ -48,13 +42,7 @@ describe('Analytics Tracking', () => {
     it('should track "Get Started" button click in navigation', () => {
       const trackCTAClickSpy = vi.spyOn(gtag, 'trackCTAClick');
 
-      render(
-        <MemoryRouter>
-          <ThemeProvider>
-            <KavaLandingPage />
-          </ThemeProvider>
-        </MemoryRouter>
-      );
+      renderWithProviders(<KavaLandingPage />);
 
       const getStartedButton = screen.getByRole('link', { name: /get started/i });
       fireEvent.click(getStartedButton);
@@ -65,13 +53,7 @@ describe('Analytics Tracking', () => {
     it('should track "Request Sample" button click in hero', () => {
       const trackCTAClickSpy = vi.spyOn(gtag, 'trackCTAClick');
 
-      render(
-        <MemoryRouter>
-          <ThemeProvider>
-            <KavaLandingPage />
-          </ThemeProvider>
-        </MemoryRouter>
-      );
+      renderWithProviders(<KavaLandingPage />);
 
       const requestSampleButton = screen.getByRole('link', { name: /request a sample/i });
       fireEvent.click(requestSampleButton);
@@ -82,13 +64,7 @@ describe('Analytics Tracking', () => {
     it('should track "Contact Form" button click in CTA section', () => {
       const trackCTAClickSpy = vi.spyOn(gtag, 'trackCTAClick');
 
-      render(
-        <MemoryRouter>
-          <ThemeProvider>
-            <KavaLandingPage />
-          </ThemeProvider>
-        </MemoryRouter>
-      );
+      renderWithProviders(<KavaLandingPage />);
 
       const contactFormButtons = screen.getAllByText(/contact form/i);
       fireEvent.click(contactFormButtons[0]);

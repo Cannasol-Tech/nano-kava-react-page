@@ -1,5 +1,7 @@
 import React, { useState } from 'react';
 import { Helmet } from 'react-helmet-async';
+import JsonLd from '../seo/JsonLd';
+import { contactSchema } from '../seo/structuredData';
 import { Link, useSearchParams } from 'react-router-dom';
 import toast from 'react-hot-toast';
 import { useTheme } from '../context/ThemeContext';
@@ -193,13 +195,14 @@ function ContactForm({ theme, initialInquiry, initialProduct }) {
       {/* Name & Email Row */}
       <div className="grid md:grid-cols-2 gap-6">
         <div>
-          <label className={`block text-sm font-medium ${theme.textSecondary} mb-2`}>
+          <label htmlFor="contact-name" className={`block text-sm font-medium ${theme.textSecondary} mb-2`}>
             Full Name *
           </label>
           <div className="relative">
             <User className={`absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 ${theme.textMuted}`} />
             <input
               type="text"
+              id="contact-name"
               name="name"
               value={formData.name}
               onChange={handleChange}
@@ -213,13 +216,14 @@ function ContactForm({ theme, initialInquiry, initialProduct }) {
         </div>
         
         <div>
-          <label className={`block text-sm font-medium ${theme.textSecondary} mb-2`}>
+          <label htmlFor="contact-email" className={`block text-sm font-medium ${theme.textSecondary} mb-2`}>
             Email Address *
           </label>
           <div className="relative">
             <Mail className={`absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 ${theme.textMuted}`} />
             <input
               type="email"
+              id="contact-email"
               name="email"
               value={formData.email}
               onChange={handleChange}
@@ -236,13 +240,14 @@ function ContactForm({ theme, initialInquiry, initialProduct }) {
       {/* Company & Phone Row */}
       <div className="grid md:grid-cols-2 gap-6">
         <div>
-          <label className={`block text-sm font-medium ${theme.textSecondary} mb-2`}>
+          <label htmlFor="contact-company" className={`block text-sm font-medium ${theme.textSecondary} mb-2`}>
             Company Name
           </label>
           <div className="relative">
             <Building2 className={`absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 ${theme.textMuted}`} />
             <input
               type="text"
+              id="contact-company"
               name="company"
               value={formData.company}
               onChange={handleChange}
@@ -253,13 +258,14 @@ function ContactForm({ theme, initialInquiry, initialProduct }) {
         </div>
         
         <div>
-          <label className={`block text-sm font-medium ${theme.textSecondary} mb-2`}>
+          <label htmlFor="contact-phone" className={`block text-sm font-medium ${theme.textSecondary} mb-2`}>
             Phone Number
           </label>
           <div className="relative">
             <Phone className={`absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 ${theme.textMuted}`} />
             <input
               type="tel"
+              id="contact-phone"
               name="phone"
               value={formData.phone}
               onChange={handleChange}
@@ -315,12 +321,13 @@ function ContactForm({ theme, initialInquiry, initialProduct }) {
 
       {/* Message */}
       <div>
-        <label className={`block text-sm font-medium ${theme.textSecondary} mb-2`}>
+        <label htmlFor="contact-message" className={`block text-sm font-medium ${theme.textSecondary} mb-2`}>
           Your Message {formData.inquiryTypes.includes('other') ? '*' : '(optional)'}
         </label>
         <div className="relative">
           <MessageSquare className={`absolute left-4 top-4 w-5 h-5 ${theme.textMuted}`} />
           <textarea
+            id="contact-message"
             name="message"
             value={formData.message}
             onChange={handleChange}
@@ -408,7 +415,12 @@ export default function ContactPage() {
         <meta property="og:title" content="Contact EnjoyNano — Nano Kava Team" />
         <meta property="og:description" content="Reach out for nano kava samples, pricing, formulation support, or partnership inquiries." />
         <meta property="og:url" content="https://enjoynano.com/contact" />
+        <link rel="alternate" type="text/markdown" href="https://enjoynano.com/contact.md" />
+        <meta property="og:type" content="website" />
+        <meta property="og:image" content="https://enjoynano.com/og-image.png" />
+        <meta name="twitter:image" content="https://enjoynano.com/og-image.png" />
       </Helmet>
+      <JsonLd data={contactSchema} />
 
       {/* Navigation */}
       <nav

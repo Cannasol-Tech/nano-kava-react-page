@@ -5,6 +5,7 @@ import { Toaster } from 'react-hot-toast';
 import AppRoutes from './AppRoutes';
 import { ThemeProvider, useTheme } from './context/ThemeContext';
 import NanoScene from './components/NanoScene';
+import ChatWidget from './components/chat/ChatWidget';
 import { trackPageView } from './utils/gtag';
 import './index.css';
 
@@ -60,6 +61,8 @@ function AppContent() {
       />
       {/* Page content */}
       <AppRoutes />
+      {/* Floating Bula assistant — fixed bottom-right, renders closed */}
+      <ChatWidget />
     </div>
   );
 }

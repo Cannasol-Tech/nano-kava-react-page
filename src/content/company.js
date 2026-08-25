@@ -1,0 +1,67 @@
+/**
+ * @file: src/content/company.js
+ * @author: Stephen Boyett
+ *
+ * @description:
+ *     Single source of truth for Cannasol company facts — identity, contact
+ *     routes, hours, location and the sample offer. Consumed by the chatbot
+ *     knowledge-base generator and available to page components.
+ *
+ * @See Also:
+ *     src/content/product.js
+ *     scripts/build-knowledge-base.mjs
+ *
+ * ---
+ * @Copyright © 2026 Cannasol Technologies LLC. All Rights Reserved.
+ * ---
+ */
+
+export const company = {
+  legalName: 'Cannasol Technologies LLC',
+  shortName: 'Cannasol',
+  brand: 'Nano Kava',
+  site: 'https://enjoynano.com',
+  corporateSite: 'https://cannasoltechnologies.com',
+  shop: 'https://cannasoltechnologies.com/shop/',
+  resources: 'https://cannasoltechnologies.com/resources',
+  model: 'B2B ingredient supplier to beverage brands, co-packers and formulators.',
+  location: 'Sarasota, Florida 34234, United States',
+  hours: 'Monday–Friday, 9:30 AM – 5:30 PM EST',
+  phone: '(216) 921-2240',
+  phoneHref: 'tel:+12169212240',
+  founder: { name: 'Josh Detzel', title: 'Founder', email: 'josh.detzel@cannasolusa.com' },
+  responseTime: 'Josh replies within 24 hours.',
+};
+
+export const sampleOffer = {
+  headline: 'Free sample of the Nano Kava emulsion for qualified B2B evaluation.',
+  price: 'Free',
+  moq: 'Minimum order quantity is negotiated per customer rather than fixed.',
+  kavaUrl: '/contact?inquiry=samples&product=nano-kava',
+  mushroomUrl: '/contact?inquiry=samples&product=nano-mushrooms',
+};
+
+export const equipment = {
+  summary:
+    'Cannasol Technologies also sells ultrasonic liquid processors and lab/filtration equipment through its corporate site.',
+  range: '700W to 4000W',
+  startingPrice: 'from $7,200',
+  categories: ['Ultrasonic Equipment', 'Ingredients', 'Filtration Equipment', 'Lab Equipment'],
+};
+
+export const contactRoutes = {
+  inquiryTypes: [
+    'Request Samples',
+    'Pricing & Volume Quotes',
+    'Formulation Support',
+    'Partnership Inquiry',
+    'General Question',
+    'Other',
+  ],
+  form: '/contact — name, email, company, phone, one or more inquiry types, and a message.',
+  formPromise: 'The contact form emails Josh directly and he replies within 24 hours.',
+  faqPage: '/faq — 18 answers across product & technology, effects & dosing, formulation & applications, ordering & partnership, and quality & compliance.',
+  mushroomsPage: '/mushrooms — the Nano Mushroom Emulsion line.',
+  escalation:
+    'A visitor who wants a human can use the contact form, call (216) 921-2240 during business hours, email josh.detzel@cannasolusa.com, or let Bula send their details straight to Josh.',
+};

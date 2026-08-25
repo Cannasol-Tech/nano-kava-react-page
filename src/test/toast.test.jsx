@@ -1,5 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import { renderWithProviders } from './renderWithProviders';
 import { MemoryRouter } from 'react-router-dom';
 import toast from 'react-hot-toast';
 import ContactPage from '../components/ContactPage';
@@ -56,13 +57,7 @@ describe('Toast Notifications', () => {
         json: async () => ({ success: true }),
       });
 
-      render(
-        <MemoryRouter>
-          <ThemeProvider>
-            <ContactPage />
-          </ThemeProvider>
-        </MemoryRouter>
-      );
+      renderWithProviders(<ContactPage />);
 
       // Fill out form
       fireEvent.change(screen.getByLabelText(/your name/i), {
@@ -91,13 +86,7 @@ describe('Toast Notifications', () => {
     it('should show error toast on failed form submission', async () => {
       global.fetch.mockRejectedValueOnce(new Error('Network error'));
 
-      render(
-        <MemoryRouter>
-          <ThemeProvider>
-            <ContactPage />
-          </ThemeProvider>
-        </MemoryRouter>
-      );
+      renderWithProviders(<ContactPage />);
 
       // Fill out form
       fireEvent.change(screen.getByLabelText(/your name/i), {
@@ -128,13 +117,7 @@ describe('Toast Notifications', () => {
     it('should track phone clicks in KavaLandingPage', () => {
       const { trackPhoneClick } = require('../utils/gtag');
 
-      render(
-        <MemoryRouter>
-          <ThemeProvider>
-            <KavaLandingPage />
-          </ThemeProvider>
-        </MemoryRouter>
-      );
+      renderWithProviders(<KavaLandingPage />);
 
       // Find and click phone link (using aria-label or text content)
       const phoneLinks = screen.getAllByText(/216.*921.*2240/i);
@@ -146,13 +129,7 @@ describe('Toast Notifications', () => {
     it('should track email clicks in KavaLandingPage', () => {
       const { trackEmailClick } = require('../utils/gtag');
 
-      render(
-        <MemoryRouter>
-          <ThemeProvider>
-            <KavaLandingPage />
-          </ThemeProvider>
-        </MemoryRouter>
-      );
+      renderWithProviders(<KavaLandingPage />);
 
       // Find and click email link
       const emailLink = screen.getByText(/email us/i);

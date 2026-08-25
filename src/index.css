@@ -440,3 +440,280 @@ a:focus-visible {
     scroll-behavior: auto;
   }
 }
+
+/* ── Bula chat widget ── */
+
+/* Launcher idle pulse — a scaling ring, never the button's own box-shadow */
+@keyframes bula-launcher-pulse {
+  0%   { transform: scale(0.92); opacity: 0.45; }
+  70%  { transform: scale(1.7); opacity: 0; }
+  100% { transform: scale(1.7); opacity: 0; }
+}
+.bula-launcher-pulse {
+  position: absolute;
+  inset: 0;
+  border-radius: 9999px;
+  background: radial-gradient(circle, rgba(52, 211, 153, 0.55) 0%, rgba(45, 212, 191, 0.25) 55%, transparent 72%);
+  pointer-events: none;
+  will-change: transform, opacity;
+  animation: bula-launcher-pulse 2.9s cubic-bezier(0.22, 1, 0.36, 1) infinite;
+}
+
+/* Panel entrance — overshoot settle from the launcher corner */
+@keyframes bula-panel-in {
+  0%   { opacity: 0; transform: translate3d(0, 32px, 0) scale(0.8); }
+  55%  { opacity: 1; transform: translate3d(0, -6px, 0) scale(1.025); }
+  78%  { transform: translate3d(0, 2px, 0) scale(0.994); }
+  100% { opacity: 1; transform: translate3d(0, 0, 0) scale(1); }
+}
+@keyframes bula-panel-out {
+  from { opacity: 1; transform: translate3d(0, 0, 0) scale(1); }
+  to   { opacity: 0; transform: translate3d(0, 18px, 0) scale(0.9); }
+}
+.bula-panel-shell {
+  transform-origin: 100% 100%;
+  will-change: transform, opacity;
+  animation: bula-panel-in 0.62s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+.bula-panel-shell--closing {
+  animation: bula-panel-out 0.22s cubic-bezier(0.4, 0, 1, 1) both;
+}
+/* will-change isolates the backdrop, so blur(18px) samples nothing; see chat/CLAUDE.md § Backdrop blur needs the compositor hint released. */
+.bula-panel-shell--settled {
+  will-change: auto;
+  animation: none;
+}
+
+.bula-panel {
+  position: relative;
+  width: min(400px, calc(100vw - 2rem));
+  height: min(560px, calc(100vh - 7rem));
+}
+
+/* Sweeping accent edge light — finite, so steady-state cost is zero */
+@keyframes bula-beam-sweep {
+  0%   { transform: translate3d(-170%, 0, 0) rotate(18deg); opacity: 0; }
+  14%  { opacity: 1; }
+  82%  { opacity: 0.85; }
+  100% { transform: translate3d(330%, 0, 0) rotate(18deg); opacity: 0; }
+}
+@keyframes bula-ring-settle {
+  0%   { opacity: 0; }
+  35%  { opacity: 1; }
+  100% { opacity: 0.4; }
+}
+.bula-edge-light {
+  position: absolute;
+  inset: 0;
+  border-radius: 1rem;
+  overflow: hidden;
+  pointer-events: none;
+  z-index: 2;
+}
+.bula-edge-light::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  box-shadow: inset 0 0 0 1px rgba(52, 211, 153, 0.5), inset 0 0 26px rgba(45, 212, 191, 0.16);
+  will-change: opacity;
+  animation: bula-ring-settle 1.5s cubic-bezier(0.16, 1, 0.3, 1) 0.1s both;
+}
+.bula-edge-light__beam {
+  position: absolute;
+  top: -60%;
+  left: 0;
+  width: 55%;
+  height: 220%;
+  background: linear-gradient(
+    90deg,
+    transparent 10%,
+    rgba(52, 211, 153, 0.3) 38%,
+    rgba(255, 255, 255, 0.75) 50%,
+    rgba(34, 211, 238, 0.3) 62%,
+    transparent 90%
+  );
+  will-change: transform, opacity;
+  animation: bula-beam-sweep 1.25s cubic-bezier(0.22, 1, 0.36, 1) 0.08s both;
+}
+
+/* Transcript surface. --blur is Chrome/Firefox only; --solid is the Safari fallback.
+   See src/components/chat/CLAUDE.md § Why the blur is browser-gated. */
+.bula-panel[data-theme='dark'] .bula-transcript--blur {
+  background: rgba(15, 23, 42, 0.55);
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
+}
+.bula-panel[data-theme='dark'] .bula-transcript--solid {
+  background: rgba(15, 23, 42, 0.94);
+}
+.bula-panel[data-theme='light'] .bula-transcript--blur {
+  background: rgba(255, 255, 255, 0.55);
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
+}
+.bula-panel[data-theme='light'] .bula-transcript--solid {
+  background: rgba(255, 255, 255, 0.95);
+}
+
+/* Typing indicator */
+@keyframes bula-dot {
+  0%, 60%, 100% { transform: translate3d(0, 0, 0); opacity: 0.35; }
+  30%           { transform: translate3d(0, -4px, 0); opacity: 1; }
+}
+.bula-dot {
+  will-change: transform, opacity;
+  animation: bula-dot 1.2s ease-in-out infinite;
+}
+.bula-dot:nth-child(2) { animation-delay: 0.15s; }
+.bula-dot:nth-child(3) { animation-delay: 0.3s; }
+
+/* The mobile 44px min-target rule would blow out the emoji grid; these are inside a scroller */
+.bula-emoji-pop button {
+  min-height: 0;
+  min-width: 0;
+}
+
+/* ── Bula lead card: sending / sent / failed ── */
+
+.bula-lead {
+  animation: fade-in-up 0.45s cubic-bezier(0.16, 1, 0.3, 1) both;
+  will-change: transform, opacity;
+}
+
+/* Accent sweep — idle at zero opacity, runs only while the POST is in flight */
+@keyframes bula-lead-sweep {
+  0%   { transform: translate3d(-140%, 0, 0) skewX(-14deg); opacity: 0; }
+  18%  { opacity: 1; }
+  82%  { opacity: 1; }
+  100% { transform: translate3d(240%, 0, 0) skewX(-14deg); opacity: 0; }
+}
+.bula-lead__sweep {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  width: 45%;
+  pointer-events: none;
+  opacity: 0;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(52, 211, 153, 0.16) 40%,
+    rgba(255, 255, 255, 0.22) 50%,
+    rgba(34, 211, 238, 0.16) 60%,
+    transparent
+  );
+  will-change: transform, opacity;
+}
+.bula-lead--sending .bula-lead__sweep {
+  animation: bula-lead-sweep 1.1s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+/* Send button collapse — fixed width, so the swap to the spinner never reflows */
+@keyframes bula-send-collapse {
+  0%   { transform: scale(1); }
+  45%  { transform: scale(0.93); }
+  100% { transform: scale(0.97); }
+}
+.bula-send--sending {
+  animation: bula-send-collapse 0.3s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+@keyframes bula-spin { to { transform: rotate(360deg); } }
+.bula-spin {
+  will-change: transform;
+  animation: bula-spin 0.9s linear infinite;
+}
+
+/* Confirmation: card settles, ring expands, check draws, particles burst */
+@keyframes bula-lead-sent-in {
+  0%   { opacity: 0; transform: translate3d(0, 8px, 0) scale(0.92); }
+  60%  { opacity: 1; transform: translate3d(0, 0, 0) scale(1.03); }
+  100% { opacity: 1; transform: translate3d(0, 0, 0) scale(1); }
+}
+.bula-lead-sent {
+  will-change: transform, opacity;
+  animation: bula-lead-sent-in 0.5s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+@keyframes bula-check-ring {
+  0%   { transform: scale(0.4); opacity: 0.65; }
+  100% { transform: scale(2.6); opacity: 0; }
+}
+.bula-check-ring {
+  position: absolute;
+  top: 1rem;
+  left: 50%;
+  width: 2.5rem;
+  height: 2.5rem;
+  margin-left: -1.25rem;
+  border-radius: 9999px;
+  pointer-events: none;
+  background: radial-gradient(circle, rgba(52, 211, 153, 0.5) 0%, rgba(45, 212, 191, 0.2) 60%, transparent 72%);
+  will-change: transform, opacity;
+  animation: bula-check-ring 0.85s cubic-bezier(0.22, 1, 0.36, 1) 0.12s both;
+}
+
+/* Checkmark drawn with two scaling bars — scaleX is compositor-friendly, stroke-dash is not */
+@keyframes bula-check-draw {
+  from { transform: var(--bula-check-rotate) scaleX(0); }
+  to   { transform: var(--bula-check-rotate) scaleX(1); }
+}
+.bula-check {
+  position: relative;
+  display: block;
+  width: 1.25rem;
+  height: 1.25rem;
+}
+.bula-check__short,
+.bula-check__long {
+  position: absolute;
+  height: 2px;
+  border-radius: 1px;
+  background: #ffffff;
+  transform-origin: 0 50%;
+  will-change: transform;
+  animation: bula-check-draw 0.22s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+.bula-check__short {
+  --bula-check-rotate: rotate(45deg);
+  top: 55%;
+  left: 18%;
+  width: 34%;
+  animation-delay: 0.24s;
+}
+.bula-check__long {
+  --bula-check-rotate: rotate(-45deg);
+  top: 66%;
+  left: 40%;
+  width: 55%;
+  animation-delay: 0.44s;
+}
+
+@keyframes bula-burst {
+  0%   { transform: translate3d(0, 0, 0) scale(1); opacity: 0; }
+  20%  { opacity: 1; }
+  100% { transform: translate3d(var(--bula-burst-x), var(--bula-burst-y), 0) scale(0.2); opacity: 0; }
+}
+.bula-burst {
+  position: absolute;
+  top: 2.25rem;
+  left: 50%;
+  width: 0;
+  height: 0;
+  pointer-events: none;
+}
+.bula-burst__dot {
+  position: absolute;
+  width: 5px;
+  height: 5px;
+  margin: -2.5px 0 0 -2.5px;
+  border-radius: 9999px;
+  background: linear-gradient(135deg, #34d399, #22d3ee);
+  will-change: transform, opacity;
+  animation: bula-burst 0.7s cubic-bezier(0.16, 1, 0.3, 1) 0.2s both;
+}
+
+.bula-lead-dismissed {
+  animation: fade-in-up 0.3s cubic-bezier(0.22, 1, 0.36, 1) both;
+}

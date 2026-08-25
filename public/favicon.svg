@@ -1,0 +1,27 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="Nano Kava by Cannasol Technologies">
+  <defs>
+    <linearGradient id="g" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#6ee7b7"/>
+      <stop offset="0.5" stop-color="#2dd4bf"/>
+      <stop offset="1" stop-color="#22d3ee"/>
+    </linearGradient>
+    <radialGradient id="s" cx="0.35" cy="0.3" r="0.8">
+      <stop offset="0" stop-color="#a7f3d0"/>
+      <stop offset="0.55" stop-color="#2dd4bf"/>
+      <stop offset="1" stop-color="#0e7490"/>
+    </radialGradient>
+  </defs>
+  <rect width="64" height="64" rx="14" fill="#0f172a"/>
+  <circle cx="32" cy="33" r="17" fill="url(#s)"/>
+  <ellipse cx="26" cy="26" rx="6" ry="4" fill="#ffffff" opacity="0.45" transform="rotate(-30 26 26)"/>
+  <g fill="none" stroke="url(#g)" stroke-width="1.6" opacity="0.9">
+    <ellipse cx="32" cy="33" rx="25" ry="9.5"/>
+    <ellipse cx="32" cy="33" rx="25" ry="9.5" transform="rotate(60 32 33)"/>
+    <ellipse cx="32" cy="33" rx="25" ry="9.5" transform="rotate(-60 32 33)"/>
+  </g>
+  <g fill="#a7f3d0">
+    <circle cx="57" cy="33" r="2.2"/><circle cx="7" cy="33" r="2.2"/>
+    <circle cx="44.5" cy="11.5" r="2.2"/><circle cx="19.5" cy="54.5" r="2.2"/>
+    <circle cx="19.5" cy="11.5" r="2.2"/><circle cx="44.5" cy="54.5" r="2.2"/>
+  </g>
+</svg>

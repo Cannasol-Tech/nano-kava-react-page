@@ -1,5 +1,7 @@
 import React, { useState, useRef, useMemo } from 'react';
 import { Helmet } from 'react-helmet-async';
+import JsonLd from '../seo/JsonLd';
+import { homeSchema } from '../seo/structuredData';
 import { Link } from 'react-router-dom';
 import { trackPhoneClick, trackEmailClick, trackCTAClick } from '../utils/gtag';
 import {
@@ -30,9 +32,19 @@ import { useInView } from '../hooks/useInView';
 import { useScrollTransform } from '../hooks/useScrollTransform';
 import { useScrollDepth } from '../hooks/useScrollDepth';
 import themesConfig from '../theme/themes';
+import {
+  features as contentFeatures,
+  perfectFor,
+  problems,
+  process,
+  solutionPoints,
+  specComparison,
+} from '../content/product.js';
 
 // Theme configuration - Single source of truth for all colors
 const themes = themesConfig;
+
+const FEATURE_ICONS = { Beaker, Sparkles, Zap, Target, Shield, HeartHandshake };
 
 // Animated counter component
 const AnimatedCounter = React.memo(function AnimatedCounter({ value, suffix = '', prefix = '' }) {
@@ -130,51 +142,10 @@ export default function KavaLandingPage() {
     { value: '5', suffix: ' min', label: 'Onset Time', icon: Clock }
   ], []);
 
-  const features = useMemo(() => [
-    {
-      icon: Beaker,
-      title: "Enhanced Bioavailability",
-      description: "The increased surface area of our ~18nm nanoemulsified kavalactones enables superior absorption in the gastrointestinal tract, delivering higher bioavailability and more potent effects at lower doses.",
-      highlight: "Industry First"
-    },
-    {
-      icon: Sparkles,
-      title: "Improved Palatability",
-      description: "Nanoemulsification eliminates the gritty texture and muddy appearance of traditional kava preparations, resulting in crystal-clear, visually appealing beverages your customers will love.",
-      highlight: "Premium Clarity"
-    },
-    {
-      icon: Zap,
-      title: "Ease of Production",
-      description: "Our nanoemulsified kava extracts integrate seamlessly into various beverage formulations—shots, soft drinks, and flavored water—making kava consumption more convenient and enjoyable.",
-      highlight: "Versatile"
-    },
-    {
-      icon: Target,
-      title: "Precise Dosing",
-      description: "With uniform distribution of kavalactones throughout the nanoemulsion, dosing becomes remarkably accurate—ensuring consistent, predictable effects in every serving.",
-      highlight: "Consistent"
-    },
-    {
-      icon: Shield,
-      title: "Bitter Blocker Bundles",
-      description: "We offer the best deals on bitter blockers in the industry. Create smooth, palatable Kava products your customers will actually enjoy drinking.",
-      highlight: "Best Pricing"
-    },
-    {
-      icon: HeartHandshake,
-      title: "Direct Access to Josh",
-      description: "Our founder works directly with every client, bringing insights from top Kratom and Kava brands. Your success is our success—we're partners, not just suppliers.",
-      highlight: "Personal Support"
-    }
-  ], []);
-
-  const process = useMemo(() => [
-    { step: '01', title: 'Discovery Call', description: 'Discuss your product vision with Josh directly' },
-    { step: '02', title: 'Sample & Test', description: 'Get samples to test in your formulations' },
-    { step: '03', title: 'Refine & Order', description: 'Dial in your product and place your order' },
-    { step: '04', title: 'Scale Production', description: 'Launch with confidence and ongoing support' }
-  ], []);
+  const features = useMemo(
+    () => contentFeatures.map((feature) => ({ ...feature, icon: FEATURE_ICONS[feature.iconKey] })),
+    []
+  );
 
   return (
     <div className={`min-h-screen ${theme.text} overflow-x-hidden transition-colors duration-500`}>
@@ -185,7 +156,12 @@ export default function KavaLandingPage() {
         <meta property="og:title" content="Nano Kava | Premium Nano-Emulsified Kavalactones" />
         <meta property="og:description" content="Nano-emulsified kava with ~18nm particle size. 10x bioavailability, 5-minute onset, crystal-clear kavalactones." />
         <meta property="og:url" content="https://enjoynano.com/" />
+        <link rel="alternate" type="text/markdown" href="https://enjoynano.com/index.md" />
+        <meta property="og:type" content="website" />
+        <meta property="og:image" content="https://enjoynano.com/og-image.png" />
+        <meta name="twitter:image" content="https://enjoynano.com/og-image.png" />
       </Helmet>
+      <JsonLd data={homeSchema} />
 
       {/* Navigation */}
       <nav
@@ -410,6 +386,22 @@ export default function KavaLandingPage() {
               <br className="hidden md:block" />
               Trusted by leading Kava seltzer and shot brands.
             </p>
+
+            {/* Answer-first definition. Referenced by the speakable selector in
+                src/seo/structuredData.js — keep the id in sync. */}
+            <p
+              id="nano-kava-answer"
+              className={`animate-fade-in-up anim-delay-500 mt-6 text-base md:text-lg leading-relaxed ${theme.textSecondary}`}
+            >
+              <strong className={theme.text}>Nano kava</strong> is kava extract broken down into droplets
+              roughly <strong className={theme.text}>18 nanometers</strong> across, which makes the oil-based
+              kavalactones fully water-soluble. Cannasol Technologies is the only manufacturer producing kava
+              at ~18nm. The result is about <strong className={theme.text}>10x the bioavailability</strong> of
+              traditional kava extract, <strong className={theme.text}>80–90% kavalactone absorption</strong>{' '}
+              instead of 10–15%, and an onset of about{' '}
+              <strong className={theme.text}>5 minutes</strong> instead of 30–45 &mdash; in a crystal-clear
+              liquid that stays stable in a finished beverage for 12+ months.
+            </p>
             </div>
           </div>
 
@@ -498,12 +490,7 @@ export default function KavaLandingPage() {
                   Your customers want instant results and a pleasant experience—not a waiting game.
                 </p>
                 <div className="space-y-4 mt-auto">
-                  {[
-                    'Limited absorption in the gastrointestinal tract',
-                    '30-45 minute onset frustrates consumers',
-                    'Gritty texture and muddy appearance',
-                    'Inconsistent dosing leads to unpredictable effects'
-                  ].map((problem, i) => (
+                  {problems.map((problem, i) => (
                     <div
                       key={i}
                       className={`flex items-center gap-3 ${theme.textSecondary}`}
@@ -537,12 +524,7 @@ export default function KavaLandingPage() {
                   This cutting-edge process breaks down oil-based kavalactones into tiny droplets suspended in water—so small they become almost transparent, creating a stable and uniform mixture. Our proprietary NanoOptimizer™ surfactant system dramatically increases surface area, making kavalactones more readily available for absorption by the body.
                 </p>
                 <div className="space-y-4 mt-auto">
-                  {[
-                    'Enhanced bioavailability through better absorption',
-                    'Crystal-clear, visually appealing beverages',
-                    'Uniform kavalactone distribution for precise dosing',
-                    'Easy integration into shots, soft drinks, and flavored water'
-                  ].map((benefit, i) => (
+                  {solutionPoints.map((benefit, i) => (
                     <div
                       key={i}
                       className={`flex items-center gap-3 ${theme.text}`}
@@ -556,6 +538,54 @@ export default function KavaLandingPage() {
                 </div>
               </div>
             </div>
+          </div>
+        </div>
+      </AnimatedSection>
+
+      {/* Spec comparison. Plain semantic <table> on purpose: answer engines extract
+          tabular rows far more reliably than styled div grids. */}
+      <AnimatedSection id="specs" className="relative py-24 md:py-32">
+        <div className="max-w-5xl mx-auto px-6">
+          <div className="text-center mb-12">
+            <h2 className={`text-3xl md:text-5xl font-bold mb-4 ${theme.text}`}>
+              Nano Kava vs.
+              <span className={`bg-gradient-to-r ${theme.accentGradientAlt} bg-clip-text text-transparent`}> Traditional Kava Extract</span>
+            </h2>
+            <p className={`${theme.textSecondary} text-lg max-w-2xl mx-auto`}>
+              Every specification, side by side.
+            </p>
+          </div>
+
+          <div className={`${theme.bgCard} backdrop-blur-md border ${theme.borderCard} rounded-3xl p-4 md:p-8 ${theme.shadowCard} overflow-x-auto`}>
+            <table id="nano-kava-spec-table" className="w-full text-left border-collapse">
+              <caption className={`${theme.textMuted} text-sm mb-4 text-left`}>
+                Nano Kava by Cannasol Technologies compared with traditional kava extract.
+              </caption>
+              <thead>
+                <tr className={`border-b ${theme.borderCard}`}>
+                  <th scope="col" className={`py-4 pr-4 text-sm font-semibold uppercase tracking-wider ${theme.textMuted}`}>
+                    Specification
+                  </th>
+                  <th scope="col" className={`py-4 px-4 text-sm font-semibold uppercase tracking-wider ${theme.accentText}`}>
+                    Nano Kava
+                  </th>
+                  <th scope="col" className={`py-4 pl-4 text-sm font-semibold uppercase tracking-wider ${theme.textMuted}`}>
+                    Traditional kava extract
+                  </th>
+                </tr>
+              </thead>
+              <tbody>
+                {specComparison.map((row) => (
+                  <tr key={row.spec} className={`border-b ${theme.borderCard} last:border-0`}>
+                    <th scope="row" className={`py-4 pr-4 font-medium align-top ${theme.text}`}>
+                      {row.spec}
+                    </th>
+                    <td className={`py-4 px-4 font-semibold align-top ${theme.accentText}`}>{row.nano}</td>
+                    <td className={`py-4 pl-4 align-top ${theme.textSecondary}`}>{row.traditional}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
           </div>
         </div>
       </AnimatedSection>
@@ -721,7 +751,7 @@ export default function KavaLandingPage() {
           <div className="mt-16 text-center">
             <p className={`${theme.textMuted} text-sm uppercase tracking-wider mb-4`}>Perfect For</p>
             <div className="flex flex-wrap justify-center gap-4">
-              {['Kava Seltzers', 'Functional Shots', 'RTD Beverages', 'Wellness Brands'].map((item, i) => (
+              {perfectFor.map((item, i) => (
                 <span
                   key={i}
                   className={`px-5 py-2.5 ${theme.bgPill} ${theme.shadowCard} rounded-full ${theme.textSecondary} text-sm border ${theme.borderCard} hover:border-emerald-500/40 hover:${theme.accentText} transition-colors cursor-default interactive-btn hover-scale-xs`}

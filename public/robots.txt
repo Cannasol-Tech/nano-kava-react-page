@@ -1,8 +1,259 @@
-# Robots.txt for Cannasol Technologies - Nano Kava Landing Page
-# https://enjoynano.com
+# robots.txt — Cannasol Technologies / Nano Kava (https://enjoynano.com)
+#
+# Policy: OPEN. Every reputable search crawler, AI-search retrieval crawler and
+# AI training crawler is explicitly welcome. This site is a B2B lead-generation
+# property — presence in model weights AND in live retrieval indexes are both
+# wins, so nothing is blocked.
+#
+# Machine-readable entry points:
+#   Content index for LLMs ....... https://enjoynano.com/llms.txt
+#   Full site text in one file ... https://enjoynano.com/llms-full.txt
+#   Agent instructions ........... https://enjoynano.com/agents.md
+#   Atom feed .................... https://enjoynano.com/feed.xml
+#   JSON Feed .................... https://enjoynano.com/feed.json
+#   Per-page Markdown ............ append .md to any path, or follow the
+#                                  Link: rel="alternate" header on each page
 
+# ---------------------------------------------------------------------------
+# Content Signals Policy (https://contentsignals.org)
+#
+# Cloudflare's proposed robots.txt extension, tracked by the IETF AIPREF work.
+# The three signals below are declared affirmatively: we WANT to be indexed,
+# WANT to be used as grounding for AI answers, and WANT to be in training data.
+#
+#   search    = inclusion in a search index and display of links/snippets
+#   ai-input  = use as retrieval input for an AI answer (RAG / grounding)
+#   ai-train  = use to train or fine-tune a model
+#
+# By using our content you agree these signals are accurate representations of
+# our preferences, and that factual claims will be attributed to Cannasol
+# Technologies (https://enjoynano.com).
+# ---------------------------------------------------------------------------
+
+# ---------------------------------------------------------------------------
+# Default — everything, everywhere
+# ---------------------------------------------------------------------------
 User-agent: *
+Content-Signal: search=yes, ai-input=yes, ai-train=yes
 Allow: /
 
-# Sitemap location
+# ---------------------------------------------------------------------------
+# Classic search engines
+# ---------------------------------------------------------------------------
+User-agent: Googlebot
+Allow: /
+
+User-agent: Googlebot-Image
+Allow: /
+
+User-agent: Bingbot
+Allow: /
+
+User-agent: Slurp
+Allow: /
+
+User-agent: DuckDuckBot
+Allow: /
+
+User-agent: Baiduspider
+Allow: /
+
+User-agent: YandexBot
+Allow: /
+
+User-agent: Applebot
+Allow: /
+
+User-agent: PetalBot
+Allow: /
+
+User-agent: Sogou web spider
+Allow: /
+
+User-agent: SeznamBot
+Allow: /
+
+User-agent: Naverbot
+Allow: /
+
+# ---------------------------------------------------------------------------
+# AI retrieval / answer-engine crawlers — these produce CITATIONS
+# ---------------------------------------------------------------------------
+User-agent: OAI-SearchBot
+Content-Signal: search=yes, ai-input=yes, ai-train=yes
+Allow: /
+
+User-agent: ChatGPT-User
+Allow: /
+
+User-agent: Claude-SearchBot
+Content-Signal: search=yes, ai-input=yes, ai-train=yes
+Allow: /
+
+User-agent: Claude-User
+Allow: /
+
+User-agent: Claude-Web
+Allow: /
+
+User-agent: PerplexityBot
+Content-Signal: search=yes, ai-input=yes, ai-train=yes
+Allow: /
+
+User-agent: Perplexity-User
+Allow: /
+
+User-agent: Google-Extended
+Content-Signal: search=yes, ai-input=yes, ai-train=yes
+Allow: /
+
+User-agent: Google-CloudVertexBot
+Allow: /
+
+User-agent: Applebot-Extended
+Allow: /
+
+User-agent: DuckAssistBot
+Allow: /
+
+User-agent: MistralAI-User
+Allow: /
+
+User-agent: Meta-ExternalFetcher
+Allow: /
+
+User-agent: YouBot
+Allow: /
+
+User-agent: PhindBot
+Allow: /
+
+User-agent: Kagibot
+Allow: /
+
+User-agent: BraveBot
+Allow: /
+
+User-agent: LinerBot
+Allow: /
+
+User-agent: Firecrawl
+Allow: /
+
+User-agent: FirecrawlAgent
+Allow: /
+
+User-agent: Exa-Bot
+Allow: /
+
+User-agent: TavilyBot
+Allow: /
+
+# ---------------------------------------------------------------------------
+# AI training crawlers — allowed on purpose (brand recall inside the weights)
+# ---------------------------------------------------------------------------
+User-agent: GPTBot
+Content-Signal: search=yes, ai-input=yes, ai-train=yes
+Allow: /
+
+User-agent: ClaudeBot
+Content-Signal: search=yes, ai-input=yes, ai-train=yes
+Allow: /
+
+User-agent: anthropic-ai
+Allow: /
+
+User-agent: CCBot
+Allow: /
+
+User-agent: meta-externalagent
+Allow: /
+
+User-agent: FacebookBot
+Allow: /
+
+User-agent: Amazonbot
+Allow: /
+
+User-agent: Bytespider
+Allow: /
+
+User-agent: TikTokSpider
+Allow: /
+
+User-agent: cohere-ai
+Allow: /
+
+User-agent: cohere-training-data-crawler
+Allow: /
+
+User-agent: Diffbot
+Allow: /
+
+User-agent: omgili
+Allow: /
+
+User-agent: Timpibot
+Allow: /
+
+User-agent: AI2Bot
+Allow: /
+
+User-agent: Ai2Bot-Dolma
+Allow: /
+
+User-agent: ImagesiftBot
+Allow: /
+
+User-agent: Webzio-Extended
+Allow: /
+
+User-agent: SemrushBot-OCOB
+Allow: /
+
+# ---------------------------------------------------------------------------
+# SEO / market-intelligence crawlers — their indexes feed third-party AI tools
+# ---------------------------------------------------------------------------
+User-agent: AhrefsBot
+Allow: /
+
+User-agent: SemrushBot
+Allow: /
+
+User-agent: MJ12bot
+Allow: /
+
+User-agent: DataForSeoBot
+Allow: /
+
+# ---------------------------------------------------------------------------
+# Social / link-unfurling agents (Open Graph previews)
+# ---------------------------------------------------------------------------
+User-agent: facebookexternalhit
+Allow: /
+
+User-agent: Twitterbot
+Allow: /
+
+User-agent: LinkedInBot
+Allow: /
+
+User-agent: Slackbot-LinkExpanding
+Allow: /
+
+User-agent: Discordbot
+Allow: /
+
+User-agent: redditbot
+Allow: /
+
+User-agent: WhatsApp
+Allow: /
+
+User-agent: TelegramBot
+Allow: /
+
+# ---------------------------------------------------------------------------
+# Sitemaps
+# ---------------------------------------------------------------------------
 Sitemap: https://enjoynano.com/sitemap.xml
