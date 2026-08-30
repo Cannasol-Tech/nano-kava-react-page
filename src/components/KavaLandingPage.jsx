@@ -4,6 +4,7 @@ import JsonLd from '../seo/JsonLd';
 import { homeSchema } from '../seo/structuredData';
 import { Link } from 'react-router-dom';
 import { trackPhoneClick, trackEmailClick, trackCTAClick } from '../utils/gtag';
+import { startLabMode } from '../utils/labMode';
 import {
   Beaker,
   Zap,
@@ -25,7 +26,8 @@ import {
   Menu,
   X,
   Sun,
-  Moon
+  Moon,
+  Calculator
 } from 'lucide-react';
 import { useTheme } from '../context/ThemeContext';
 import { useInView } from '../hooks/useInView';
@@ -38,8 +40,8 @@ import {
   problems,
   process,
   solutionPoints,
-  specComparison,
 } from '../content/product.js';
+import SavingsCalculator from './SavingsCalculator';
 
 // Theme configuration - Single source of truth for all colors
 const themes = themesConfig;
@@ -54,7 +56,8 @@ const AnimatedCounter = React.memo(function AnimatedCounter({ value, suffix = ''
   const [count, setCount] = useState(numValue);
 
   React.useEffect(() => {
-    if (isInView) {
+    // useInView reports true immediately under prerender, so counting up would freeze the snapshot mid-count.
+    if (isInView && !window.__PRERENDER__) {
       const duration = 2000;
       const steps = 60;
       const increment = numValue / steps;
@@ -78,8 +81,9 @@ const AnimatedCounter = React.memo(function AnimatedCounter({ value, suffix = ''
   return <span ref={ref}>{prefix}{count}{suffix}</span>;
 });
 
-// Animated gradient orb for hero
-const GlowOrb = React.memo(function GlowOrb({ className = '', delay = 0 }) {
+// Animated gradient orb for hero. Blur lives on a static child so the scale/opacity
+// animation composites a pre-rasterised bitmap instead of re-filtering 600px every frame.
+const GlowOrb = React.memo(function GlowOrb({ className = '', paintClassName = '', delay = 0 }) {
   return (
     <div
       className={`absolute rounded-full ${className}`}
@@ -87,7 +91,9 @@ const GlowOrb = React.memo(function GlowOrb({ className = '', delay = 0 }) {
         animation: `glow-orb 4s ease-in-out ${delay}s infinite`,
         willChange: 'transform, opacity',
       }}
-    />
+    >
+      <div className={`absolute inset-0 rounded-full ${paintClassName}`} />
+    </div>
   );
 });
 
@@ -169,7 +175,12 @@ export default function KavaLandingPage() {
         aria-label="Main navigation"
       >
         <div className="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
-          <div className="flex items-center gap-3 interactive-btn hover-scale-xs">
+          {/* Easter egg: three clicks on the logo spikes the particle field — components/CLAUDE.md § Lab mode.
+              event.detail is the browser's own click counter, so this needs no timer. */}
+          <div
+            className="flex items-center gap-3 interactive-btn hover-scale-xs"
+            onClick={(event) => { if (event.detail === 3) startLabMode(); }}
+          >
             {/* Cannasol Logo */}
             <img
               src={theme.logo}
@@ -186,6 +197,7 @@ export default function KavaLandingPage() {
             {[
               { href: '#benefits', label: 'Benefits' },
               { href: '#process', label: 'Process' },
+              { href: '#calculator', label: 'Calculator' },
               { href: '#proof', label: 'Partners' },
               { to: '/mushrooms', label: 'Mushrooms' },
               { to: '/faq', label: 'FAQ' },
@@ -265,6 +277,7 @@ export default function KavaLandingPage() {
               {[
                 { href: '#benefits', label: 'Benefits' },
                 { href: '#process', label: 'Process' },
+                { href: '#calculator', label: 'Calculator' },
                 { href: '#proof', label: 'Partners' },
                 { to: '/mushrooms', label: 'Mushrooms' },
                 { to: '/faq', label: 'FAQ' },
@@ -314,21 +327,30 @@ export default function KavaLandingPage() {
         {/* Animated background (NanoScene is now a global fixed layer in App.jsx) */}
         <div className="absolute inset-0">
           {/* Gradient orbs */}
-          <GlowOrb className={`top-1/4 left-1/4 w-[600px] h-[600px] ${theme.gradientOrbs.emerald} blur-[120px]`} delay={0} />
-          <GlowOrb className={`bottom-1/4 right-1/4 w-[500px] h-[500px] ${theme.gradientOrbs.teal} blur-[100px]`} delay={1} />
-          <GlowOrb className={`top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[400px] h-[400px] ${theme.gradientOrbs.cyan} blur-[80px]`} delay={2} />
+          <GlowOrb className="top-1/4 left-1/4 w-[600px] h-[600px]" paintClassName={`${theme.gradientOrbs.emerald} blur-[120px]`} delay={0} />
+          <GlowOrb className="bottom-1/4 right-1/4 w-[500px] h-[500px]" paintClassName={`${theme.gradientOrbs.teal} blur-[100px]`} delay={1} />
+          <GlowOrb className="top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[400px] h-[400px]" paintClassName={`${theme.gradientOrbs.cyan} blur-[80px]`} delay={2} />
           {/* Accent glow at top */}
           <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full h-[500px] bg-gradient-to-b from-emerald-500/5 via-transparent to-transparent" />
           <GridBackground />
         </div>
 
         <div className="relative z-10 max-w-7xl mx-auto px-6 py-20 text-center">
-          {/* Hero content card — light mode gets a frosted glass wrapper */}
-          <div
-            className={`animate-fade-in-up max-w-3xl mx-auto mb-10 ${!isDark ? 'bg-white/30 backdrop-blur-xl rounded-3xl px-8 py-10 md:px-12 md:py-12 border border-emerald-500/15 shadow-lg shadow-slate-200/20 overflow-hidden relative' : ''}`}
-          >
-            {/* Light mode tinted overlay */}
-            {!isDark && <div className="absolute inset-0 bg-gradient-to-r from-emerald-500/10 via-teal-500/10 to-cyan-500/10 pointer-events-none" />}
+          {/* Hero content — light mode gets an edge-free radial scrim instead of a card:
+              a bordered/blurred panel read as a visible box over the particle scene. */}
+          <div className={`animate-fade-in-up max-w-3xl mx-auto mb-10 ${!isDark ? 'relative' : ''}`}>
+            {!isDark && (
+              <div
+                className="absolute -inset-x-20 -inset-y-16 md:-inset-x-40 md:-inset-y-28 pointer-events-none"
+                style={{
+                  // Radius is 50% so the fade completes inside the element — a larger
+                  // radius gets clipped at the edges and reads as a hard seam.
+                  background:
+                    'radial-gradient(ellipse 50% 50% at 50% 50%, rgba(255,255,255,0.95), rgba(255,255,255,0.93) 58%, rgba(255,255,255,0.78) 76%, rgba(255,255,255,0.34) 90%, rgba(255,255,255,0) 100%)',
+                }}
+                aria-hidden="true"
+              />
+            )}
             <div className="relative">
             {/* Badge */}
             <div
@@ -358,21 +380,36 @@ export default function KavaLandingPage() {
                   aria-hidden="true"
                 />
               )}
-              <span
-                className="inline-block relative animate-gradient-slow"
-                style={{
-                  backgroundImage: isDark
-                    ? 'linear-gradient(120deg, #a7f3d0, #6ee7b7, #2dd4bf, #22d3ee, #67e8f9, #6ee7b7, #a7f3d0)'
-                    : 'linear-gradient(120deg, #059669, #0d9488, #0891b2, #06b6d4, #0d9488, #059669)',
-                  WebkitBackgroundClip: 'text',
-                  WebkitTextFillColor: 'transparent',
-                  backgroundClip: 'text',
-                  filter: isDark
-                    ? 'drop-shadow(0 0 40px rgba(52, 211, 153, 0.4)) drop-shadow(0 0 80px rgba(45, 212, 191, 0.2))'
-                    : 'drop-shadow(0 2px 4px rgba(0,0,0,0.1))',
-                }}
-              >
-                Nano Kava
+              <span className="inline-block relative">
+                {/* Static glyph replica carries the drop-shadow. The gradient fill animates
+                    background-position; a filter on that same span re-rasterised the 80px
+                    shadow every frame and recapped the page at ~24fps. */}
+                <span
+                  data-hero-shadow
+                  aria-hidden="true"
+                  className="absolute left-0 top-0 pointer-events-none select-none"
+                  style={{
+                    color: isDark ? '#a7f3d0' : '#059669',
+                    filter: isDark
+                      ? 'drop-shadow(0 0 40px rgba(52, 211, 153, 0.4)) drop-shadow(0 0 80px rgba(45, 212, 191, 0.2))'
+                      : 'drop-shadow(0 2px 4px rgba(0,0,0,0.1))',
+                  }}
+                >
+                  Nano Kava
+                </span>
+                <span
+                  className="relative animate-gradient-slow"
+                  style={{
+                    backgroundImage: isDark
+                      ? 'linear-gradient(120deg, #a7f3d0, #6ee7b7, #2dd4bf, #22d3ee, #67e8f9, #6ee7b7, #a7f3d0)'
+                      : 'linear-gradient(120deg, #059669, #0d9488, #0891b2, #06b6d4, #0d9488, #059669)',
+                    WebkitBackgroundClip: 'text',
+                    WebkitTextFillColor: 'transparent',
+                    backgroundClip: 'text',
+                  }}
+                >
+                  Nano Kava
+                </span>
               </span>
               <span className="sr-only"> — Premium Nano-Emulsified Kavalactones</span>
             </h1>
@@ -385,22 +422,6 @@ export default function KavaLandingPage() {
               <span className={`font-semibold ${isDark ? 'text-white' : theme.text}`}> Ultra-fine droplets so small they're almost transparent.</span>
               <br className="hidden md:block" />
               Trusted by leading Kava seltzer and shot brands.
-            </p>
-
-            {/* Answer-first definition. Referenced by the speakable selector in
-                src/seo/structuredData.js — keep the id in sync. */}
-            <p
-              id="nano-kava-answer"
-              className={`animate-fade-in-up anim-delay-500 mt-6 text-base md:text-lg leading-relaxed ${theme.textSecondary}`}
-            >
-              <strong className={theme.text}>Nano kava</strong> is kava extract broken down into droplets
-              roughly <strong className={theme.text}>18 nanometers</strong> across, which makes the oil-based
-              kavalactones fully water-soluble. Cannasol Technologies is the only manufacturer producing kava
-              at ~18nm. The result is about <strong className={theme.text}>10x the bioavailability</strong> of
-              traditional kava extract, <strong className={theme.text}>80–90% kavalactone absorption</strong>{' '}
-              instead of 10–15%, and an onset of about{' '}
-              <strong className={theme.text}>5 minutes</strong> instead of 30–45 &mdash; in a crystal-clear
-              liquid that stays stable in a finished beverage for 12+ months.
             </p>
             </div>
           </div>
@@ -538,54 +559,6 @@ export default function KavaLandingPage() {
                 </div>
               </div>
             </div>
-          </div>
-        </div>
-      </AnimatedSection>
-
-      {/* Spec comparison. Plain semantic <table> on purpose: answer engines extract
-          tabular rows far more reliably than styled div grids. */}
-      <AnimatedSection id="specs" className="relative py-24 md:py-32">
-        <div className="max-w-5xl mx-auto px-6">
-          <div className="text-center mb-12">
-            <h2 className={`text-3xl md:text-5xl font-bold mb-4 ${theme.text}`}>
-              Nano Kava vs.
-              <span className={`bg-gradient-to-r ${theme.accentGradientAlt} bg-clip-text text-transparent`}> Traditional Kava Extract</span>
-            </h2>
-            <p className={`${theme.textSecondary} text-lg max-w-2xl mx-auto`}>
-              Every specification, side by side.
-            </p>
-          </div>
-
-          <div className={`${theme.bgCard} backdrop-blur-md border ${theme.borderCard} rounded-3xl p-4 md:p-8 ${theme.shadowCard} overflow-x-auto`}>
-            <table id="nano-kava-spec-table" className="w-full text-left border-collapse">
-              <caption className={`${theme.textMuted} text-sm mb-4 text-left`}>
-                Nano Kava by Cannasol Technologies compared with traditional kava extract.
-              </caption>
-              <thead>
-                <tr className={`border-b ${theme.borderCard}`}>
-                  <th scope="col" className={`py-4 pr-4 text-sm font-semibold uppercase tracking-wider ${theme.textMuted}`}>
-                    Specification
-                  </th>
-                  <th scope="col" className={`py-4 px-4 text-sm font-semibold uppercase tracking-wider ${theme.accentText}`}>
-                    Nano Kava
-                  </th>
-                  <th scope="col" className={`py-4 pl-4 text-sm font-semibold uppercase tracking-wider ${theme.textMuted}`}>
-                    Traditional kava extract
-                  </th>
-                </tr>
-              </thead>
-              <tbody>
-                {specComparison.map((row) => (
-                  <tr key={row.spec} className={`border-b ${theme.borderCard} last:border-0`}>
-                    <th scope="row" className={`py-4 pr-4 font-medium align-top ${theme.text}`}>
-                      {row.spec}
-                    </th>
-                    <td className={`py-4 px-4 font-semibold align-top ${theme.accentText}`}>{row.nano}</td>
-                    <td className={`py-4 pl-4 align-top ${theme.textSecondary}`}>{row.traditional}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
           </div>
         </div>
       </AnimatedSection>
@@ -760,6 +733,30 @@ export default function KavaLandingPage() {
                 </span>
               ))}
             </div>
+          </div>
+        </div>
+      </AnimatedSection>
+
+      {/* Savings Calculator Section */}
+      <AnimatedSection id="calculator" className="relative py-24 md:py-32">
+        <div className="max-w-5xl mx-auto px-6">
+          <div className="text-center mb-12">
+            <div className={`inline-flex items-center gap-2 px-4 py-2 ${theme.bgHighlight} rounded-full ${theme.accentText} text-sm font-medium mb-6`}>
+              <Calculator className="w-4 h-4" />
+              Cost Savings Calculator
+            </div>
+            <h2 className={`text-3xl md:text-5xl font-bold mb-4 ${theme.text}`}>
+              Calculate Your
+              <span className={`bg-gradient-to-r ${theme.accentGradientAlt} bg-clip-text text-transparent`}> Savings</span>
+            </h2>
+            <p className={`${theme.textSecondary} text-lg max-w-2xl mx-auto`}>
+              See how much you could save by switching to nano kava. With 10x higher bioavailability,
+              you need significantly less active ingredient for the same powerful effect.
+            </p>
+          </div>
+
+          <div>
+            <SavingsCalculator isDark={isDark} />
           </div>
         </div>
       </AnimatedSection>

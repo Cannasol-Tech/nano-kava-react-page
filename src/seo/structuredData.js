@@ -522,7 +522,7 @@ export const homeSchema = graph(
       { '@type': 'Thing', name: 'Bioavailability', sameAs: KG.bioavailability },
       { '@type': 'Thing', name: 'Surfactant', sameAs: KG.surfactant },
     ],
-    speakable: speakable(['#nano-kava-answer', '#nano-kava-spec-table caption', 'h1']),
+    speakable: speakable(['h1']),
     breadcrumb: breadcrumb([{ name: 'Home', path: '/' }]),
     publisher: { '@id': ID.organization },
   }

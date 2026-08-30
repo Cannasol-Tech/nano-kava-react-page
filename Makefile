@@ -1,7 +1,7 @@
 # Cannasol Nano Kava Landing Page - Makefile
 # ============================================
 
-.PHONY: help install install-functions preview preview-mushrooms preview-chrome preview-chrome-mushrooms dev build clean deploy deploy-all deploy-functions kb seo-assets seo-indexnow claude-code
+.PHONY: help install install-functions preview preview-mushrooms preview-chrome preview-chrome-mushrooms dev build clean deploy deploy-all deploy-functions deploy-firestore firestore-status kb seo-assets seo-indexnow claude-code
 
 # Default target
 help:
@@ -20,11 +20,13 @@ help:
 	@echo "  make build     - Build for production"
 	@echo "  make clean     - Remove build artifacts and node_modules"
 	@echo "  make deploy    - RELEASE: build + deploy hosting + IndexNow (use this, not firebase deploy)"
-	@echo "  make deploy-all - make deploy plus Cloud Functions"
-	@echo "  make deploy-functions - Deploy Cloud Functions (contact form + Bula chat)"
+	@echo "  make deploy-all - make deploy plus Cloud Functions and Firestore rules"
+	@echo "  make deploy-functions - Deploy Cloud Functions (contact form + Sol chat)"
+	@echo "  make deploy-firestore - Deploy Firestore rules + the 90-day transcript TTL"
+	@echo "  make firestore-status - Show the deployed indexes and TTL policy"
 	@echo "  make seo-assets - Regenerate sitemap.xml, feed.xml, feed.json"
 	@echo "  make seo-indexnow - Submit URLs to IndexNow (Bing/Yandex/Seznam/Naver)"
-	@echo "  make kb        - Regenerate the Bula chatbot knowledge base"
+	@echo "  make kb        - Regenerate the Sol chatbot knowledge base"
 	@echo "  make claude-code - Launch Claude Code with permission prompts skipped"
 	@echo ""
 
@@ -105,8 +107,8 @@ deploy:
 	@echo ""
 	@echo "Release complete: built, deployed and submitted to IndexNow."
 
-# Everything above plus Cloud Functions — use when functions/ changed.
-deploy-all: deploy deploy-functions
+# Everything above plus the backend — use when functions/ or firestore.rules changed.
+deploy-all: deploy deploy-functions deploy-firestore
 
 seo-assets:
 	@echo "Regenerating sitemap.xml, feed.xml and feed.json from src/seo/routes.js..."
@@ -118,10 +120,28 @@ seo-indexnow:
 
 # Regenerate the chatbot knowledge base from src/content/
 kb:
-	@echo "Rebuilding Bula knowledge base from src/content/..."
+	@echo "Rebuilding Sol knowledge base from src/content/..."
 	node scripts/build-knowledge-base.mjs
 
 # Deploy Cloud Functions
 deploy-functions:
 	@echo "Deploying Cloud Functions..."
 	firebase deploy --only functions --project nano-kava-landing-page
+
+# ============================================================================
+# Firestore: security rules AND the 90-day transcript TTL.
+#
+# The TTL is declared as a `ttl: true` fieldOverride in firestore.indexes.json, so it deploys
+# like everything else — there is no separate gcloud step to forget. That is also why indexes
+# must ship WITH rules here: deploying firestore.indexes.json is what applies the TTL, and
+# deploying it while the fieldOverride is missing would REMOVE an existing policy.
+# ============================================================================
+deploy-firestore:
+	@echo "Deploying Firestore rules and the 90-day transcript TTL..."
+	firebase deploy --only firestore:rules,firestore:indexes --project nano-kava-landing-page
+	@echo ""
+	@echo "Deployed. Confirm the TTL with: make firestore-status"
+
+firestore-status:
+	@echo "Deployed Firestore indexes and field overrides (expiresAt should show a TTL):"
+	firebase firestore:indexes --project nano-kava-landing-page

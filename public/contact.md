@@ -21,8 +21,12 @@ quantities or partnership inquiries.
 
 ## Request a free sample
 
-- Nano Kava emulsion sample: https://enjoynano.com/contact?inquiry=samples&product=nano-kava
-- Nano Mushroom sample pack: https://enjoynano.com/contact?inquiry=samples&product=nano-mushrooms
+- Kavalactone Nanoemulsion (Nano Kava) sample: https://enjoynano.com/contact?inquiry=samples&product=nano-kava
+- Lion's Mane Nanoemulsion sample: https://enjoynano.com/contact?inquiry=samples&product=lions-mane
+- Reishi Nanoemulsion sample: https://enjoynano.com/contact?inquiry=samples&product=reishi
+- Cordyceps Nanoemulsion sample: https://enjoynano.com/contact?inquiry=samples&product=cordyceps
+- Bitter Blocker sample: https://enjoynano.com/contact?inquiry=samples&product=bitter-blocker
+- All three mushroom nanoemulsions: https://enjoynano.com/contact?inquiry=samples&product=nano-mushrooms
 - General sample pack: https://enjoynano.com/contact?inquiry=samples
 
 Samples are free. There is no purchase requirement to evaluate the ingredient in your

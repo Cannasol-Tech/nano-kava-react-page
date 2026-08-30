@@ -25,7 +25,7 @@ const sendgridApiKey = defineSecret('SENDGRID_API_KEY');
 const mailchimpApiKey = defineSecret('MAILCHIMP_API_KEY');
 const mailchimpAudienceId = defineSecret('MAILCHIMP_AUDIENCE_ID');
 
-const CHAT_LEAD_TYPE = 'Bula Chat';
+const CHAT_LEAD_TYPE = 'Sol Chat';
 
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const PHONE_REGEX = /^[+()\-\s0-9]{7,20}$/;
@@ -34,6 +34,22 @@ const HTML_ESCAPES = { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'
 
 // Lead fields can originate from LLM-summarized visitor text; see CLAUDE.md § Lead email escaping.
 const escapeHtml = (value) => String(value ?? '').replace(/[&<>"']/g, (c) => HTML_ESCAPES[c]);
+
+const MAX_SUBJECT_COMPANY = 60;
+
+// A subject is a mail header, not markup: a CR/LF forges headers, so strip rather than escape.
+const subjectSafe = (value) =>
+  String(value ?? '').replace(/\s+/g, ' ').trim().slice(0, MAX_SUBJECT_COMPANY).trim();
+
+/** Builds the team email subject, naming the company when the lead carries one. */
+function teamSubject({ types = [], company } = {}) {
+  const inquiryLabel = types.length > 1
+    ? `${types[0]} + ${types.length - 1} more`
+    : types[0] || 'General Inquiry';
+  const prefix = types.includes(CHAT_LEAD_TYPE) ? 'New Chat Lead (Sol)' : 'New Contact Form Submission';
+  const org = subjectSafe(company);
+  return org ? `${prefix}: ${org} \u2014 ${inquiryLabel}` : `${prefix}: ${inquiryLabel}`;
+}
 
 /** Renders a link only when the value is well-formed, so a hostile value cannot forge an href. */
 function safeLink(value, scheme, pattern) {
@@ -102,7 +118,7 @@ async function addLeadToMailchimp({ email, name, phone, company, types, message 
 
   // 2) Tag the contact (source + inquiry types) for segmentation. Best-effort.
   try {
-    const sourceTag = types.includes(CHAT_LEAD_TYPE) ? 'Nano Kava Bula Chat' : 'Nano Kava Contact Form';
+    const sourceTag = types.includes(CHAT_LEAD_TYPE) ? 'Nano Kava Sol Chat' : 'Nano Kava Contact Form';
     const tags = [sourceTag, ...types].map(name => ({ name, status: 'active' }));
     const tagRes = await fetch(`${memberUrl}/tags`, {
       method: 'POST',
@@ -140,9 +156,6 @@ async function addLeadToMailchimp({ email, name, phone, company, types, message 
 async function sendLead({ name, email, company, phone, types, message }) {
   sgMail.setApiKey(sendgridApiKey.value());
 
-  const inquiryLabel = types.length > 1
-    ? `${types[0]} + ${types.length - 1} more`
-    : types[0] || 'General Inquiry';
   const inquiryBadges = types.length > 0
     ? types.map(t =>
         `<span style="display:inline-block;background-color:#d1fae5;color:#065f46;padding:4px 10px;border-radius:12px;font-size:13px;margin:2px 4px 2px 0;">${escapeHtml(t)}</span>`
@@ -154,16 +167,14 @@ async function sendLead({ name, email, company, phone, types, message }) {
 
   // Chat leads reach Josh's inbox alongside form leads and must be tellable apart at a glance.
   const isChatLead = types.includes(CHAT_LEAD_TYPE);
-  const heading = isChatLead ? 'New Chat Lead (Bula)' : 'New Contact Form Submission';
-  const subject = isChatLead
-    ? `New Chat Lead (Bula): ${inquiryLabel}`
-    : `New Contact Form Submission: ${inquiryLabel}`;
-  const sourceLine = isChatLead ? 'Source: Bula chat widget on enjoynano.com\n' : '';
+  const heading = isChatLead ? 'New Chat Lead (Sol)' : 'New Contact Form Submission';
+  const subject = teamSubject({ types, company });
+  const sourceLine = isChatLead ? 'Source: Sol chat widget on enjoynano.com\n' : '';
   const sourceRowHtml = isChatLead
-    ? '\n              <p style="margin: 10px 0;"><strong>Source:</strong> Bula chat widget on enjoynano.com</p>'
+    ? '\n              <p style="margin: 10px 0;"><strong>Source:</strong> Sol chat widget on enjoynano.com</p>'
     : '';
   const footerLine = isChatLead
-    ? 'This lead came from a conversation with Bula, the chat concierge on the Cannasol Nano Kava landing page.'
+    ? 'This lead came from a conversation with Sol, the chat concierge on the Cannasol Nano Kava landing page.'
     : 'This email was sent from the Cannasol Nano Kava landing page contact form.';
 
   // Email to your team
@@ -291,5 +302,6 @@ module.exports = {
   mailchimpApiKey,
   mailchimpAudienceId,
   validateLead,
+  teamSubject,
   sendLead,
 };

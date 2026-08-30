@@ -8,8 +8,11 @@
 Bulk functional-beverage ingredients, sold business-to-business to beverage brands,
 co-packers and formulators. Not a consumer storefront — there is no checkout.
 
-- **Nano Kava emulsion** — ~18nm kava nanoemulsion, ~10x bioavailability, ~5-minute onset
-- **Nano Mushroom emulsions** — Lion's Mane, Reishi, Cordyceps
+- **Kavalactone Nanoemulsion** (Nano Kava) — ~18nm kava nanoemulsion, ~10x bioavailability, ~5-minute onset
+- **Lion's Mane Nanoemulsion** — functional mushroom line
+- **Reishi Nanoemulsion** — functional mushroom line; Cannasol were the first in the world to nano-emulsify reishi
+- **Cordyceps Nanoemulsion** — functional mushroom line
+- **Bitter Blocker** — removes residual kava bitterness in a finished drink
 
 ## Rules for agents
 

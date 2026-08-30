@@ -49,8 +49,9 @@ body {
 }
 
 .animate-gradient {
-  background-size: 200% 200%;
+  background-size: 150% 150%;
   animation: gradient-shift 3s ease infinite;
+  transform: translateZ(0);
 }
 
 /* Shimmer effect */
@@ -114,7 +115,6 @@ body {
   pointer-events: none;
   z-index: 20;
   opacity: 0;
-  will-change: transform, opacity;
 }
 
 /* Layer 2: Tight trailing sparkle for depth */
@@ -137,7 +137,6 @@ body {
   z-index: 20;
   opacity: 0;
   filter: blur(0.5px);
-  will-change: transform, opacity;
 }
 
 /* Emerald glow halo on hover */
@@ -150,10 +149,12 @@ body {
 
 .btn-shine:hover::before {
   animation: btn-shine-sweep 0.7s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  will-change: transform, opacity;
 }
 
 .btn-shine:hover::after {
   animation: btn-shine-trail 0.85s cubic-bezier(0.16, 1, 0.3, 1) 0.06s forwards;
+  will-change: transform, opacity;
 }
 
 @keyframes btn-shine-sweep {
@@ -211,10 +212,12 @@ body {
   50% { transform: scale(1.2); opacity: 0.5; }
 }
 
-/* Hero heading gradient — wider sweep, linear */
+/* Hero heading gradient — see CLAUDE.md § Hero gradient heading repaint cost.
+   200% (was 400%) and its own layer: 24fps -> 60fps measured 2026-08-25. */
 .animate-gradient-slow {
-  background-size: 400% 100%;
+  background-size: 200% 100%;
   animation: gradient-shift 4s linear infinite;
+  transform: translateZ(0);
 }
 
 /* Pulsing opacity for decorative glow backgrounds */
@@ -358,13 +361,17 @@ a:focus-visible {
   will-change: transform, opacity;
 }
 
-/* Apply will-change to all scroll-animated and hover-animated elements */
-.scroll-hidden,
-.scroll-visible,
-.animate-fade-in-up,
-.animate-fade-in-up-hero,
-.interactive-btn,
-.interactive-card {
+/* will-change is held ONLY while an animation is pending or running — a permanent hint
+   pins a compositor layer forever. See CLAUDE.md § will-change is not a free performance hint. */
+.scroll-hidden {
+  will-change: transform, opacity;
+}
+
+.interactive-btn:hover,
+.interactive-btn:focus-visible,
+.interactive-btn:active,
+.interactive-card:hover,
+.interactive-card:focus-within {
   will-change: transform, opacity;
 }
 
@@ -426,6 +433,26 @@ a:focus-visible {
   }
 }
 
+/* Hidden tab / minimised window: pause CSS animations the same way animationLoop.js
+   cancels RAF. Chrome already throttles background tabs; this makes the pause explicit
+   and covers Safari, which is less aggressive. */
+html.animations-paused *,
+html.animations-paused *::before,
+html.animations-paused *::after {
+  animation-play-state: paused !important;
+}
+
+/* A modal's entrance starts at opacity 0, so pausing it mid-flight leaves a dialog that has
+   focus and swallows Escape while painting nothing. Found 2026-08-26 chasing "Sol says he
+   opened the picker and I cannot see it": a tool firing while the tab was hidden did exactly
+   that. The pause is a battery optimisation; it does not get to hide a dialog. */
+html.animations-paused .nano-modal-root,
+html.animations-paused .nano-modal-root *,
+html.animations-paused .nano-modal-root *::before,
+html.animations-paused .nano-modal-root *::after {
+  animation-play-state: running !important;
+}
+
 /* Reduced motion */
 @media (prefers-reduced-motion: reduce) {
   *,
@@ -434,75 +461,909 @@ a:focus-visible {
     animation-duration: 0.01ms !important;
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
+    will-change: auto !important;
   }
 
   html {
     scroll-behavior: auto;
   }
+
+  /* The sequence is already gated off in JS; this covers a preference flipped mid-visit. */
+  .sol-launcher--pending {
+    opacity: 1;
+    pointer-events: auto;
+  }
 }
 
-/* ── Bula chat widget ── */
+/* ── Load sequence: ultrasonic pulse + Sol's arrival (see components/CLAUDE.md § Load sequence) ── */
+
+/* Rings are radial-gradient backgrounds, not borders: a scaled raster layer composites,
+   a scaled border re-rasterises its stroke every frame. */
+.nano-pulse {
+  position: absolute;
+  width: 46vmax;
+  height: 46vmax;
+  margin-left: -23vmax;
+  margin-top: -23vmax;
+  pointer-events: none;
+}
+.nano-pulse span {
+  position: absolute;
+  inset: 0;
+  border-radius: 9999px;
+  background: radial-gradient(circle,
+    transparent 54%,
+    rgba(52, 211, 153, 0.26) 63%,
+    rgba(45, 212, 191, 0.10) 68%,
+    transparent 74%);
+  opacity: 0;
+  will-change: transform, opacity;
+  animation: nano-pulse-ring 1550ms cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+.nano-pulse span:nth-child(2) { animation-delay: 170ms; }
+.nano-pulse span:nth-child(3) { animation-delay: 340ms; }
+
+@keyframes nano-pulse-ring {
+  0%   { opacity: 0; transform: scale(0.05); }
+  14%  { opacity: 1; }
+  100% { opacity: 0; transform: scale(1); }
+}
+
+/* Sol forms like a droplet at the meniscus, pops past his mark, squashes on landing. */
+@keyframes sol-arrive {
+  0%   { opacity: 0; transform: translate3d(0, 34px, 0) scale(0.05); }
+  26%  { opacity: 1; transform: translate3d(0, -15px, 0) scale(1.24); }
+  44%  { transform: translate3d(0, 6px, 0) scale(0.88); }
+  62%  { transform: translate3d(0, -5px, 0) scale(1.07); }
+  80%  { transform: translate3d(0, 1px, 0) scale(0.98); }
+  100% { opacity: 1; transform: translate3d(0, 0, 0) scale(1); }
+}
+
+/* The wave lands inside the button's own animation window on purpose: --arriving is
+   removed on the button's animationend, which would otherwise cut this off mid-swing. */
+@keyframes sol-icon-wave {
+  0%   { transform: rotate(0deg); }
+  28%  { transform: rotate(-15deg); }
+  55%  { transform: rotate(12deg); }
+  78%  { transform: rotate(-5deg); }
+  100% { transform: rotate(0deg); }
+}
+.sol-launcher--arriving .sol-launcher-icon {
+  animation: sol-icon-wave 600ms 520ms cubic-bezier(0.34, 1.56, 0.64, 1) both;
+  will-change: transform;
+}
+.sol-launcher--pending {
+  opacity: 0;
+  pointer-events: none;
+}
+.sol-launcher--arriving {
+  animation: sol-arrive 1150ms cubic-bezier(0.16, 1, 0.3, 1) both;
+  will-change: transform, opacity;
+}
+
+/* The pulse arriving at Sol — the same energy the sphere emitted, landing here. */
+@keyframes sol-arrive-ring {
+  0%   { opacity: 0; transform: scale(0.5); }
+  25%  { opacity: 0.9; }
+  100% { opacity: 0; transform: scale(3.1); }
+}
+.sol-arrive-ring,
+.sol-arrive-ring::after {
+  position: absolute;
+  inset: 0;
+  border-radius: 9999px;
+  background: radial-gradient(circle, transparent 52%, rgba(52, 211, 153, 0.5) 64%, transparent 76%);
+  pointer-events: none;
+  will-change: transform, opacity;
+  animation: sol-arrive-ring 1100ms cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+.sol-arrive-ring::after {
+  content: '';
+  animation-delay: 260ms;
+}
+
+
+/* ── Nano explainer modal (see components/CLAUDE.md § The nano explainer) ── */
+
+/* ONE timer. Every layer below animates for --nano-in with the same easing and the same start,
+   so the rise, the tint, the blur and the shadow resolve together rather than merely near
+   each other. Change the duration here and the whole reveal moves as a unit. */
+.nano-modal-root,
+.nano-modal-root--closing {
+  --nano-in: 780ms;
+  --nano-ease: cubic-bezier(0.16, 1, 0.3, 1);
+  position: fixed;
+  inset: 0;
+  z-index: 80;
+  display: grid;
+  place-items: start center;
+  align-content: safe center;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding: 1.25rem;
+}
+
+.nano-modal-scrim {
+  position: absolute;
+  inset: 0;
+  background: rgba(2, 6, 23, 0.74);
+  opacity: 0;
+  animation: nano-modal-scrim var(--nano-in) var(--nano-ease) both;
+}
+@keyframes nano-modal-scrim {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+/* The rise, the transparency and the blur share one keyframes so they cannot drift apart.
+   transform and backdrop-filter sit on the SAME element on purpose: a transformed ANCESTOR
+   forms a backdrop root and the blur would sample nothing. See
+   components/chat/panel/CLAUDE.md § Backdrop blur needs the compositor hint released. */
+.nano-modal {
+  position: relative;
+  width: min(560px, 100%);
+  border-radius: 20px;
+  border: 1px solid;
+  padding: 1.75rem 1.75rem 1.5rem;
+  outline: none;
+  animation: nano-modal-rise var(--nano-in) var(--nano-ease) both;
+}
+
+/* The shadow rides a pseudo-element whose opacity animates, rather than animating box-shadow
+   itself — an animated box-shadow repaints every frame (PERFORMANCE_OPTIMIZATIONS.md §12).
+   Same duration, same easing, same start, so it reads as one movement. */
+.nano-modal::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  pointer-events: none;
+  z-index: -1;
+  opacity: 0;
+  animation: nano-modal-shadow var(--nano-in) var(--nano-ease) both;
+}
+@keyframes nano-modal-shadow {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+.nano-modal[data-theme='dark'] {
+  color: #f1f5f9;
+  border-color: rgba(148, 163, 184, 0.5);
+}
+.nano-modal[data-theme='dark']::before {
+  box-shadow: 0 32px 80px rgba(0, 0, 0, 0.62), 0 2px 0 rgba(255, 255, 255, 0.05) inset;
+}
+@keyframes nano-modal-rise {
+  0% {
+    opacity: 0;
+    transform: translate3d(0, 42px, 0) scale(0.965);
+    backdrop-filter: blur(0px) saturate(100%);
+    -webkit-backdrop-filter: blur(0px) saturate(100%);
+  }
+  100% {
+    opacity: 1;
+    transform: translate3d(0, 0, 0) scale(1);
+    backdrop-filter: blur(18px) saturate(140%);
+    -webkit-backdrop-filter: blur(18px) saturate(140%);
+  }
+}
+/* Near-opaque surface. Corrected 2026-08-26: this was a 45% translucent wash "per the brief",
+   and over the canvas scene the picker read as dimmed-out furniture — Stephen could not tell
+   the modal was open at all. A dialog asking a question has to be legible before it is glassy;
+   the blur and saturate in the rise keyframe still carry the glass. */
+.nano-modal[data-theme='dark'] {
+  background: linear-gradient(180deg, rgba(26, 36, 58, 0.96), rgba(12, 19, 34, 0.96));
+}
+.nano-modal[data-theme='light'] {
+  color: #0f172a;
+  border-color: rgba(100, 116, 139, 0.45);
+  background: linear-gradient(180deg, rgba(248, 250, 252, 0.97), rgba(226, 232, 240, 0.97));
+}
+.nano-modal[data-theme='light']::before {
+  box-shadow: 0 32px 80px rgba(15, 23, 42, 0.26), 0 2px 0 rgba(255, 255, 255, 0.6) inset;
+}
+
+.nano-modal-root--closing .nano-modal-scrim,
+.nano-modal-root--closing .nano-modal,
+.nano-modal-root--closing .nano-modal::before {
+  animation: nano-modal-out 240ms cubic-bezier(0.4, 0, 1, 1) both;
+}
+@keyframes nano-modal-out {
+  from { opacity: 1; transform: translate3d(0, 0, 0) scale(1); }
+  to   { opacity: 0; transform: translate3d(0, 14px, 0) scale(0.985); }
+}
+
+.nano-modal__close {
+  position: absolute;
+  top: 0.85rem;
+  right: 0.85rem;
+  display: grid;
+  place-items: center;
+  width: 30px;
+  height: 30px;
+  border-radius: 9999px;
+  opacity: 0.6;
+  transition: opacity 0.15s ease, transform 0.15s ease;
+}
+
+
+.nano-modal__eyebrow {
+  font-size: 0.7rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  opacity: 0.85;
+  margin-bottom: 0.4rem;
+}
+.nano-modal__title {
+  font-size: clamp(1.35rem, 3.4vw, 1.75rem);
+  font-weight: 700;
+  margin-bottom: 1.25rem;
+}
+
+.nano-modal__scale { display: grid; gap: 0.7rem; margin-bottom: 1.1rem; }
+.nano-modal__row {
+  display: grid;
+  grid-template-columns: 8.5rem 1fr 5rem;
+  align-items: center;
+  gap: 0.75rem;
+  font-size: 0.82rem;
+}
+@media (max-width: 520px) {
+  .nano-modal__row { grid-template-columns: 6.5rem 1fr 4.2rem; font-size: 0.74rem; }
+}
+.nano-modal__label { opacity: 0.78; }
+.nano-modal__size { text-align: right; font-variant-numeric: tabular-nums; opacity: 0.78; }
+.nano-modal__row--ours .nano-modal__label,
+.nano-modal__row--ours .nano-modal__size { opacity: 1; font-weight: 600; color: #34d399; }
+
+.nano-modal__track {
+  position: relative;
+  height: 9px;
+  border-radius: 9999px;
+  background: rgba(148, 163, 184, 0.18);
+  overflow: hidden;
+}
+/* scaleX from a left origin — animating width would lay out every frame. */
+.nano-modal__bar {
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: var(--bar-pct);
+  border-radius: 9999px;
+  background: linear-gradient(90deg, #38bdf8, #22d3ee);
+  transform: scaleX(0);
+  transform-origin: 0 50%;
+  will-change: transform;
+  animation: nano-explainer-bar 900ms var(--nano-ease) both;
+  animation-delay: calc(var(--nano-in) * 0.55 + var(--row-index) * 260ms);
+}
+.nano-modal__row--ours .nano-modal__bar {
+  background: linear-gradient(90deg, #10b981, #34d399);
+}
+@keyframes nano-explainer-bar {
+  from { transform: scaleX(0); }
+  to   { transform: scaleX(1); }
+}
+
+/* Clarity demo: the milky layer slides off to reveal legible text behind it. transform only —
+   a nested backdrop-filter inside a modal that already has one is not worth the compositing. */
+.nano-modal__clarity { margin-bottom: 1rem; }
+.nano-modal__clarity-strip {
+  position: relative;
+  display: grid;
+  place-items: center;
+  height: 3rem;
+  border-radius: 10px;
+  overflow: hidden;
+  background: linear-gradient(90deg, rgba(16, 185, 129, 0.16), rgba(56, 189, 248, 0.16));
+}
+.nano-modal__clarity-text {
+  font-size: 0.78rem;
+  letter-spacing: 0.06em;
+  font-weight: 600;
+  opacity: 0.9;
+}
+.nano-modal__clarity-cloud {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(90deg, rgba(226, 232, 240, 0.97), rgba(203, 213, 225, 0.93));
+  will-change: transform;
+  animation: nano-explainer-clear 1500ms var(--nano-ease) both;
+  animation-delay: calc(var(--nano-in) * 0.55 + 1150ms);
+}
+@keyframes nano-explainer-clear {
+  0%   { transform: translateX(0); }
+  100% { transform: translateX(101%); }
+}
+.nano-modal__clarity-legend {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 0.3rem;
+  font-size: 0.66rem;
+  opacity: 0.62;
+}
+.nano-modal__clarity-legend-ours { color: #34d399; opacity: 1; font-weight: 600; }
+
+.nano-modal__stats {
+  display: flex;
+  gap: 0.75rem;
+  margin-bottom: 1rem;
+}
+.nano-modal__stat {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 0.5rem 0.4rem;
+  border-radius: 10px;
+  /* Deliberately faint: the figures should read as sitting on the modal's own glass, not in
+     a box on top of it. Stephen, 2026-08-26 — asked for this tile to be more transparent. */
+  background: rgba(148, 163, 184, 0.055);
+  will-change: transform, opacity;
+  animation: nano-explainer-stat 620ms var(--nano-ease) both;
+  animation-delay: calc(var(--nano-in) * 0.55 + 2500ms + var(--stat-index) * 160ms);
+}
+@keyframes nano-explainer-stat {
+  from { opacity: 0; transform: translate3d(0, 8px, 0) scale(0.96); }
+  to   { opacity: 1; transform: translate3d(0, 0, 0) scale(1); }
+}
+.nano-modal__stat-value { font-size: 1.15rem; font-weight: 700; color: #34d399; line-height: 1.1; }
+.nano-modal__stat-label { font-size: 0.64rem; opacity: 0.7; letter-spacing: 0.04em; }
+
+.nano-modal__note {
+  font-size: 0.85rem;
+  line-height: 1.55;
+  opacity: 0.92;
+  margin-bottom: 1.25rem;
+}
+
+.nano-modal__actions { display: flex; flex-wrap: wrap; gap: 0.6rem; }
+.nano-modal__cta {
+  padding: 0.6rem 1.1rem;
+  border-radius: 9999px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #ffffff;
+  background: linear-gradient(135deg, #10b981, #14b8a6);
+  transition: transform 0.15s ease;
+}
+
+.nano-modal__dismiss {
+  padding: 0.6rem 1rem;
+  border-radius: 9999px;
+  font-size: 0.85rem;
+  opacity: 0.72;
+  border: 1px solid currentColor;
+  transition: opacity 0.15s ease;
+}
+
+
+/* ── Lab mode HUD (see components/CLAUDE.md § Lab mode) ── */
+.lab-hud {
+  position: fixed;
+  left: 50%;
+  bottom: 2.25rem;
+  transform: translateX(-50%);
+  z-index: 70;
+  display: flex;
+  align-items: center;
+  gap: 0.85rem;
+  padding: 0.6rem 1.1rem;
+  border-radius: 9999px;
+  border: 1px solid rgba(52, 211, 153, 0.45);
+  background: rgba(2, 6, 23, 0.72);
+  color: #6ee7b7;
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 0.74rem;
+  letter-spacing: 0.08em;
+  pointer-events: none;
+  will-change: transform, opacity;
+  animation: lab-hud-in 420ms cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+.lab-hud--closing { animation: lab-hud-out 320ms ease both; }
+@keyframes lab-hud-in {
+  from { opacity: 0; transform: translateX(-50%) translateY(14px) scale(0.96); }
+  to   { opacity: 1; transform: translateX(-50%) translateY(0) scale(1); }
+}
+@keyframes lab-hud-out {
+  from { opacity: 1; transform: translateX(-50%) translateY(0) scale(1); }
+  to   { opacity: 0; transform: translateX(-50%) translateY(10px) scale(0.97); }
+}
+.lab-hud__dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 9999px;
+  background: #34d399;
+  animation: lab-hud-blink 1.1s steps(1, end) infinite;
+}
+@keyframes lab-hud-blink { 0%, 60% { opacity: 1; } 61%, 100% { opacity: 0.15; } }
+.lab-hud__value { color: #ecfdf5; font-weight: 600; }
+
+
+/* ── Sol's section nudge (see components/chat/engagement/CLAUDE.md § Section-aware nudges) ── */
+.sol-nudge {
+  display: flex;
+  align-items: stretch;
+  gap: 1px;
+  max-width: min(19rem, calc(100vw - 3rem));
+  border-radius: 14px;
+  overflow: hidden;
+  border: 1px solid;
+  will-change: transform, opacity;
+  animation: sol-nudge-in 520ms cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+@keyframes sol-nudge-in {
+  0%   { opacity: 0; transform: translate3d(10px, 8px, 0) scale(0.94); }
+  60%  { opacity: 1; transform: translate3d(0, -2px, 0) scale(1.015); }
+  100% { opacity: 1; transform: translate3d(0, 0, 0) scale(1); }
+}
+.sol-nudge[data-theme='dark'] {
+  background: #020617;
+  border-color: rgba(52, 211, 153, 0.34);
+  box-shadow: 0 12px 34px rgba(0, 0, 0, 0.45);
+  color: #e2e8f0;
+}
+.sol-nudge[data-theme='light'] {
+  background: #ffffff;
+  border-color: rgba(16, 185, 129, 0.34);
+  box-shadow: 0 12px 34px rgba(15, 23, 42, 0.14);
+  color: #0f172a;
+}
+.sol-nudge__body {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.1rem;
+  padding: 0.6rem 0.85rem;
+  text-align: left;
+  transition: transform 0.15s ease;
+}
+
+.sol-nudge__who {
+  font-size: 0.62rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: #34d399;
+  font-weight: 700;
+}
+.sol-nudge__label { font-size: 0.83rem; line-height: 1.3; }
+.sol-nudge__close {
+  display: grid;
+  place-items: center;
+  width: 2rem;
+  opacity: 0.45;
+  transition: opacity 0.15s ease;
+}
+
+
+
+/* Cross-sell chips on the lead card — components/chat/lead/CLAUDE.md § Cross-selling the box */
+
+
+
+/* Open-panel form of the section nudge — components/chat/engagement/CLAUDE.md § Section-aware nudges */
+.sol-panel-nudge {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0 0.75rem 0.4rem;
+  will-change: transform, opacity;
+  animation: sol-panel-nudge-in 380ms cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+@keyframes sol-panel-nudge-in {
+  from { opacity: 0; transform: translate3d(0, 6px, 0); }
+  to   { opacity: 1; transform: translate3d(0, 0, 0); }
+}
+.sol-panel-nudge__chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.3rem 0.7rem;
+  border-radius: 9999px;
+  border: 1px solid rgba(16, 185, 129, 0.45);
+  background: rgba(16, 185, 129, 0.12);
+  color: #10b981;
+  font-size: 0.72rem;
+  font-weight: 600;
+  transition: transform 0.15s ease, background-color 0.15s ease;
+}
+
+.sol-panel-nudge__close {
+  display: grid;
+  place-items: center;
+  width: 1.35rem;
+  height: 1.35rem;
+  border-radius: 9999px;
+  opacity: 0.45;
+  transition: opacity 0.15s ease;
+}
+
+
+
+/* Sol's wink — one shot, fired by the secret phrase (components/chat/panel/CLAUDE.md § The secret phrase) */
+@keyframes sol-wink {
+  0%   { transform: rotate(0deg) scale(1); }
+  25%  { transform: rotate(-12deg) scale(1.12); }
+  50%  { transform: rotate(9deg) scale(0.95); }
+  75%  { transform: rotate(-4deg) scale(1.05); }
+  100% { transform: rotate(0deg) scale(1); }
+}
+.sol-wink {
+  animation: sol-wink 720ms cubic-bezier(0.34, 1.56, 0.64, 1) both;
+  will-change: transform;
+}
+
+
+/* Sample intent quiz — shares the modal shell, adds its own options list */
+.sample-quiz__progress {
+  height: 4px;
+  border-radius: 9999px;
+  background: rgba(148, 163, 184, 0.22);
+  overflow: hidden;
+  margin-bottom: 1rem;
+}
+.sample-quiz__progress span {
+  display: block;
+  height: 100%;
+  width: var(--quiz-pct, 33%);
+  border-radius: 9999px;
+  background: linear-gradient(90deg, #10b981, #34d399);
+  transition: width 320ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+.sample-quiz__options { display: grid; gap: 0.5rem; margin-bottom: 1rem; }
+.sample-quiz__options li {
+  animation: sample-quiz-option 380ms cubic-bezier(0.16, 1, 0.3, 1) both;
+  animation-delay: calc(var(--opt-index) * 55ms);
+}
+@keyframes sample-quiz-option {
+  from { opacity: 0; transform: translate3d(0, 8px, 0); }
+  to   { opacity: 1; transform: translate3d(0, 0, 0); }
+}
+/* Reported 2026-08-26 with a screenshot: the options inherited the modal's colour at a 28%
+   border and no fill, and over the canvas they were barely there. An option in a picker is the
+   only thing on the screen the visitor has to act on — it carries its own contrast now. */
+.sample-quiz__option {
+  width: 100%;
+  text-align: left;
+  padding: 0.75rem 0.95rem;
+  border-radius: 12px;
+  border: 1px solid rgba(148, 163, 184, 0.55);
+  background: rgba(148, 163, 184, 0.12);
+  color: #ffffff;
+  font-size: 0.92rem;
+  font-weight: 500;
+  transition: transform 0.15s ease, border-color 0.15s ease, background-color 0.15s ease;
+}
+.nano-modal[data-theme='light'] .sample-quiz__option {
+  border-color: rgba(71, 85, 105, 0.5);
+  background: rgba(255, 255, 255, 0.85);
+  color: #0f172a;
+}
+/* Hover only where a pointer can actually hover. On touch, :hover sticks after the tap and
+   the next question inherited it at the same position, reading as pre-selected. */
+@media (hover: hover) and (pointer: fine) {
+  .sample-quiz__option:hover {
+    transform: translateX(2px);
+    border-color: #10b981;
+    background: rgba(16, 185, 129, 0.1);
+  }
+}
+.sample-quiz__option--chosen,
+.sample-quiz__option:active {
+  border-color: #34d399;
+  background: rgba(16, 185, 129, 0.28);
+  color: #ffffff;
+  font-weight: 600;
+}
+.nano-modal[data-theme='light'] .sample-quiz__option--chosen,
+.nano-modal[data-theme='light'] .sample-quiz__option:active {
+  background: rgba(16, 185, 129, 0.2);
+  color: #064e3b;
+}
+
+/* The picker may raise itself on a phone (engagement/CLAUDE.md § The three-tap intent quiz),
+   so the shell has to fit one. Tall content scrolls inside the dialog rather than off-screen. */
+@media (max-width: 767px) {
+  .nano-modal {
+    padding: 1.4rem 1.15rem 1.15rem;
+    max-height: calc(100dvh - 2.5rem);
+    overflow-y: auto;
+    overscroll-behavior: contain;
+  }
+}
+
+
+
+/* Safari renders no NanoScene, so every backdrop-filter on the page is blurring a flat colour:
+   visually a no-op, while still buying a compositing pass over a position:fixed backdrop —
+   this repo's single worst measured offender, and the most likely cause of sections
+   intermittently failing to paint mid-scroll on iOS. See src/CLAUDE.md § Safari gets less motion. */
+html[data-safari] [class*='backdrop-blur'] {
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+}
+
+
+/* The hero's animated background-position under background-clip:text repaints the glyph mask
+   every frame, and that repaint invalidates the blur-3xl glow behind it. That was fixed for
+   Chrome (24 -> 60fps) but never for WebKit; see src/CLAUDE.md § Hero gradient heading repaint cost. Measured in WebKit at iPhone size, 2026-08-26: 103ms/frame (10fps)
+   as shipped, 17ms/frame (59fps) with this one animation stopped. The gradient itself stays —
+   only its movement goes.
+
+   Two cheaper-looking fixes were tried and BOTH stayed at 9fps, so do not retry them:
+   promoting the blur-3xl glow behind the heading with translateZ(0), and quantising the
+   animation with steps(20). WebKit repaints the glyph mask on every frame an animation is
+   active on a background-clip:text element, whether or not the computed value changed. */
+html[data-safari] .animate-gradient,
+html[data-safari] .animate-gradient-slow {
+  animation: none;
+}
+
+
+/* ── Lead card contrast ──
+   Reported 2026-08-26 with a screenshot: labels, placeholders and the sample pills were all
+   rendering at slate-500 over a translucent ground and were barely readable. The card is a
+   FORM, so it gets form contrast — an opaque ground and near-white text — not the muted
+   register the surrounding chat furniture uses. */
+
+.sol-panel[data-theme='dark'] .sol-lead {
+  background: linear-gradient(180deg, #16203a, #0d1526);
+  border-color: rgba(52, 211, 153, 0.42);
+}
+.sol-panel[data-theme='dark'] .sol-lead label > span {
+  color: #cbd5e1;
+}
+.sol-panel[data-theme='dark'] .sol-lead input,
+.sol-panel[data-theme='dark'] .sol-lead textarea {
+  background: rgba(2, 6, 23, 0.9);
+  border-color: rgba(148, 163, 184, 0.5);
+  color: #f8fafc;
+}
+.sol-panel[data-theme='dark'] .sol-lead input::placeholder,
+.sol-panel[data-theme='dark'] .sol-lead textarea::placeholder {
+  color: rgba(148, 163, 184, 0.8);
+}
+.sol-panel[data-theme='dark'] .sol-lead__hint,
+.sol-panel[data-theme='dark'] .sol-lead button[aria-expanded] {
+  color: #94a3b8;
+}
+
+.sol-panel[data-theme='light'] .sol-lead label > span { color: #334155; }
+.sol-panel[data-theme='light'] .sol-lead input,
+.sol-panel[data-theme='light'] .sol-lead textarea {
+  background: #ffffff;
+  border-color: rgba(100, 116, 139, 0.5);
+  color: #0f172a;
+}
+
+/* Sample-line pills. Legible unselected, unmistakable selected — the previous dashed
+   currentColor at 0.72 opacity was the specific thing that could not be seen. */
+/* Block, not flex. It wraps a caption AND the pill row; as a flex container it laid the two
+   out side by side and squeezed the caption into a column. The row does its own wrapping. */
+.sol-lead__lines {
+  display: block;
+}
+.sol-lead__line {
+  position: relative;
+  padding: 0.4rem 0.8rem;
+  border-radius: 9999px;
+  border: 1px solid;
+  font-size: 0.76rem;
+  font-weight: 600;
+  line-height: 1.25;
+  transition: transform 0.15s ease, background-color 0.15s ease, border-color 0.15s ease;
+}
+.sol-panel[data-theme='dark'] .sol-lead__line {
+  color: #cbd5e1;
+  border-color: rgba(148, 163, 184, 0.55);
+  background: rgba(148, 163, 184, 0.12);
+}
+.sol-panel[data-theme='light'] .sol-lead__line {
+  color: #1e293b;
+  border-color: rgba(100, 116, 139, 0.55);
+  background: rgba(100, 116, 139, 0.08);
+}
+/* Selected reads as a lit metal rim, not a filled chip. Changed 2026-08-26 — it was a solid
+   emerald/cyan gradient fill and Stephen asked for "the thin border ... that color, with a
+   metallic shimmer to it (slight)". The fill stays a faint tint so the state survives at a
+   glance across five pills. */
+.sol-lead__line--on,
+.sol-panel[data-theme='dark'] .sol-lead__line--on,
+.sol-panel[data-theme='light'] .sol-lead__line--on {
+  border-color: #34d399;
+  background: rgba(52, 211, 153, 0.14);
+  box-shadow: 0 0 10px rgba(52, 211, 153, 0.28);
+}
+.sol-panel[data-theme='dark'] .sol-lead__line--on { color: #ffffff; }
+.sol-panel[data-theme='light'] .sol-lead__line--on { color: #065f46; }
+
+/* Two masked rings: a static brushed-metal rim, and a diagonal glint whose OPACITY breathes.
+   A travelling sheen would mean an animated background-position, which this repo does not do
+   anywhere (src/CLAUDE.md § Hero gradient heading repaint cost); opacity composites. The
+   stagger makes the glints cross the row rather than blink together. */
+@supports ((mask-composite: exclude) or (-webkit-mask-composite: xor)) {
+  .sol-lead__line--on { border-color: transparent; }
+  /* -1px puts the ring exactly on the button's own border track, so selecting a pill lights
+     the existing rim instead of adding a second one inside it. */
+  .sol-lead__line--on::before,
+  .sol-lead__line--on::after {
+    content: '';
+    position: absolute;
+    inset: -1px;
+    border-radius: inherit;
+    padding: 1px;
+    pointer-events: none;
+    -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+    -webkit-mask-composite: xor;
+    mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+    mask-composite: exclude;
+  }
+  .sol-lead__line--on::before {
+    background: linear-gradient(115deg, #34d399, #d7fbef 22%, #22d3ee 46%, #34d399 70%, #a7f3d0 100%);
+  }
+  .sol-lead__line--on::after {
+    background: linear-gradient(115deg, transparent 34%, #ffffff 50%, transparent 66%);
+    opacity: 0;
+    will-change: opacity;
+    animation: sol-line-glint 3.6s ease-in-out infinite;
+  }
+  .sol-lead__line--on:nth-child(2)::after { animation-delay: 0.32s; }
+  .sol-lead__line--on:nth-child(3)::after { animation-delay: 0.64s; }
+  .sol-lead__line--on:nth-child(4)::after { animation-delay: 0.96s; }
+  .sol-lead__line--on:nth-child(5)::after { animation-delay: 1.28s; }
+}
+@keyframes sol-line-glint {
+  0%, 62%, 100% { opacity: 0; }
+  30%           { opacity: 0.85; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .sol-lead__line--on::after { animation: none; }
+}
+.sol-lead__line:disabled { opacity: 0.45; }
+@media (hover: hover) and (pointer: fine) {
+  .sol-lead__line:hover:not(:disabled) { transform: translateY(-1px); }
+}
+
+/* ── Sol chat widget ── */
 
 /* Launcher idle pulse — a scaling ring, never the button's own box-shadow */
-@keyframes bula-launcher-pulse {
+@keyframes sol-launcher-pulse {
   0%   { transform: scale(0.92); opacity: 0.45; }
   70%  { transform: scale(1.7); opacity: 0; }
   100% { transform: scale(1.7); opacity: 0; }
 }
-.bula-launcher-pulse {
+.sol-launcher-pulse {
   position: absolute;
   inset: 0;
   border-radius: 9999px;
   background: radial-gradient(circle, rgba(52, 211, 153, 0.55) 0%, rgba(45, 212, 191, 0.25) 55%, transparent 72%);
   pointer-events: none;
   will-change: transform, opacity;
-  animation: bula-launcher-pulse 2.9s cubic-bezier(0.22, 1, 0.36, 1) infinite;
+  animation: sol-launcher-pulse 2.9s cubic-bezier(0.22, 1, 0.36, 1) infinite;
 }
 
 /* Panel entrance — overshoot settle from the launcher corner */
-@keyframes bula-panel-in {
+@keyframes sol-panel-in {
   0%   { opacity: 0; transform: translate3d(0, 32px, 0) scale(0.8); }
   55%  { opacity: 1; transform: translate3d(0, -6px, 0) scale(1.025); }
   78%  { transform: translate3d(0, 2px, 0) scale(0.994); }
   100% { opacity: 1; transform: translate3d(0, 0, 0) scale(1); }
 }
-@keyframes bula-panel-out {
+@keyframes sol-panel-out {
   from { opacity: 1; transform: translate3d(0, 0, 0) scale(1); }
   to   { opacity: 0; transform: translate3d(0, 18px, 0) scale(0.9); }
 }
-.bula-panel-shell {
+.sol-panel-shell {
   transform-origin: 100% 100%;
   will-change: transform, opacity;
-  animation: bula-panel-in 0.62s cubic-bezier(0.16, 1, 0.3, 1) both;
+  animation: sol-panel-in 0.62s cubic-bezier(0.16, 1, 0.3, 1) both;
 }
-.bula-panel-shell--closing {
-  animation: bula-panel-out 0.22s cubic-bezier(0.4, 0, 1, 1) both;
+.sol-panel-shell--closing {
+  animation: sol-panel-out 0.22s cubic-bezier(0.4, 0, 1, 1) both;
 }
-/* will-change isolates the backdrop, so blur(18px) samples nothing; see chat/CLAUDE.md § Backdrop blur needs the compositor hint released. */
-.bula-panel-shell--settled {
+/* will-change isolates the backdrop, so the transcript blur samples nothing; see components/chat/panel/CLAUDE.md § Backdrop blur needs the compositor hint released. */
+.sol-panel-shell--settled {
   will-change: auto;
   animation: none;
 }
 
-.bula-panel {
+.sol-panel {
   position: relative;
   width: min(400px, calc(100vw - 2rem));
   height: min(560px, calc(100vh - 7rem));
 }
+/* Panel frame. Vial thesis + every surface alpha: components/chat/panel/CLAUDE.md § The panel is a vial. */
+.sol-panel[data-theme='dark'] {
+  border-color: rgba(148, 163, 184, 0.22);
+  box-shadow: 0 26px 64px -18px rgba(2, 6, 23, 0.8);
+}
+.sol-panel[data-theme='light'] {
+  border-color: rgba(15, 23, 42, 0.1);
+  box-shadow: 0 26px 64px -22px rgba(15, 23, 42, 0.3);
+}
+
+/* Fully opaque bars — the transcript is the ONLY translucent surface in the panel */
+.sol-panel[data-theme='dark'] .sol-bar {
+  background: #020617;
+}
+.sol-panel[data-theme='light'] .sol-bar {
+  background: #ffffff;
+}
+.sol-panel[data-theme='dark'] .sol-bar--foot {
+  box-shadow: inset 0 1px 0 rgba(148, 163, 184, 0.16);
+}
+.sol-panel[data-theme='light'] .sol-bar--foot {
+  box-shadow: inset 0 1px 0 rgba(15, 23, 42, 0.08);
+}
+
+.sol-panel[data-theme='dark'] .sol-status-dot {
+  box-shadow: 0 0 0 2px #020617;
+}
+.sol-panel[data-theme='light'] .sol-status-dot {
+  box-shadow: 0 0 0 2px #ffffff;
+}
+
+/* Meniscus — the liquid's surface line, replacing the header's generic divider */
+@keyframes sol-meniscus-breathe {
+  0%, 100% { opacity: 0.82; }
+  50%      { opacity: 1; }
+}
+.sol-meniscus {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: -1px;
+  height: 1px;
+  pointer-events: none;
+  background: linear-gradient(
+    90deg,
+    rgba(52, 211, 153, 0.05) 0%,
+    rgba(52, 211, 153, 0.38) 16%,
+    rgba(153, 246, 228, 0.95) 50%,
+    rgba(52, 211, 153, 0.38) 84%,
+    rgba(52, 211, 153, 0.05) 100%
+  );
+  will-change: opacity;
+  animation: sol-meniscus-breathe 7s ease-in-out infinite;
+}
+/* Light the surface throws down into the liquid below it */
+.sol-meniscus::after {
+  content: '';
+  position: absolute;
+  left: 5%;
+  right: 5%;
+  top: 1px;
+  height: 14px;
+  background: linear-gradient(180deg, rgba(45, 212, 191, 0.15), rgba(45, 212, 191, 0));
+}
+.sol-panel[data-theme='light'] .sol-meniscus {
+  background: linear-gradient(
+    90deg,
+    rgba(16, 185, 129, 0.08) 0%,
+    rgba(16, 185, 129, 0.45) 14%,
+    rgba(13, 148, 136, 1) 50%,
+    rgba(16, 185, 129, 0.45) 86%,
+    rgba(16, 185, 129, 0.08) 100%
+  );
+}
+.sol-panel[data-theme='light'] .sol-meniscus::after {
+  background: linear-gradient(180deg, rgba(13, 148, 136, 0.12), rgba(13, 148, 136, 0));
+}
 
 /* Sweeping accent edge light — finite, so steady-state cost is zero */
-@keyframes bula-beam-sweep {
+@keyframes sol-beam-sweep {
   0%   { transform: translate3d(-170%, 0, 0) rotate(18deg); opacity: 0; }
   14%  { opacity: 1; }
   82%  { opacity: 0.85; }
   100% { transform: translate3d(330%, 0, 0) rotate(18deg); opacity: 0; }
 }
-@keyframes bula-ring-settle {
+@keyframes sol-ring-settle {
   0%   { opacity: 0; }
   35%  { opacity: 1; }
   100% { opacity: 0.4; }
 }
-.bula-edge-light {
+.sol-edge-light {
   position: absolute;
   inset: 0;
   border-radius: 1rem;
@@ -510,16 +1371,31 @@ a:focus-visible {
   pointer-events: none;
   z-index: 2;
 }
-.bula-edge-light::after {
+/* Glass edge. Lives here, not on .sol-panel: an inset shadow there paints under the bars. */
+.sol-edge-light::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.08);
+}
+.sol-panel[data-theme='light'] .sol-edge-light::before {
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.75);
+}
+.sol-edge-light::after {
   content: '';
   position: absolute;
   inset: 0;
   border-radius: inherit;
   box-shadow: inset 0 0 0 1px rgba(52, 211, 153, 0.5), inset 0 0 26px rgba(45, 212, 191, 0.16);
   will-change: opacity;
-  animation: bula-ring-settle 1.5s cubic-bezier(0.16, 1, 0.3, 1) 0.1s both;
+  animation: sol-ring-settle 1.5s cubic-bezier(0.16, 1, 0.3, 1) 0.1s both;
 }
-.bula-edge-light__beam {
+/* Emerald at 0.5 reads as a green stripe against a white page */
+.sol-panel[data-theme='light'] .sol-edge-light::after {
+  box-shadow: inset 0 0 0 1px rgba(16, 185, 129, 0.28), inset 0 0 26px rgba(45, 212, 191, 0.1);
+}
+.sol-edge-light__beam {
   position: absolute;
   top: -60%;
   left: 0;
@@ -534,61 +1410,126 @@ a:focus-visible {
     transparent 90%
   );
   will-change: transform, opacity;
-  animation: bula-beam-sweep 1.25s cubic-bezier(0.22, 1, 0.36, 1) 0.08s both;
+  animation: sol-beam-sweep 1.25s cubic-bezier(0.22, 1, 0.36, 1) 0.08s both;
 }
 
 /* Transcript surface. --blur is Chrome/Firefox only; --solid is the Safari fallback.
-   See src/components/chat/CLAUDE.md § Why the blur is browser-gated. */
-.bula-panel[data-theme='dark'] .bula-transcript--blur {
-  background: rgba(15, 23, 42, 0.55);
-  backdrop-filter: blur(18px);
-  -webkit-backdrop-filter: blur(18px);
+   See src/components/chat/panel/CLAUDE.md § Why the blur is browser-gated. */
+.sol-panel[data-theme='dark'] .sol-transcript--solid {
+  background: linear-gradient(180deg, rgba(13, 24, 44, 0.97), rgba(15, 23, 42, 0.99));
 }
-.bula-panel[data-theme='dark'] .bula-transcript--solid {
-  background: rgba(15, 23, 42, 0.94);
+.sol-panel[data-theme='light'] .sol-transcript--solid {
+  background: linear-gradient(180deg, rgba(241, 245, 250, 0.97), rgba(230, 236, 244, 0.99));
 }
-.bula-panel[data-theme='light'] .bula-transcript--blur {
-  background: rgba(255, 255, 255, 0.55);
-  backdrop-filter: blur(18px);
-  -webkit-backdrop-filter: blur(18px);
+
+/* The blur is inert during the entrance anyway (the shell's will-change isolates the
+   backdrop), so the transcript opens as a solid wall and dissolves into liquid the moment
+   --settled releases the hint. --closing is on the liquid side so a close never flashes
+   back to opaque. See components/chat/panel/CLAUDE.md § The liquid surface fades in, it does not snap. */
+.sol-transcript--blur {
+  transition: background-color 560ms ease, backdrop-filter 560ms ease,
+              -webkit-backdrop-filter 560ms ease;
 }
-.bula-panel[data-theme='light'] .bula-transcript--solid {
-  background: rgba(255, 255, 255, 0.95);
+.sol-panel[data-theme='dark'] .sol-transcript--blur {
+  background: rgba(11, 18, 34, 0.97);
+  backdrop-filter: blur(0px) saturate(100%);
+  -webkit-backdrop-filter: blur(0px) saturate(100%);
+}
+.sol-panel[data-theme='light'] .sol-transcript--blur {
+  background: rgba(233, 238, 245, 0.97);
+  backdrop-filter: blur(0px) saturate(100%);
+  -webkit-backdrop-filter: blur(0px) saturate(100%);
+}
+.sol-panel-shell--settled .sol-panel[data-theme='dark'] .sol-transcript--blur,
+.sol-panel-shell--closing .sol-panel[data-theme='dark'] .sol-transcript--blur {
+  background: rgba(15, 23, 42, 0.34);
+  backdrop-filter: blur(28px) saturate(140%);
+  -webkit-backdrop-filter: blur(28px) saturate(140%);
+}
+.sol-panel-shell--settled .sol-panel[data-theme='light'] .sol-transcript--blur,
+.sol-panel-shell--closing .sol-panel[data-theme='light'] .sol-transcript--blur {
+  background: rgba(226, 232, 240, 0.46);
+  backdrop-filter: blur(28px) saturate(140%);
+  -webkit-backdrop-filter: blur(28px) saturate(140%);
+}
+
+/* Message layer carries its own opacity — transparency belongs to the empty space */
+.sol-panel[data-theme='dark'] .sol-bubble--model {
+  background: rgba(30, 41, 59, 0.86);
+  border-color: rgba(148, 163, 184, 0.2);
+}
+.sol-panel[data-theme='light'] .sol-bubble--model {
+  background: #ffffff;
+  border-color: rgba(15, 23, 42, 0.16);
+  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.07);
+}
+.sol-panel[data-theme='dark'] .sol-chip {
+  background: rgba(15, 23, 42, 0.74);
+  border-color: rgba(52, 211, 153, 0.3);
+}
+.sol-panel[data-theme='light'] .sol-chip {
+  background: #ffffff;
+  border-color: rgba(16, 185, 129, 0.45);
+}
+.sol-panel[data-theme='dark'] .sol-chip--quiet {
+  border-color: rgba(148, 163, 184, 0.34);
+}
+.sol-panel[data-theme='light'] .sol-chip--quiet {
+  background: #ffffff;
+  border-color: rgba(15, 23, 42, 0.24);
+}
+.sol-panel[data-theme='dark'] .sol-note {
+  background: rgba(15, 23, 42, 0.72);
+}
+.sol-panel[data-theme='light'] .sol-note {
+  background: #ffffff;
 }
 
 /* Typing indicator */
-@keyframes bula-dot {
+@keyframes sol-dot {
   0%, 60%, 100% { transform: translate3d(0, 0, 0); opacity: 0.35; }
   30%           { transform: translate3d(0, -4px, 0); opacity: 1; }
 }
-.bula-dot {
+.sol-dot {
   will-change: transform, opacity;
-  animation: bula-dot 1.2s ease-in-out infinite;
+  animation: sol-dot 1.2s ease-in-out infinite;
 }
-.bula-dot:nth-child(2) { animation-delay: 0.15s; }
-.bula-dot:nth-child(3) { animation-delay: 0.3s; }
+.sol-dot:nth-child(2) { animation-delay: 0.15s; }
+.sol-dot:nth-child(3) { animation-delay: 0.3s; }
 
 /* The mobile 44px min-target rule would blow out the emoji grid; these are inside a scroller */
-.bula-emoji-pop button {
+.sol-emoji-pop button {
   min-height: 0;
   min-width: 0;
 }
 
-/* ── Bula lead card: sending / sent / failed ── */
+/* ── Sol lead card: sending / sent / failed ── */
 
-.bula-lead {
+.sol-lead {
   animation: fade-in-up 0.45s cubic-bezier(0.16, 1, 0.3, 1) both;
   will-change: transform, opacity;
 }
+/* A form needs the densest ground in the message layer, not the transcript's 0.34 */
+.sol-panel[data-theme='dark'] .sol-lead,
+.sol-panel[data-theme='dark'] .sol-lead-sent {
+  background: linear-gradient(180deg, rgba(30, 41, 59, 0.92), rgba(15, 23, 42, 0.94));
+  border-color: rgba(52, 211, 153, 0.3);
+}
+.sol-panel[data-theme='light'] .sol-lead,
+.sol-panel[data-theme='light'] .sol-lead-sent {
+  background: #ffffff;
+  border-color: rgba(16, 185, 129, 0.4);
+  box-shadow: 0 1px 3px rgba(15, 23, 42, 0.08);
+}
 
 /* Accent sweep — idle at zero opacity, runs only while the POST is in flight */
-@keyframes bula-lead-sweep {
+@keyframes sol-lead-sweep {
   0%   { transform: translate3d(-140%, 0, 0) skewX(-14deg); opacity: 0; }
   18%  { opacity: 1; }
   82%  { opacity: 1; }
   100% { transform: translate3d(240%, 0, 0) skewX(-14deg); opacity: 0; }
 }
-.bula-lead__sweep {
+.sol-lead__sweep {
   position: absolute;
   top: 0;
   bottom: 0;
@@ -606,41 +1547,41 @@ a:focus-visible {
   );
   will-change: transform, opacity;
 }
-.bula-lead--sending .bula-lead__sweep {
-  animation: bula-lead-sweep 1.1s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+.sol-lead--sending .sol-lead__sweep {
+  animation: sol-lead-sweep 1.1s cubic-bezier(0.4, 0, 0.6, 1) infinite;
 }
 
 /* Send button collapse — fixed width, so the swap to the spinner never reflows */
-@keyframes bula-send-collapse {
+@keyframes sol-send-collapse {
   0%   { transform: scale(1); }
   45%  { transform: scale(0.93); }
   100% { transform: scale(0.97); }
 }
-.bula-send--sending {
-  animation: bula-send-collapse 0.3s cubic-bezier(0.16, 1, 0.3, 1) both;
+.sol-send--sending {
+  animation: sol-send-collapse 0.3s cubic-bezier(0.16, 1, 0.3, 1) both;
 }
-@keyframes bula-spin { to { transform: rotate(360deg); } }
-.bula-spin {
+@keyframes sol-spin { to { transform: rotate(360deg); } }
+.sol-spin {
   will-change: transform;
-  animation: bula-spin 0.9s linear infinite;
+  animation: sol-spin 0.9s linear infinite;
 }
 
 /* Confirmation: card settles, ring expands, check draws, particles burst */
-@keyframes bula-lead-sent-in {
+@keyframes sol-lead-sent-in {
   0%   { opacity: 0; transform: translate3d(0, 8px, 0) scale(0.92); }
   60%  { opacity: 1; transform: translate3d(0, 0, 0) scale(1.03); }
   100% { opacity: 1; transform: translate3d(0, 0, 0) scale(1); }
 }
-.bula-lead-sent {
+.sol-lead-sent {
   will-change: transform, opacity;
-  animation: bula-lead-sent-in 0.5s cubic-bezier(0.16, 1, 0.3, 1) both;
+  animation: sol-lead-sent-in 0.5s cubic-bezier(0.16, 1, 0.3, 1) both;
 }
 
-@keyframes bula-check-ring {
+@keyframes sol-check-ring {
   0%   { transform: scale(0.4); opacity: 0.65; }
   100% { transform: scale(2.6); opacity: 0; }
 }
-.bula-check-ring {
+.sol-check-ring {
   position: absolute;
   top: 1rem;
   left: 50%;
@@ -651,51 +1592,51 @@ a:focus-visible {
   pointer-events: none;
   background: radial-gradient(circle, rgba(52, 211, 153, 0.5) 0%, rgba(45, 212, 191, 0.2) 60%, transparent 72%);
   will-change: transform, opacity;
-  animation: bula-check-ring 0.85s cubic-bezier(0.22, 1, 0.36, 1) 0.12s both;
+  animation: sol-check-ring 0.85s cubic-bezier(0.22, 1, 0.36, 1) 0.12s both;
 }
 
 /* Checkmark drawn with two scaling bars — scaleX is compositor-friendly, stroke-dash is not */
-@keyframes bula-check-draw {
-  from { transform: var(--bula-check-rotate) scaleX(0); }
-  to   { transform: var(--bula-check-rotate) scaleX(1); }
+@keyframes sol-check-draw {
+  from { transform: var(--sol-check-rotate) scaleX(0); }
+  to   { transform: var(--sol-check-rotate) scaleX(1); }
 }
-.bula-check {
+.sol-check {
   position: relative;
   display: block;
   width: 1.25rem;
   height: 1.25rem;
 }
-.bula-check__short,
-.bula-check__long {
+.sol-check__short,
+.sol-check__long {
   position: absolute;
   height: 2px;
   border-radius: 1px;
   background: #ffffff;
   transform-origin: 0 50%;
   will-change: transform;
-  animation: bula-check-draw 0.22s cubic-bezier(0.22, 1, 0.36, 1) both;
+  animation: sol-check-draw 0.22s cubic-bezier(0.22, 1, 0.36, 1) both;
 }
-.bula-check__short {
-  --bula-check-rotate: rotate(45deg);
+.sol-check__short {
+  --sol-check-rotate: rotate(45deg);
   top: 55%;
   left: 18%;
   width: 34%;
   animation-delay: 0.24s;
 }
-.bula-check__long {
-  --bula-check-rotate: rotate(-45deg);
+.sol-check__long {
+  --sol-check-rotate: rotate(-45deg);
   top: 66%;
   left: 40%;
   width: 55%;
   animation-delay: 0.44s;
 }
 
-@keyframes bula-burst {
+@keyframes sol-burst {
   0%   { transform: translate3d(0, 0, 0) scale(1); opacity: 0; }
   20%  { opacity: 1; }
-  100% { transform: translate3d(var(--bula-burst-x), var(--bula-burst-y), 0) scale(0.2); opacity: 0; }
+  100% { transform: translate3d(var(--sol-burst-x), var(--sol-burst-y), 0) scale(0.2); opacity: 0; }
 }
-.bula-burst {
+.sol-burst {
   position: absolute;
   top: 2.25rem;
   left: 50%;
@@ -703,7 +1644,7 @@ a:focus-visible {
   height: 0;
   pointer-events: none;
 }
-.bula-burst__dot {
+.sol-burst__dot {
   position: absolute;
   width: 5px;
   height: 5px;
@@ -711,9 +1652,58 @@ a:focus-visible {
   border-radius: 9999px;
   background: linear-gradient(135deg, #34d399, #22d3ee);
   will-change: transform, opacity;
-  animation: bula-burst 0.7s cubic-bezier(0.16, 1, 0.3, 1) 0.2s both;
+  animation: sol-burst 0.7s cubic-bezier(0.16, 1, 0.3, 1) 0.2s both;
 }
 
-.bula-lead-dismissed {
+.sol-lead-dismissed {
   animation: fade-in-up 0.3s cubic-bezier(0.22, 1, 0.36, 1) both;
 }
+
+/* ── Sol on a phone (see components/chat/CLAUDE.md § Sol on a phone) ──
+   Kept at the end of the file on purpose: these override base .sol-* rules at the same
+   specificity, so source order is what makes them win. Do not move this block up. */
+
+/* Matches MOBILE_QUERY in src/utils/viewport.js — JS and CSS must gate at the same width. */
+@media (max-width: 767px) {
+  /* Near-full-bleed, which is what Intercom and Crisp both do at this width. A fractional
+     sheet is a picker pattern; a conversation needs room for a transcript plus a composer
+     plus the keyboard. The subtracted 6rem is the launcher, the gap and a strip of page
+     left visible so this still reads as a sheet over the site. */
+  .sol-panel {
+    width: calc(100vw - 2rem);
+    height: calc(100vh - 6rem);
+    height: calc(100dvh - 6rem);
+  }
+
+  /* Below 16px iOS Safari zooms the whole page on focus, which wrecks every other offset. */
+  .sol-composer-input,
+  .sol-lead__input {
+    font-size: 16px;
+  }
+
+  /* Two side-by-side fields at a phone width leave neither wide enough to read what you typed. */
+  .sol-lead .grid-cols-2 {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Page scroll used to chain straight through the panel. Two separate causes, both real:
+   the chrome accepted the pan, and overscroll-behavior is inert on a container with no
+   scrollable overflow — which a short conversation has. Safari has not shipped the spec
+   fix for the latter, hence the 1px floor. */
+.sol-bar,
+.sol-meniscus,
+.sol-edge-light {
+  touch-action: none;
+}
+.sol-transcript {
+  overscroll-behavior: contain;
+  touch-action: pan-y;
+}
+.sol-transcript::after {
+  content: '';
+  display: block;
+  flex: 0 0 1px;
+  height: 1px;
+}
+

@@ -1,50 +1,50 @@
 import { useState, useEffect } from 'react';
 
+const STATIC_STYLE = { opacity: 1, transform: 'scale(1) translateY(0px)' };
+
+const PREFERS_REDUCED_MOTION = typeof window !== 'undefined'
+  && window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
+
 /**
- * Custom scroll transform hook — replaces Framer Motion's useScroll + useTransform.
- * Returns a style object { opacity, transform } that interpolates based on
- * how far the target element has scrolled past the viewport top.
+ * Scroll-driven fade/scale/lift for the hero, mapping scroll progress [0, 0.5] onto
+ * opacity [1, 0], scale [1, 0.95] and translateY [0, 100px].
  *
- * Matches the original FM behavior:
- *   heroOpacity:  scrollYProgress [0, 0.5] → [1, 0]
- *   heroScale:    scrollYProgress [0, 0.5] → [1, 0.95]
- *   heroY:        scrollYProgress [0, 0.5] → [0, 100]
+ * Quantised to 0.5% steps so an unchanged frame does not re-render the subtree —
+ * see CLAUDE.md § useScrollTransform quantises its progress.
  */
 export function useScrollTransform(ref) {
-  const [style, setStyle] = useState({
-    opacity: 1,
-    transform: 'scale(1) translateY(0px)',
-    willChange: 'transform, opacity',
-  });
+  const [style, setStyle] = useState(STATIC_STYLE);
 
   useEffect(() => {
+    if (PREFERS_REDUCED_MOTION) return;
+
     let ticking = false;
+    let lastStep = -1;
 
     function onScroll() {
       if (ticking) return;
       ticking = true;
 
       requestAnimationFrame(() => {
+        ticking = false;
         const el = ref.current;
-        if (!el) { ticking = false; return; }
+        if (!el) return;
 
         const rect = el.getBoundingClientRect();
-        // scrollYProgress: 0 when element top is at viewport top, 1 when element bottom reaches viewport top
         const progress = Math.min(1, Math.max(0, -rect.top / rect.height));
-        // Map [0, 0.5] progress → [0, 1] for the transform factor
         const t = Math.min(1, progress / 0.5);
 
-        const opacity = 1 - t;
-        const scale = 1 - t * 0.05;
-        const y = t * 100;
+        const step = Math.round(t * 200);
+        if (step === lastStep) return;
+        lastStep = step;
 
+        const q = step / 200;
         setStyle({
-          opacity,
-          transform: `scale(${scale}) translateY(${y}px)`,
-          willChange: 'transform, opacity',
+          opacity: 1 - q,
+          transform: `scale(${1 - q * 0.05}) translateY(${q * 100}px)`,
+          // Held only mid-transition; a permanent hint pins a compositor layer forever.
+          ...(q > 0 && q < 1 ? { willChange: 'transform, opacity' } : null),
         });
-
-        ticking = false;
       });
     }
 

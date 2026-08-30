@@ -34,11 +34,19 @@ export const company = {
 };
 
 export const sampleOffer = {
-  headline: 'Free sample of the Nano Kava emulsion for qualified B2B evaluation.',
+  headline:
+    "Free samples for qualified B2B evaluation, across the whole line: Kavalactone Nanoemulsion (the flagship), Lion's Mane Nanoemulsion, Reishi Nanoemulsion, Cordyceps Nanoemulsion and Bitter Blocker.",
   price: 'Free',
   moq: 'Minimum order quantity is negotiated per customer rather than fixed.',
   kavaUrl: '/contact?inquiry=samples&product=nano-kava',
   mushroomUrl: '/contact?inquiry=samples&product=nano-mushrooms',
+  lineUrls: [
+    { name: 'Kavalactone Nanoemulsion', url: '/contact?inquiry=samples&product=nano-kava' },
+    { name: "Lion's Mane Nanoemulsion", url: '/contact?inquiry=samples&product=lions-mane' },
+    { name: 'Reishi Nanoemulsion', url: '/contact?inquiry=samples&product=reishi' },
+    { name: 'Cordyceps Nanoemulsion', url: '/contact?inquiry=samples&product=cordyceps' },
+    { name: 'Bitter Blocker', url: '/contact?inquiry=samples&product=bitter-blocker' },
+  ],
 };
 
 export const equipment = {
@@ -61,7 +69,8 @@ export const contactRoutes = {
   form: '/contact — name, email, company, phone, one or more inquiry types, and a message.',
   formPromise: 'The contact form emails Josh directly and he replies within 24 hours.',
   faqPage: '/faq — 18 answers across product & technology, effects & dosing, formulation & applications, ordering & partnership, and quality & compliance.',
-  mushroomsPage: '/mushrooms — the Nano Mushroom Emulsion line.',
+  mushroomsPage:
+    "/mushrooms — the Nano Mushroom Emulsion line: Lion's Mane Nanoemulsion, Reishi Nanoemulsion and Cordyceps Nanoemulsion.",
   escalation:
-    'A visitor who wants a human can use the contact form, call (216) 921-2240 during business hours, email josh.detzel@cannasolusa.com, or let Bula send their details straight to Josh.',
+    'A visitor who wants a human can use the contact form, call (216) 921-2240 during business hours, email josh.detzel@cannasolusa.com, or let Sol send their details straight to Josh.',
 };

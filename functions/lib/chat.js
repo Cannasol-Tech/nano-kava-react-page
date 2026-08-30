@@ -3,9 +3,9 @@
  * @author: Stephen Boyett
  *
  * @description:
- *     Transport-agnostic streaming chat core for Bula, the Nano Kava concierge.
+ *     Transport-agnostic streaming chat core for Sol, the Nano Kava concierge.
  *     Streams Gemini output as plain event objects the caller serializes, and
- *     handles the send_lead_to_josh tool by delegating to leads.js. Shared by the
+ *     handles the send_lead_to_josh tool by proposing a card the visitor sends. Shared by the
  *     gen2 `chat` Cloud Function and the Vite dev middleware. Request validation,
  *     rate limiting and safety fallbacks live here — see functions/CLAUDE.md.
  *
@@ -29,6 +29,9 @@ const {
   FunctionCallingConfigMode,
 } = require('@google/genai');
 const { GREETING, buildSystemInstruction } = require('./persona');
+const { isValidSessionId } = require('./chatStore');
+const { businessHoursContext } = require('./businessHours');
+const { resolveColorRequest, TARGETS } = require('./particlePalette');
 
 const MODEL = 'gemini-3.5-flash';
 
@@ -39,11 +42,16 @@ const MAX_TOOL_ROUND_TRIPS = 2;
 const MAX_MESSAGES = 20;
 const MAX_MESSAGE_CHARS = 2000;
 const MAX_PAYLOAD_CHARS = 12000;
+const MAX_PAGE_CHARS = 200;
 const RATE_LIMIT_MAX = 30;
 const RATE_LIMIT_WINDOW_MS = 60 * 60 * 1000;
 
 const LEAD_TOOL = 'send_lead_to_josh';
-const CHAT_LEAD_TYPE = 'Bula Chat';
+const EXPLAINER_TOOL = 'show_nano_explainer';
+const QUIZ_TOOL = 'open_sample_quiz';
+const SHARE_TOOL = 'share_chat_with_josh';
+const COLOR_TOOL = 'set_particle_color';
+const CHAT_LEAD_TYPE = 'Sol Chat';
 
 const SAFETY_FALLBACK =
   "I can't answer that one here. Josh can — drop your details on the contact form at " +
@@ -84,7 +92,10 @@ const TOOLS = [
             },
             interest: {
               type: Type.STRING,
-              description: 'What they want samples of.',
+              description:
+                'What they want samples of. Name every line they agreed to, comma separated — '
+                + 'nano kava emulsion, nano mushroom emulsions, bitter blocker bundles. Never '
+                + 'leave this vague: "samples" alone tells Josh nothing about what to pack.',
             },
             reason: {
               type: Type.STRING,
@@ -97,6 +108,67 @@ const TOOLS = [
           },
           required: ['interest', 'conversation_summary'],
         },
+      },
+      {
+        name: SHARE_TOOL,
+        description:
+          'Records that the visitor has explicitly agreed, in words, that Josh may be sent this '
+          + 'conversation to follow up on. Call it ONLY after they have clearly said yes to that '
+          + 'specific question — never on your own initiative, never because they seem '
+          + 'interested, and never in place of send_lead_to_josh when they want samples. It '
+          + 'sends no email by itself and shows the visitor nothing.',
+        parameters: { type: Type.OBJECT, properties: {} },
+      },
+      {
+        name: QUIZ_TOOL,
+        description:
+          'Asks the visitor\'s browser to raise three quick questions over the chat — format, '
+          + 'volume, timeline. It fills in NOTHING by itself: whatever they tap comes back as '
+          + 'their own next message and you take it from there. It is a request, not a '
+          + 'guarantee — it may never appear, and you cannot see their screen, so never assert '
+          + 'that it is up. Call it when someone is clearly building a beverage but has not told '
+          + 'you their format, volume or timeline yet: three taps is faster for them than three '
+          + 'questions in chat. Do NOT call it if they have already told you those things '
+          + '(send_lead_to_josh instead), and never more than once per conversation.',
+        parameters: { type: Type.OBJECT, properties: {} },
+      },
+      {
+        name: COLOR_TOOL,
+        description:
+          'Recolours the animated particles behind the page. `target` picks which: "large" is '
+          + 'the dots forming the three big spheres, "small" is the tiny drifting specks and the '
+          + 'lines between them, "all" is both. Visitors call them balls, dots, particles, nano '
+          + 'particles, spheres or orbs — map whatever they say. `color` is the colour EXACTLY '
+          + 'as they typed it, including a word you do not think is a colour and including '
+          + '"default" to put everything back; do not correct, normalise or substitute it — the '
+          + 'tool decides whether it is a colour, and tells you what it did. Call it whenever '
+          + 'they ask for a colour change, however they phrase it.',
+        parameters: {
+          type: Type.OBJECT,
+          properties: {
+            target: {
+              type: Type.STRING,
+              enum: ['large', 'small', 'all'],
+              description: 'Which group to recolour. Use "all" when they do not single one out.',
+            },
+            color: {
+              type: Type.STRING,
+              description: 'The colour exactly as the visitor typed it, or "default" to restore.',
+            },
+          },
+          required: ['target', 'color'],
+        },
+      },
+      {
+        name: EXPLAINER_TOOL,
+        description:
+          "Raises a short visual on the visitor's screen showing how small ~18nm is, against a " +
+          'human hair, a red blood cell and a virus. Call it when they ask what nano means, how ' +
+          'small the droplets are, why particle size matters, or how ultrasonic processing ' +
+          'works. It needs no confirmation from them, but it is a request rather than a fact: it ' +
+          'may not appear, so never insist it is on screen. Call it at most once per ' +
+          'conversation, and never for someone who already understands particle size.',
+        parameters: { type: Type.OBJECT, properties: {} },
       },
     ],
   },
@@ -171,9 +243,112 @@ function proposeLead(args, onEvent) {
   };
 }
 
+/** Requests the scale visual; nothing to confirm. See CLAUDE.md § A tool result is a request, not a fact on screen. */
+function showNanoExplainer(onEvent) {
+  onEvent({ type: 'nano_explainer' });
+  onEvent({ type: 'tool', name: EXPLAINER_TOOL, status: 'requested' });
+  return {
+    status: 'requested',
+    message: 'A scale visual has been requested on the visitor\'s screen. It may not appear, and '
+      + 'you cannot see their screen — do not state as fact that it is up. Tie it to their '
+      + 'formulation in a sentence or two, then move to the sample; if they say they cannot see '
+      + 'it, describe the comparison in one sentence instead of insisting.',
+  };
+}
+
+/**
+ * Records consent to copy Josh on the digest. Deliberately does not send: it flips a flag the
+ * digest reads later, so the blast radius of a mistaken call is one internal cc.
+ */
+function authorizeShare(onEvent) {
+  onEvent({ type: 'share_authorized' });
+  onEvent({ type: 'tool', name: SHARE_TOOL, status: 'recorded' });
+  return {
+    status: 'recorded',
+    message: 'Noted. Confirm it in one short sentence and carry on — nothing has been emailed yet.',
+  };
+}
+
+/**
+ * Requests the three-tap intent picker. It fills in no lead: the taps come back as the visitor's
+ * own turn. See CLAUDE.md § A tool result is a request, not a fact on screen.
+ */
+function openSampleQuiz(onEvent) {
+  onEvent({ type: 'sample_quiz' });
+  onEvent({ type: 'tool', name: QUIZ_TOOL, status: 'requested' });
+  return {
+    status: 'requested',
+    message: 'Three quick questions have been requested over the chat. They may not appear, and '
+      + 'they fill in nothing by themselves — the taps come back as the visitor\'s own next '
+      + 'message. Say one short sentence naming them in plain words, then stop and wait. If they '
+      + 'say they cannot see anything, do not insist and do not repeat yourself: ask the three '
+      + 'questions conversationally instead.',
+  };
+}
+
+/**
+ * Recolours the scene. The resolver decides what the visitor's word means; this only phrases the
+ * result for the model. See CLAUDE.md § Colour resolution is server-side.
+ */
+function setParticleColor(args, onEvent) {
+  const target = TARGETS.indexOf(args.target) === -1 ? 'all' : args.target;
+  const resolved = resolveColorRequest(args.color);
+
+  if (resolved.status === 'unknown') {
+    onEvent({ type: 'tool', name: COLOR_TOOL, status: 'failed' });
+    return {
+      status: 'not_a_color',
+      requested: resolved.requested,
+      message: 'Nothing was changed: "' + resolved.requested + '" is not a colour anyone knows. '
+        + 'Say so lightly and without making them feel stupid, name a couple of colours you do '
+        + 'have, and ask which they meant.',
+    };
+  }
+
+  onEvent({
+    type: 'particle_color',
+    target,
+    name: resolved.name,
+    large: resolved.palette.large,
+    small: resolved.palette.small,
+  });
+  onEvent({ type: 'tool', name: COLOR_TOOL, status: 'requested' });
+
+  if (resolved.status === 'default') {
+    return {
+      status: 'reset',
+      message: 'The particles have been put back to their original colours. Confirm it in one '
+        + 'short sentence.',
+    };
+  }
+
+  if (resolved.status === 'mapped') {
+    return {
+      status: 'mapped',
+      requested: resolved.requested,
+      applied: resolved.name,
+      message: 'You do not have "' + resolved.requested + '" in your colour library, so the '
+        + 'closest one — ' + resolved.name + ' — was used instead. You MUST tell them that in '
+        + 'your reply: name what they asked for, name what you used, and offer to try another. '
+        + 'Do not pretend they got what they asked for.',
+    };
+  }
+
+  return {
+    status: 'applied',
+    applied: resolved.name,
+    message: 'The ' + (target === 'all' ? 'particles are' : target + ' ones are') + ' now '
+      + resolved.name + '. Confirm it in one short sentence and carry on.',
+  };
+}
+
 /** Runs a model-requested tool call and returns the functionResponse payload. */
 function runToolCall(call, onEvent) {
   if (call.name === LEAD_TOOL) return proposeLead(call.args || {}, onEvent);
+  if (call.name === EXPLAINER_TOOL) return showNanoExplainer(onEvent);
+  if (call.name === QUIZ_TOOL) return openSampleQuiz(onEvent);
+  if (call.name === SHARE_TOOL) return authorizeShare(onEvent);
+  if (call.name === COLOR_TOOL) return setParticleColor(call.args || {}, onEvent);
 
   console.error('Unknown tool requested by the model:', call.name);
   onEvent({ type: 'tool', name: call.name, status: 'failed' });
@@ -184,6 +359,9 @@ function runToolCall(call, onEvent) {
 async function streamChat({ apiKey, messages, onEvent }) {
   const ai = new GoogleGenAI({ apiKey });
   const contents = messages.map(({ role, text }) => ({ role, parts: [{ text }] }));
+  // Appended, never merged into systemInstruction: that prefix must stay byte-identical or
+  // implicit caching stops. See CLAUDE.md § The phone offer is gated server-side.
+  if (contents.length > 0) contents.push({ role: 'user', parts: [{ text: businessHoursContext() }] });
   const config = {
     systemInstruction: systemInstruction(),
     tools: TOOLS,
@@ -216,7 +394,7 @@ async function streamChat({ apiKey, messages, onEvent }) {
       callParts.push(...readChunkFunctionCallParts(chunk));
     }
 
-    if (callParts.length === 0 || roundTrip === MAX_TOOL_ROUND_TRIPS) break;
+    if (callParts.length === 0) break;
 
     const modelParts = turnText ? [{ text: turnText }] : [];
     modelParts.push(...callParts);
@@ -226,6 +404,9 @@ async function streamChat({ apiKey, messages, onEvent }) {
       functionResponse: { name: functionCall.name, response: runToolCall(functionCall, onEvent) },
     }));
     contents.push({ role: 'user', parts: responseParts });
+
+    // The cap ends the conversation with the model, not the tool run. See CLAUDE.md § The last round trip still runs its tools.
+    if (roundTrip === MAX_TOOL_ROUND_TRIPS) break;
   }
 
   // A blocked or empty response must still say something; see CLAUDE.md § Why safety thresholds are BLOCK_ONLY_HIGH.
@@ -235,7 +416,11 @@ async function streamChat({ apiKey, messages, onEvent }) {
   onEvent({ type: 'done', usage });
 }
 
-/** Normalizes and bounds an incoming chat request body. */
+/**
+ * Normalizes and bounds an incoming chat request body. `sessionId` and `page` feed transcript
+ * persistence only, so both degrade to a blank rather than rejecting the turn — an old cached
+ * bundle sends neither and must still get an answer.
+ */
 function validateChatRequest(body) {
   const messages = body && body.messages;
   if (!Array.isArray(messages) || messages.length === 0) {
@@ -262,7 +447,12 @@ function validateChatRequest(body) {
     return { ok: false, error: 'This conversation is too long. Please start a new chat.' };
   }
 
-  return { ok: true, messages: messages.map(({ role, text }) => ({ role, text })) };
+  return {
+    ok: true,
+    messages: messages.map(({ role, text }) => ({ role, text })),
+    sessionId: isValidSessionId(body.sessionId) ? body.sessionId : null,
+    page: String(body.page ?? '').slice(0, MAX_PAGE_CHARS),
+  };
 }
 
 const rateLimitBuckets = new Map();
@@ -294,6 +484,12 @@ function rateLimit(ip) {
 module.exports = {
   MODEL,
   GREETING,
+  LEAD_TOOL,
+  EXPLAINER_TOOL,
+  QUIZ_TOOL,
+  SHARE_TOOL,
+  COLOR_TOOL,
+  runToolCall,
   streamChat,
   validateChatRequest,
   rateLimit,

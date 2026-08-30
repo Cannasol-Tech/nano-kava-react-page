@@ -5,15 +5,13 @@ import { Toaster } from 'react-hot-toast';
 import AppRoutes from './AppRoutes';
 import { ThemeProvider, useTheme } from './context/ThemeContext';
 import NanoScene from './components/NanoScene';
+import LoadPulse from './components/LoadPulse';
+import LabModeHud from './components/LabModeHud';
+import NanoExplainer from './components/NanoExplainer';
+import SampleQuiz from './components/SampleQuiz';
 import ChatWidget from './components/chat/ChatWidget';
 import { trackPageView } from './utils/gtag';
 import './index.css';
-
-// Canvas particle animation only runs smoothly on Chrome/Chromium.
-// Detect once at module level so every render doesn't re-sniff.
-const isChrome = typeof navigator !== 'undefined'
-  && /chrome|chromium/i.test(navigator.userAgent)
-  && !/edg/i.test(navigator.userAgent);
 
 function AppContent() {
   const { isDark } = useTheme();
@@ -30,7 +28,8 @@ function AppContent() {
       {/* Fixed background animation layer — behind all content */}
       <div className="fixed inset-0 -z-10 pointer-events-none">
         <div className={`absolute inset-0 transition-colors duration-500 ${isDark ? 'bg-slate-950' : 'bg-gray-50'}`} />
-        {isChrome && <NanoScene isDark={isDark} />}
+        <NanoScene isDark={isDark} />
+        <LoadPulse />
       </div>
       {/* Toast notifications */}
       <Toaster
@@ -61,8 +60,12 @@ function AppContent() {
       />
       {/* Page content */}
       <AppRoutes />
-      {/* Floating Bula assistant — fixed bottom-right, renders closed */}
+      {/* Floating Sol assistant — fixed bottom-right, renders closed */}
       <ChatWidget />
+      {/* Overlays own their own visibility, so neither re-renders the page tree */}
+      <LabModeHud />
+      <NanoExplainer />
+      <SampleQuiz />
     </div>
   );
 }

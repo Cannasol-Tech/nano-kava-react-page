@@ -22,8 +22,14 @@ describe('AppRoutes', () => {
   it('renders the mushrooms landing page at /mushrooms', async () => {
     renderRoute('/mushrooms');
 
+    // The route is lazy, so this waits on a dynamic import. RTL's 1s default flakes on a
+    // loaded machine — the failure was always a timeout, never a missing heading.
     expect(
-      await screen.findByRole('heading', { name: /nanoemulsified\s+functional\s+mushrooms/i })
+      await screen.findByRole(
+        'heading',
+        { name: /nanoemulsified\s+functional\s+mushrooms/i },
+        { timeout: 15_000 }
+      )
     ).toBeInTheDocument();
 
     expect(screen.getByText(/lion's mane/i)).toBeInTheDocument();
@@ -32,5 +38,5 @@ describe('AppRoutes', () => {
 
     const contactSales = screen.getAllByRole('link', { name: /contact sales/i })[0];
     expect(contactSales).toHaveAttribute('href', '/contact');
-  });
+  }, 25_000);
 });

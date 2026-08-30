@@ -1,5 +1,16 @@
-import React, { useRef, useEffect, useCallback } from 'react';
+import React, { useRef, useEffect } from 'react';
 import { registerAnimation, unregisterAnimation } from '../utils/animationLoop';
+import {
+  SEQUENCE, assembleProgress, isSequenceEnabled, sequenceElapsed, smoothstep,
+} from '../utils/loadSequence';
+import { subscribeLabMode } from '../utils/labMode';
+import { subscribeRainbow } from '../utils/nanoRainbow';
+import { SCENE_CONTEXT_OPTIONS, sceneClearColor, sceneDpr } from '../utils/sceneCanvas';
+import { IS_SAFARI } from '../utils/browser';
+import { DEFAULT_PALETTE, activePalette, subscribePalette } from '../utils/particlePalette';
+
+// Viewport anchor of the primary sphere — LoadPulse fires its rings from here.
+export const PRIMARY_SPHERE_ANCHOR = { xPct: 20, yPct: 50 };
 
 // ── Fibonacci sphere distribution ──
 function fibonacciSphere(count) {
@@ -18,16 +29,49 @@ function fibonacciSphere(count) {
 const SHELL_L = fibonacciSphere(350);
 const SHELL_M = fibonacciSphere(220);
 const SHELL_S = fibonacciSphere(120);
+const SCATTER_L = createScatter(350);
+const SCATTER_M = createScatter(220);
+const SCATTER_S = createScatter(120);
 
 // Pre-allocate transform/sort buffers (avoids per-frame GC)
 function createSortBuffer(count) {
-  return Array.from({ length: count }, () => ({ x: 0, y: 0, z: 0 }));
+  return Array.from({ length: count }, () => ({ x: 0, y: 0, z: 0, i: 0 }));
 }
 const SORT_BUF_L = createSortBuffer(350);
 const SORT_BUF_M = createSortBuffer(220);
 const SORT_BUF_S = createSortBuffer(120);
 
 function sortByZ(a, b) { return a.z - b.z; }
+
+// Launch vectors for the assemble phase, in sphere radii. Deterministic rather than
+// Math.random() so a remount lands every point where it landed before.
+function frac(x) { return x - Math.floor(x); }
+function createScatter(count) {
+  return Array.from({ length: count }, (_, i) => {
+    const angle = frac(i * 0.7548776662) * Math.PI * 2;
+    const dist = 3.6 + frac(i * 0.5698402909) * 9.5;
+    return { dx: Math.cos(angle) * dist, dy: Math.sin(angle) * dist, delay: frac(i * 0.618033988) * 0.34 };
+  });
+}
+
+/** Rotates a shell into its buffer and depth-sorts it; shared by both render paths. */
+function transformShell(shell, sortBuf, rya, rxa) {
+  const N = shell.length;
+  const cosY = Math.cos(rya), sinY = Math.sin(rya);
+  const cosX = Math.cos(rxa), sinX = Math.sin(rxa);
+  for (let i = 0; i < N; i++) {
+    const p = shell[i];
+    const rx = p.x * cosY + p.z * sinY;
+    const rz = -p.x * sinY + p.z * cosY;
+    const buf = sortBuf[i];
+    buf.x = rx;
+    buf.y = p.y * cosX - rz * sinX;
+    buf.z = p.y * sinX + rz * cosX;
+    // Re-stamped every frame: last frame's sort left the buffer in a different order.
+    buf.i = i;
+  }
+  sortBuf.sort(sortByZ);
+}
 
 // Pre-compute light vector lengths
 const L1_X = -0.4, L1_Y = -0.6, L1_Z = 0.65;
@@ -37,13 +81,16 @@ const L2_LEN = Math.sqrt(L2_X * L2_X + L2_Y * L2_Y + L2_Z * L2_Z);
 
 // ── Sphere definitions ──
 const SPHERES = [
-  { xr: 0.20, yr: 0.50, sizeR: 0.24, shell: SHELL_L, sortBuf: SORT_BUF_L, rotMulY: 0.5, rotMulX: 0.25, rotOffY: 0, rotOffX: 0.4, floatA: 10, floatB: 4, floatSpdA: 1.1, floatSpdB: 0.7, floatPhA: 0, floatPhB: 0 },
-  { xr: 0.70, yr: 0.28, sizeR: 0.12, shell: SHELL_M, sortBuf: SORT_BUF_M, rotMulY: 0.7, rotMulX: 0.35, rotOffY: 2, rotOffX: 1.2, floatA: 7, floatB: 3, floatSpdA: 1.4, floatSpdB: 0.9, floatPhA: 1.2, floatPhB: 0.5 },
-  { xr: 0.84, yr: 0.64, sizeR: 0.06, shell: SHELL_S, sortBuf: SORT_BUF_S, rotMulY: 0.9, rotMulX: 0.45, rotOffY: 4, rotOffX: 2.5, floatA: 5, floatB: 2, floatSpdA: 1.7, floatSpdB: 1.1, floatPhA: 2.8, floatPhB: 1.8 },
+  { xr: PRIMARY_SPHERE_ANCHOR.xPct / 100, yr: PRIMARY_SPHERE_ANCHOR.yPct / 100, sizeR: 0.24, shell: SHELL_L, sortBuf: SORT_BUF_L, scatter: SCATTER_L, rotMulY: 0.5, rotMulX: 0.25, rotOffY: 0, rotOffX: 0.4, floatA: 10, floatB: 4, floatSpdA: 1.1, floatSpdB: 0.7, floatPhA: 0, floatPhB: 0 },
+  { xr: 0.70, yr: 0.28, sizeR: 0.12, shell: SHELL_M, sortBuf: SORT_BUF_M, scatter: SCATTER_M, rotMulY: 0.7, rotMulX: 0.35, rotOffY: 2, rotOffX: 1.2, floatA: 7, floatB: 3, floatSpdA: 1.4, floatSpdB: 0.9, floatPhA: 1.2, floatPhB: 0.5 },
+  { xr: 0.84, yr: 0.64, sizeR: 0.06, shell: SHELL_S, sortBuf: SORT_BUF_S, scatter: SCATTER_S, rotMulY: 0.9, rotMulX: 0.45, rotOffY: 4, rotOffX: 2.5, floatA: 5, floatB: 2, floatSpdA: 1.7, floatSpdB: 1.1, floatPhA: 2.8, floatPhB: 1.8 },
 ];
 
 // ── Background particle config ──
 const P_COUNT = 55;
+// Lab mode adds this many for a few seconds. Deliberately modest: the connection pass is O(N²),
+// so 55 -> 95 already trebles it. See CLAUDE.md § Lab mode.
+const P_COUNT_LAB_BONUS = 40;
 const P_COUNT_SAFARI = 22; // Reduced particle count for Safari performance (595→231 comparisons)
 const CONN_DIST = 120;
 const CONN_DIST_SAFARI = 100; // Shorter connection distance on Safari for fewer lines
@@ -55,9 +102,13 @@ const MOUSE_R_SQ = MOUSE_R * MOUSE_R;
 // Offscreen canvas padding as multiple of sphere radius (must contain shadow + outer glow)
 const OC_PAD = 1.8;
 
-// Safari's createRadialGradient is 2-3x slower — throttle entire animation loop to 30fps
-const IS_SAFARI = typeof navigator !== 'undefined'
-  && /^((?!chrome|android).)*safari/i.test(navigator.userAgent);
+// Shell re-render cadence — 690 arcs + gradients per shell pass is the loop's dominant cost.
+const SHELL_RENDER_INTERVAL = 1000 / 30;
+
+const PREFERS_REDUCED_MOTION = typeof window !== 'undefined'
+  && window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
+
+
 
 function createParticle(w, h) {
   const size = Math.random() * 2.2 + 0.8;
@@ -72,8 +123,107 @@ function createParticle(w, h) {
   };
 }
 
+
+/**
+ * One shell point: body gradient, specular, rim. Extracted so the exact same code both paints
+ * live (Chrome) and bakes the sprite atlas (Safari) — the two must not drift apart.
+ */
+function paintShellPoint(ctx, px, py, sz, dot, fill, depth, isDark, hueShift = 0, pal = DEFAULT_PALETTE.large) {
+  const lit = dot > 0 ? dot : 0;
+  const hue = pal.hue - lit * 20 - fill * 8 + hueShift;
+  const sat = pal.sat + lit * 25 + fill * 10;
+  const light = pal.light + (isDark
+    ? 16 + lit * 35 + fill * 12 + depth * 8
+    : 15 + lit * 30 + fill * 10 + depth * 6);
+  const aHue = pal.accentHue;
+  const aSat = pal.accentSat;
+
+  const g = ctx.createRadialGradient(
+    px - sz * 0.35, py - sz * 0.35, sz * 0.04,
+    px + sz * 0.1, py + sz * 0.1, sz
+  );
+  g.addColorStop(0, `hsla(${hue - 10}, ${sat + 15}%, ${light + 26}%, 1.0)`);
+  g.addColorStop(0.5, `hsla(${hue}, ${sat}%, ${light}%, 1.0)`);
+  g.addColorStop(1, `hsla(${hue + 10}, ${sat - 10}%, ${light - 12}%, 0.92)`);
+  ctx.beginPath(); ctx.arc(px, py, sz, 0, Math.PI * 2);
+  ctx.fillStyle = g; ctx.fill();
+
+  if (lit > 0.3 && depth > 0.6) {
+    const sa = lit * depth * 0.7;
+    const sr = sz * (0.18 + lit * 0.12);
+    const spG = ctx.createRadialGradient(
+      px - sz * 0.3, py - sz * 0.3, 0,
+      px - sz * 0.25, py - sz * 0.25, sr
+    );
+    spG.addColorStop(0, `hsla(${aHue}, ${100 * aSat}%, 97%, ${sa * 0.85})`);
+    spG.addColorStop(1, `hsla(${aHue + 10}, ${85 * aSat}%, 75%, 0)`);
+    ctx.beginPath(); ctx.arc(px - sz * 0.28, py - sz * 0.28, sr, 0, Math.PI * 2);
+    ctx.fillStyle = spG; ctx.fill();
+  }
+
+  if (depth > 0.6) {
+    const rim = (1 - (dot > 0 ? dot : -dot)) * depth * 0.35;
+    if (rim > 0.08) {
+      const rG = ctx.createRadialGradient(px + sz * 0.3, py + sz * 0.3, sz * 0.4, px, py, sz);
+      rG.addColorStop(0, `hsla(${aHue}, ${90 * aSat}%, 78%, 0)`);
+      rG.addColorStop(0.7, `hsla(${aHue}, ${90 * aSat}%, 78%, ${rim * 0.25})`);
+      rG.addColorStop(1, `hsla(${aHue - 5}, ${95 * aSat}%, 82%, ${rim})`);
+      ctx.beginPath(); ctx.arc(px, py, sz, 0, Math.PI * 2);
+      ctx.fillStyle = rG; ctx.fill();
+    }
+  }
+}
+
+/**
+ * Safari path. A front-facing point costs up to three createRadialGradient calls, ~345 of them
+ * per frame across the three shells, and WebKit's createRadialGradient is 2-3x slower than
+ * Blink's — that is the whole reason the shells were switched off on Safari. Baking the point
+ * into a sprite atlas once turns each of those into a single drawImage.
+ *
+ * Buckets are the signed light dot (not `lit`) because the rim term reads |dot|, so two points
+ * with lit === 0 can look quite different. Second-light `fill` is baked at its mid value; it
+ * moves hue by at most 2 and lightness by 3, which is invisible at these sizes.
+ */
+const ATLAS_TILE = 64;
+const ATLAS_DOT_STEPS = 16;
+const ATLAS_DEPTH_STEPS = 4;
+const ATLAS_R = ATLAS_TILE * 0.42;
+const ATLAS_FILL = 0.12;
+
+function buildShellAtlas(isDark, pal = DEFAULT_PALETTE.large) {
+  const canvas = document.createElement('canvas');
+  canvas.width = ATLAS_TILE * ATLAS_DOT_STEPS;
+  canvas.height = ATLAS_TILE * ATLAS_DEPTH_STEPS;
+  const ctx = canvas.getContext('2d');
+  for (let di = 0; di < ATLAS_DEPTH_STEPS; di++) {
+    const depth = 0.55 + ((di + 0.5) / ATLAS_DEPTH_STEPS) * 0.45;
+    for (let si = 0; si < ATLAS_DOT_STEPS; si++) {
+      const dot = -1 + ((si + 0.5) / ATLAS_DOT_STEPS) * 2;
+      paintShellPoint(
+        ctx, si * ATLAS_TILE + ATLAS_TILE / 2, di * ATLAS_TILE + ATLAS_TILE / 2,
+        ATLAS_R, dot, ATLAS_FILL, depth, isDark, 0, pal
+      );
+    }
+  }
+  return canvas;
+}
+
+function blitShellPoint(ctx, atlas, px, py, sz, dot, depth) {
+  let si = ((dot + 1) * 0.5 * ATLAS_DOT_STEPS) | 0;
+  if (si < 0) si = 0; else if (si >= ATLAS_DOT_STEPS) si = ATLAS_DOT_STEPS - 1;
+  let di = (((depth - 0.55) / 0.45) * ATLAS_DEPTH_STEPS) | 0;
+  if (di < 0) di = 0; else if (di >= ATLAS_DEPTH_STEPS) di = ATLAS_DEPTH_STEPS - 1;
+
+  const dest = (sz / ATLAS_R) * ATLAS_TILE;
+  const half = dest * 0.5;
+  ctx.drawImage(
+    atlas, si * ATLAS_TILE, di * ATLAS_TILE, ATLAS_TILE, ATLAS_TILE,
+    px - half, py - half, dest, dest
+  );
+}
+
 // ── Draw a single nanoemulsion sphere (renders to any 2d context) ──
-function drawSphere(ctx, cx, cy, R, rya, rxa, isDark, shell, sortBuf) {
+function drawSphere(ctx, cx, cy, R, rya, rxa, isDark, shell, sortBuf, hueShift = 0, atlas = null, pal = DEFAULT_PALETTE.large) {
   const N = shell.length;
   const spacing = 2 * Math.sqrt(Math.PI / N);
   const subR = R * spacing * 0.55;
@@ -126,19 +276,7 @@ function drawSphere(ctx, cx, cy, R, rya, rxa, isDark, shell, sortBuf) {
   ctx.beginPath(); ctx.arc(cx, cy, R * 0.85, 0, Math.PI * 2);
   ctx.fillStyle = iG; ctx.fill();
 
-  // Transform in-place and depth-sort
-  const cosY = Math.cos(rya), sinY = Math.sin(rya);
-  const cosX = Math.cos(rxa), sinX = Math.sin(rxa);
-  for (let i = 0; i < N; i++) {
-    const p = shell[i];
-    const rx = p.x * cosY + p.z * sinY;
-    const rz = -p.x * sinY + p.z * cosY;
-    const buf = sortBuf[i];
-    buf.x = rx;
-    buf.y = p.y * cosX - rz * sinX;
-    buf.z = p.y * sinX + rz * cosX;
-  }
-  sortBuf.sort(sortByZ);
+  transformShell(shell, sortBuf, rya, rxa);
 
   for (let idx = 0; idx < N; idx++) {
     const pt = sortBuf[idx];
@@ -156,57 +294,23 @@ function drawSphere(ctx, cx, cy, R, rya, rxa, isDark, shell, sortBuf) {
     const dot2 = (pt.x * L2_X + pt.y * L2_Y + pt.z * L2_Z) / L2_LEN;
     const fill = dot2 > 0 ? dot2 * 0.25 : 0;
 
-    const hue = 232 - lit * 20 - fill * 8;
-    const sat = 58 + lit * 25 + fill * 10;
-    const light = isDark
-      ? 16 + lit * 35 + fill * 12 + depth * 8
-      : 15 + lit * 30 + fill * 10 + depth * 6;
-
     // Mid-depth: solid fill (no gradient — cheaper)
     if (depth < 0.55) {
+      const hue = pal.hue - lit * 20 - fill * 8 + hueShift;
+      const sat = pal.sat + lit * 25 + fill * 10;
+      const light = pal.light + (isDark
+        ? 16 + lit * 35 + fill * 12 + depth * 8
+        : 15 + lit * 30 + fill * 10 + depth * 6);
       ctx.beginPath(); ctx.arc(px, py, sz, 0, Math.PI * 2);
       ctx.fillStyle = `hsla(${hue}, ${sat}%, ${light + 4}%, 1.0)`;
       ctx.fill();
       continue;
     }
 
-    // Front spheres: gradient
-    const g = ctx.createRadialGradient(
-      px - sz * 0.35, py - sz * 0.35, sz * 0.04,
-      px + sz * 0.1, py + sz * 0.1, sz
-    );
-    g.addColorStop(0, `hsla(${hue - 10}, ${sat + 15}%, ${light + 26}%, 1.0)`);
-    g.addColorStop(0.5, `hsla(${hue}, ${sat}%, ${light}%, 1.0)`);
-    g.addColorStop(1, `hsla(${hue + 10}, ${sat - 10}%, ${light - 12}%, 0.92)`);
-    ctx.beginPath(); ctx.arc(px, py, sz, 0, Math.PI * 2);
-    ctx.fillStyle = g; ctx.fill();
-
-    // Primary specular
-    if (lit > 0.3 && depth > 0.6) {
-      const sa = lit * depth * 0.7;
-      const sr = sz * (0.18 + lit * 0.12);
-      const spG = ctx.createRadialGradient(
-        px - sz * 0.3, py - sz * 0.3, 0,
-        px - sz * 0.25, py - sz * 0.25, sr
-      );
-      spG.addColorStop(0, `hsla(210, 100%, 97%, ${sa * 0.85})`);
-      spG.addColorStop(1, `hsla(220, 85%, 75%, 0)`);
-      ctx.beginPath(); ctx.arc(px - sz * 0.28, py - sz * 0.28, sr, 0, Math.PI * 2);
-      ctx.fillStyle = spG; ctx.fill();
-    }
-
-    // Rim light
-    if (depth > 0.6) {
-      const rim = (1 - (dot > 0 ? dot : -dot)) * depth * 0.35;
-      if (rim > 0.08) {
-        const rG = ctx.createRadialGradient(px + sz * 0.3, py + sz * 0.3, sz * 0.4, px, py, sz);
-        rG.addColorStop(0, 'hsla(210, 90%, 78%, 0)');
-        rG.addColorStop(0.7, `hsla(210, 90%, 78%, ${rim * 0.25})`);
-        rG.addColorStop(1, `hsla(205, 95%, 82%, ${rim})`);
-        ctx.beginPath(); ctx.arc(px, py, sz, 0, Math.PI * 2);
-        ctx.fillStyle = rG; ctx.fill();
-      }
-    }
+    if (atlas) blitShellPoint(ctx, atlas, px, py, sz, dot, depth);
+    // 0, not hueShift: front-facing points never took the rainbow tint and still do not.
+    // See CLAUDE.md § Lab mode — the egg is uneven, and evening it up is not this change's job.
+    else paintShellPoint(ctx, px, py, sz, dot, fill, depth, isDark, 0, pal);
   }
 
   // Outer glow halo
@@ -217,28 +321,79 @@ function drawSphere(ctx, cx, cy, R, rya, rxa, isDark, shell, sortBuf) {
   ctx.fillStyle = oG; ctx.fill();
 }
 
+/**
+ * Assemble phase: the shell flies in from offscreen and coalesces. Draws straight to the
+ * main canvas as flat dots — no createRadialGradient anywhere, so a load frame costs less
+ * than a settled one. See CLAUDE.md § Load sequence.
+ */
+function drawAssembling(ctx, cx, cy, R, rya, rxa, isDark, shell, sortBuf, scatter, p, w, h, pal = DEFAULT_PALETTE.large) {
+  transformShell(shell, sortBuf, rya, rxa);
+  const N = shell.length;
+  const subR = R * 2 * Math.sqrt(Math.PI / N) * 0.55;
+  const baseLight = (isDark ? 16 : 15) + pal.light;
+
+  for (let idx = 0; idx < N; idx++) {
+    const pt = sortBuf[idx];
+    const sc = scatter[pt.i];
+    let q = (p - sc.delay) / (1 - sc.delay);
+    if (q <= 0) continue;
+    if (q > 1) q = 1;
+    const rem = 1 - q;
+    q = 1 - rem * rem * rem;
+    const inv = 1 - q;
+
+    const persp = 1 + pt.z * 0.25;
+    const x = cx + pt.x * R * persp * q + sc.dx * R * inv;
+    if (x < -30 || x > w + 30) continue;
+    const y = cy + pt.y * R * persp * q + sc.dy * R * inv;
+    if (y < -30 || y > h + 30) continue;
+
+    const sz = subR * (0.7 + pt.z * 0.3) * (0.45 + 0.55 * q);
+    if (sz < 0.4) continue;
+
+    const depth = (pt.z + 1) * 0.5;
+    const dot = (pt.x * L1_X + pt.y * L1_Y + pt.z * L1_Z) / L1_LEN;
+    const lit = dot > 0 ? dot : 0;
+    // Points still in flight run hot, cooling to their lit colour as the shell closes.
+    let a = q < 0.18 ? q / 0.18 : 1;
+    if (depth < 0.3) a *= 1 - q * 0.9;
+
+    ctx.beginPath(); ctx.arc(x, y, sz, 0, Math.PI * 2);
+    ctx.fillStyle = `hsla(${pal.hue - lit * 20}, ${pal.sat + lit * 25}%, ${baseLight + lit * 35 + depth * 8 + inv * 26}%, ${a})`;
+    ctx.fill();
+  }
+}
+
 // ── Main component ──
 export default function NanoScene({ isDark = true }) {
-  // Skip entire canvas animation on Safari — too slow due to createRadialGradient perf
-  if (IS_SAFARI) return null;
-  // Skip entire canvas animation on Safari — too slow due to createRadialGradient perf
-  if (IS_SAFARI) return null;
   const canvasRef = useRef(null);
   const particlesRef = useRef([]);
   const mouseRef = useRef({ x: -1000, y: -1000 });
   const tRef = useRef(0);
   const visibleRef = useRef(true);
 
-  const getColors = useCallback(() => {
-    if (isDark) return { pSat: '80%', pLight: '55%', lSat: '65%', lLight: '45%' };
-    return { pSat: '70%', pLight: '42%', lSat: '58%', lLight: '36%' };
-  }, [isDark]);
-
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
-    const ctx = canvas.getContext('2d');
+    const ctx = canvas.getContext('2d', SCENE_CONTEXT_OPTIONS);
+    const clearColor = sceneClearColor(isDark);
+    // Numbers, not '80%' strings, because a palette moves them by a delta.
+    const colors = isDark
+      ? { pSat: 80, pLight: 55, lSat: 65, lLight: 45 }
+      : { pSat: 70, pLight: 42, lSat: 58, lLight: 36 };
+
+    let pal = activePalette();
+    let connStroke, bridgeStroke;
+    function recomputeStrokes() {
+      const sm = pal.small;
+      connStroke = `hsla(${sm.hue}, ${colors.lSat + sm.sat}%, ${colors.lLight + sm.light}%, 0.06)`;
+      bridgeStroke = `hsla(${sm.hue - 2}, ${colors.lSat + sm.sat}%, ${colors.lLight + sm.light}%, 0.04)`;
+    }
+    recomputeStrokes();
     let w, h, dpr;
+
+    // Baked per theme AND per palette — a recolour must rebake or Safari keeps the old sprites.
+    let shellAtlas = IS_SAFARI ? buildShellAtlas(isDark, pal.large) : null;
 
     // Offscreen canvases — each sphere renders here at 30fps, composited at 60fps
     const offscreens = SPHERES.map(() => {
@@ -246,7 +401,8 @@ export default function NanoScene({ isDark = true }) {
       return { canvas: oc, ctx: oc.getContext('2d'), cssSize: 0 };
     });
 
-    // Pause rendering when canvas scrolls offscreen
+    // Never fires today — the parent is `fixed inset-0`, so the canvas always intersects.
+    // Kept as the guard for any future layout that scrolls it. See CLAUDE.md § NanoScene is always on screen.
     const observer = new IntersectionObserver(([entry]) => {
       visibleRef.current = entry.isIntersecting;
     }, { threshold: 0 });
@@ -270,8 +426,20 @@ export default function NanoScene({ isDark = true }) {
     const spriteRadius = 20; // Base radius for the sprite
     let particleSpriteValid = false;
 
+    // Shell re-render cadence — see CLAUDE.md § Sphere shells re-render at 30fps.
+    let lastShellRender = -1e9;
+
+    // Three caches hold colour, and all three must go. See CLAUDE.md § Recolouring the scene.
+    const unsubscribePalette = subscribePalette((next) => {
+      pal = next;
+      recomputeStrokes();
+      particleSpriteValid = false;
+      lastShellRender = -1e9;
+      if (IS_SAFARI) shellAtlas = buildShellAtlas(isDark, pal.large);
+    });
+
     function resize() {
-      dpr = window.devicePixelRatio || 1;
+      dpr = sceneDpr();
       const rect = canvas.parentElement.getBoundingClientRect();
       w = rect.width; h = rect.height;
       cachedRect = canvas.getBoundingClientRect();
@@ -290,14 +458,12 @@ export default function NanoScene({ isDark = true }) {
           oc.canvas.width = Math.ceil(cssSize * dpr);
           oc.canvas.height = Math.ceil(cssSize * dpr);
         }
+        oc.ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
       }
 
-      if (particlesRef.current.length === 0) {
-        const particleCount = IS_SAFARI ? P_COUNT_SAFARI : P_COUNT;
-        particlesRef.current = Array.from({ length: particleCount }, () => createParticle(w, h));
-      }
       vignetteValid = false;
       particleSpriteValid = false;
+      lastShellRender = -1e9;
     }
 
     resize();
@@ -320,9 +486,28 @@ export default function NanoScene({ isDark = true }) {
     const SAFARI_FRAME_INTERVAL = 1000 / 30; // 33.33ms between renders
     const SAFARI_PHYSICS_INTERVAL = 1000 / 15; // 66.67ms between physics updates
 
-    const animId = Symbol('nanoScene');
+    // Re-evaluated on every effect run (theme toggle remounts this): a remount after the
+    // window has closed must resume settled, never replay the assemble.
+    let assembling = isSequenceEnabled() && sequenceElapsed() < SEQUENCE.assembleMs;
 
-    registerAnimation(animId, (timestamp, _frameCount) => {
+    // Lab mode grows the pool and trims it back; the extras are ordinary particles, so every
+    // physics and draw loop picks them up with no branching in the hot path.
+    let rainbowOn = false;
+    const unsubscribeRainbow = subscribeRainbow((on) => { rainbowOn = on; });
+
+    const unsubscribeLab = subscribeLabMode((on) => {
+      const pool = particlesRef.current;
+      if (on) {
+        for (let i = 0; i < P_COUNT_LAB_BONUS; i++) pool.push(createParticle(w, h));
+      } else {
+        pool.length = Math.min(pool.length, IS_SAFARI ? P_COUNT_SAFARI : P_COUNT);
+      }
+    });
+
+    const animId = Symbol('nanoScene');
+    if (PREFERS_REDUCED_MOTION) assembling = false;
+
+    const renderFrame = (timestamp, _frameCount) => {
       if (!visibleRef.current) return;
 
       // Safari: throttle rendering to 30fps for consistent performance
@@ -331,6 +516,16 @@ export default function NanoScene({ isDark = true }) {
         if (elapsed < SAFARI_FRAME_INTERVAL) return;
         lastSafariFrame = timestamp - (elapsed % SAFARI_FRAME_INTERVAL);
       }
+
+      let asmP = 1;
+      if (assembling) {
+        asmP = assembleProgress(sequenceElapsed());
+        if (asmP >= 1) assembling = false;
+      }
+      // Dots hand over to the real spheres in the last quarter; nothing pops.
+      const sphereAlpha = assembling ? smoothstep(SEQUENCE.crossfadeFrom, 1, asmP) : 1;
+      const dotAlpha = assembling ? 1 - smoothstep(0.82, 1, asmP) : 0;
+      const bgFade = assembling ? smoothstep(0.12, 0.65, asmP) : 1;
 
       tRef.current += 1;
       const frame = tRef.current;
@@ -345,9 +540,9 @@ export default function NanoScene({ isDark = true }) {
       }
       // Time-based rotation (consistent speed regardless of FPS)
       const t = timestamp * 0.00015;
-      const colors = getColors();
       const particles = particlesRef.current;
       const mouse = mouseRef.current;
+      const mouseActive = mouse.x > -100;
       const minDim = Math.min(w, h);
 
       // Sphere floating positions — mutated in-place (#11)
@@ -363,25 +558,29 @@ export default function NanoScene({ isDark = true }) {
       }
 
       // ── Render spheres to offscreen canvases ──
-      // Safari: 30fps (entire loop throttled) — createRadialGradient is 2-3x slower
-      // Chrome/others: 60fps for smooth rotation
-      if (true) {
+      // Rotation is slow enough that 30fps is indistinguishable; the float and the
+      // composite below stay at 60fps. See CLAUDE.md § Sphere shells re-render at 30fps.
+      // Cycling the hue is one addition per point, and exactly 0 when the egg is not running.
+      const hueShift = rainbowOn ? (timestamp * 0.12) % 360 : 0;
+      const shellsDue = assembling || (timestamp - lastShellRender) >= SHELL_RENDER_INTERVAL;
+      if (sphereAlpha > 0 && shellsDue) {
+        lastShellRender = timestamp;
         for (let si = 0; si < SPHERES.length; si++) {
           const s = SPHERES[si];
           const oc = offscreens[si];
           const R = spPos[si].R;
           const half = oc.cssSize / 2;
 
-          oc.ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
           oc.ctx.clearRect(0, 0, oc.cssSize, oc.cssSize);
 
           drawSphere(oc.ctx, half, half, R,
             t * s.rotMulY + s.rotOffY, t * s.rotMulX + s.rotOffX,
-            isDark, s.shell, s.sortBuf);
+            isDark, s.shell, s.sortBuf, hueShift, shellAtlas, pal.large);
         }
       }
 
-      ctx.clearRect(0, 0, w, h);
+      ctx.fillStyle = clearColor;
+      ctx.fillRect(0, 0, w, h);
 
       // ── Update particles (60fps Chrome, 15fps Safari — physics) ──
       if (shouldUpdatePhysics) {
@@ -395,14 +594,16 @@ export default function NanoScene({ isDark = true }) {
           p.vx *= 0.993;
           p.vy *= 0.993;
 
-          // Mouse repulsion
-          const mdx = p.x - mouse.x, mdy = p.y - mouse.y;
-          const mDistSq = mdx * mdx + mdy * mdy;
-          if (mDistSq < MOUSE_R_SQ && mDistSq > 0) {
-            const mDist = Math.sqrt(mDistSq);
-            const f = (MOUSE_R - mDist) / MOUSE_R;
-            p.vx += (mdx / mDist) * f * 0.5;
-            p.vy += (mdy / mDist) * f * 0.5;
+          // Mouse repulsion — skipped while the pointer is parked off-canvas
+          if (mouseActive) {
+            const mdx = p.x - mouse.x, mdy = p.y - mouse.y;
+            const mDistSq = mdx * mdx + mdy * mdy;
+            if (mDistSq < MOUSE_R_SQ && mDistSq > 0) {
+              const mDist = Math.sqrt(mDistSq);
+              const f = (MOUSE_R - mDist) / MOUSE_R;
+              p.vx += (mdx / mDist) * f * 0.5;
+              p.vy += (mdy / mDist) * f * 0.5;
+            }
           }
 
           // Sphere influence (orbit + repel from core)
@@ -442,9 +643,10 @@ export default function NanoScene({ isDark = true }) {
       }
 
       // ── Draw connections + bridge lines (batched into single path) ──
+      if (!assembling) {
       const connDistSq = IS_SAFARI ? CONN_DIST_SAFARI_SQ : CONN_DIST_SQ;
       ctx.lineWidth = 0.4;
-      ctx.strokeStyle = `hsla(222, ${colors.lSat}, ${colors.lLight}, 0.06)`;
+      ctx.strokeStyle = connStroke;
       ctx.beginPath();
       for (let i = 0; i < particles.length; i++) {
         for (let j = i + 1; j < particles.length; j++) {
@@ -458,7 +660,7 @@ export default function NanoScene({ isDark = true }) {
       ctx.stroke();
 
       ctx.lineWidth = 0.3;
-      ctx.strokeStyle = `hsla(220, ${colors.lSat}, ${colors.lLight}, 0.04)`;
+      ctx.strokeStyle = bridgeStroke;
       ctx.beginPath();
       const bridgeMult = IS_SAFARI ? 1.8 : 2.0; // Slightly reduced bridge distance on Safari
       for (let i = 0; i < particles.length; i++) {
@@ -478,17 +680,20 @@ export default function NanoScene({ isDark = true }) {
         }
       }
       ctx.stroke();
+      }
 
       // ── Draw particles (60fps) ──
       // Render particle sprite once per theme change (#25)
       if (!particleSpriteValid) {
         particleSpriteCtx.clearRect(0, 0, particleSpriteSize, particleSpriteSize);
         const gG = particleSpriteCtx.createRadialGradient(spriteCenter, spriteCenter, 0, spriteCenter, spriteCenter, spriteRadius);
-        // Average hue ~222, full opacity
-        gG.addColorStop(0, `hsla(232, 92%, 80%, 1)`);
-        gG.addColorStop(0.2, `hsla(222, ${colors.pSat}, ${colors.pLight}, 0.85)`);
-        gG.addColorStop(0.4, `hsla(222, ${colors.pSat}, ${colors.pLight}, 0.3)`);
-        gG.addColorStop(1, `hsla(222, ${colors.pSat}, ${colors.pLight}, 0)`);
+        const sm = pal.small;
+        const pSat = colors.pSat + sm.sat;
+        const pLight = colors.pLight + sm.light;
+        gG.addColorStop(0, `hsla(${sm.coreHue}, ${sm.coreSat}%, ${sm.coreLight}%, 1)`);
+        gG.addColorStop(0.2, `hsla(${sm.hue}, ${pSat}%, ${pLight}%, 0.85)`);
+        gG.addColorStop(0.4, `hsla(${sm.hue}, ${pSat}%, ${pLight}%, 0.3)`);
+        gG.addColorStop(1, `hsla(${sm.hue}, ${pSat}%, ${pLight}%, 0)`);
         particleSpriteCtx.beginPath();
         particleSpriteCtx.arc(spriteCenter, spriteCenter, spriteRadius, 0, Math.PI * 2);
         particleSpriteCtx.fillStyle = gG;
@@ -515,27 +720,41 @@ export default function NanoScene({ isDark = true }) {
         }
         const fa = pa + glowBoost;
 
-        // Blit cached sprite with scale and alpha (#25)
         const scale = (p.size * 4) / spriteRadius;
         const drawSize = particleSpriteSize * scale;
-        ctx.save();
-        ctx.globalAlpha = fa;
+        ctx.globalAlpha = fa * bgFade;
         ctx.drawImage(particleSprite,
           0, 0, particleSpriteSize, particleSpriteSize,
           p.x - drawSize / 2, p.y - drawSize / 2,
           drawSize, drawSize);
-        ctx.restore();
       }
+      ctx.globalAlpha = 1;
 
       // ── Composite spheres from offscreen canvases (60fps — just a drawImage blit) ──
-      for (let si = 0; si < SPHERES.length; si++) {
-        const sp = spPos[si];
-        const oc = offscreens[si];
-        const half = oc.cssSize / 2;
-        ctx.drawImage(oc.canvas,
-          0, 0, oc.canvas.width, oc.canvas.height,
-          sp.cx - half, sp.cy - half,
-          oc.cssSize, oc.cssSize);
+      if (sphereAlpha > 0) {
+        if (sphereAlpha < 1) ctx.globalAlpha = sphereAlpha;
+        for (let si = 0; si < SPHERES.length; si++) {
+          const sp = spPos[si];
+          const oc = offscreens[si];
+          const half = oc.cssSize / 2;
+          ctx.drawImage(oc.canvas,
+            0, 0, oc.canvas.width, oc.canvas.height,
+            sp.cx - half, sp.cy - half,
+            oc.cssSize, oc.cssSize);
+        }
+        ctx.globalAlpha = 1;
+      }
+
+      if (dotAlpha > 0) {
+        ctx.globalAlpha = dotAlpha;
+        for (let si = 0; si < SPHERES.length; si++) {
+          const s = SPHERES[si];
+          const sp = spPos[si];
+          drawAssembling(ctx, sp.cx, sp.cy, sp.R,
+            t * s.rotMulY + s.rotOffY, t * s.rotMulX + s.rotOffX,
+            isDark, s.shell, s.sortBuf, s.scatter, asmP, w, h, pal.large);
+        }
+        ctx.globalAlpha = 1;
       }
 
       // ── Vignette — cached on offscreen canvas (#18) ──
@@ -551,19 +770,26 @@ export default function NanoScene({ isDark = true }) {
         vignetteValid = true;
       }
       ctx.drawImage(vignetteCanvas, 0, 0, vignetteCanvas.width, vignetteCanvas.height, 0, 0, w, h);
-    });
+    };
 
     const particleCount = IS_SAFARI ? P_COUNT_SAFARI : P_COUNT;
     particlesRef.current = Array.from({ length: particleCount }, () => createParticle(w, h));
 
+    // Reduced motion gets one settled frame, not a paused animation.
+    if (PREFERS_REDUCED_MOTION) renderFrame(performance.now(), 0);
+    else registerAnimation(animId, renderFrame);
+
     return () => {
       unregisterAnimation(animId);
+      unsubscribeLab();
+      unsubscribeRainbow();
+      unsubscribePalette();
       observer.disconnect();
       window.removeEventListener('resize', resize);
       canvas.removeEventListener('mousemove', handleMouseMove);
       canvas.removeEventListener('mouseleave', handleMouseLeave);
     };
-  }, [getColors, isDark]);
+  }, [isDark]);
 
   return (
     <canvas
@@ -573,7 +799,6 @@ export default function NanoScene({ isDark = true }) {
       aria-label="Animated visualization of nano-emulsified particles demonstrating the nanoemulsification technology"
       style={{
         pointerEvents: 'none',
-        willChange: 'contents',
         transform: 'translateZ(0)',
       }}
     />

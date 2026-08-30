@@ -40,9 +40,15 @@ const inquiryTypes = [
 /**
  * Contact Form Component
  */
+// The five lines ship in one box, so every prefill names the others as an easy add-on.
+const ALL_LINES = "Kavalactone Nanoemulsion, Lion's Mane Nanoemulsion, Reishi Nanoemulsion, Cordyceps Nanoemulsion and Bitter Blocker";
 const productMessages = {
-  'nano-kava': 'I\'m interested in receiving a free Nano Kava Emulsion sample for evaluation.',
-  'nano-mushrooms': 'I\'m interested in receiving a free Nano Mushroom Emulsion sample pack for evaluation.',
+  'nano-kava': `I'm interested in receiving a free Kavalactone Nanoemulsion sample for evaluation. Happy to see the rest of the line too — ${ALL_LINES}.`,
+  'nano-mushrooms': `I'm interested in receiving free mushroom nanoemulsion samples for evaluation — Lion's Mane Nanoemulsion, Reishi Nanoemulsion and Cordyceps Nanoemulsion. Happy to see the Kavalactone Nanoemulsion and Bitter Blocker too.`,
+  'lions-mane': "I'm interested in receiving a free Lion's Mane Nanoemulsion sample for evaluation.",
+  reishi: "I'm interested in receiving a free Reishi Nanoemulsion sample for evaluation.",
+  cordyceps: "I'm interested in receiving a free Cordyceps Nanoemulsion sample for evaluation.",
+  'bitter-blocker': "I'm interested in receiving a free Bitter Blocker sample for evaluation.",
 };
 
 function ContactForm({ theme, initialInquiry, initialProduct }) {
@@ -450,6 +456,7 @@ export default function ContactPage() {
             <button
               onClick={() => setIsDark(!isDark)}
               className={`p-2 rounded-full ${theme.toggleBg} ${theme.toggleText} transition-colors interactive-btn hover-scale active-press-sm`}
+              aria-label="Toggle theme"
             >
               {isDark ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
             </button>

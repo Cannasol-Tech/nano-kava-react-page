@@ -7,7 +7,8 @@
  *     plugin that answers POST /api/chat and POST /api/sendContactEmail locally by
  *     reusing the CommonJS cores in functions/lib/, so the widget works under
  *     `make preview` with no Firebase emulator. The lead endpoint is a DRY RUN and
- *     never sends mail. The plugin is a no-op during `vite build`.
+ *     never sends mail, and transcript persistence prints what it would store rather
+ *     than writing it. The plugin is a no-op during `vite build`.
  *
  * @See Also:
  *     functions/lib/chat.js
@@ -24,7 +25,8 @@ import { createRequire } from 'node:module';
 const CHAT_ROUTE = '/api/chat';
 const LEAD_ROUTE = '/api/sendContactEmail';
 const MAX_BODY_BYTES = 256 * 1024;
-const DRY_RUN = '[bula dev] DRY RUN - no email sent';
+const DRY_RUN = '[sol dev] DRY RUN - no email sent';
+const DRY_RUN_STORE = '[sol dev] DRY RUN - nothing written to Firestore';
 
 /** Prints what Josh would have received, so a local Send can be verified without mailing anyone. */
 function logDryRun({ name, email, company, phone, inquiryType, message }) {
@@ -39,6 +41,13 @@ function logDryRun({ name, email, company, phone, inquiryType, message }) {
   for (const [label, value] of fields) console.log(`${DRY_RUN}   ${label}: ${value || '(not provided)'}`);
   console.log(`${DRY_RUN}   Message:`);
   for (const line of String(message ?? '').split('\n')) console.log(`${DRY_RUN}     ${line}`);
+}
+
+/** DRY RUN, like the lead and digest routes: no local credentials, so nothing is written. */
+function logStoreDryRun({ sessionId, messages, page }, reply, maxTurns) {
+  const turns = messages.length + (reply ? 1 : 0);
+  console.log(`${DRY_RUN_STORE} session: ${sessionId || '(none sent)'} page: ${page || '(none)'}`);
+  console.log(`${DRY_RUN_STORE}   would store ${Math.min(turns, maxTurns)} of ${turns} turns (cap ${maxTurns}), expiring in 90 days`);
 }
 
 function readJsonBody(req) {
@@ -102,6 +111,7 @@ function chatDevServer(mode) {
     try {
       // Required lazily so a missing key or uninstalled functions/node_modules cannot break the build.
       const { streamChat, validateChatRequest, rateLimit } = require('./functions/lib/chat.js');
+      const { createTranscriptRecorder, MAX_TURNS } = require('./functions/lib/chatStore.js');
       const body = await readJsonBody(req);
 
       const limit = rateLimit(req.socket.remoteAddress);
@@ -116,7 +126,9 @@ function chatDevServer(mode) {
         return res.end();
       }
 
-      await streamChat({ apiKey, messages: validation.messages, onEvent: send });
+      const recorder = createTranscriptRecorder(send);
+      await streamChat({ apiKey, messages: validation.messages, onEvent: recorder.emit });
+      logStoreDryRun(validation, recorder.reply(), MAX_TURNS);
     } catch (err) {
       console.error('[chat dev]', err);
       send({ type: 'error', message: 'Chat failed locally — see the Vite terminal output.' });

@@ -5,13 +5,14 @@
  * @description:
  *     Cloud Function entry points for the Nano Kava site. `sendContactEmail` is
  *     the 1st-gen contact form handler; `chat` is the 2nd-gen SSE endpoint for the
- *     Bula concierge. Both are thin transports — lead capture lives in lib/leads.js
- *     and the streaming chat core in lib/chat.js. See CLAUDE.md for why the
- *     generations differ.
+ *     Sol concierge. Both are thin transports — lead capture lives in lib/leads.js
+ *     and the streaming chat core in lib/chat.js. `chat` also files each turn to Firestore
+ *     through lib/chatStore.js. See CLAUDE.md for why the generations differ.
  *
  * @See Also:
  *     functions/lib/leads.js
  *     functions/lib/chat.js
+ *     functions/lib/chatStore.js
  *
  * ---
  * @Copyright © 2026 Cannasol Technologies LLC. All Rights Reserved.
@@ -20,6 +21,7 @@
 
 const functions = require('firebase-functions');
 const { onRequest } = require('firebase-functions/v2/https');
+const { onSchedule } = require('firebase-functions/v2/scheduler');
 const { defineSecret } = require('firebase-functions/params');
 const cors = require('cors')({ origin: true });
 
@@ -31,6 +33,9 @@ const {
   sendLead,
 } = require('./lib/leads');
 const { streamChat, validateChatRequest, rateLimit } = require('./lib/chat');
+const { persistTranscript, createTranscriptRecorder } = require('./lib/chatStore');
+const { persistLead, confirmLead } = require('./lib/chatLeads');
+const { collectReport, sendDailyReport } = require('./lib/dailyReport');
 
 const googleAiApiKey = defineSecret('GOOGLE_AI_API_KEY');
 
@@ -47,7 +52,7 @@ exports.sendContactEmail = functions
     }
 
     try {
-      const { name, email, company, phone, inquiryType, message } = req.body;
+      const { name, email, company, phone, inquiryType, message, sessionId } = req.body;
 
       const validation = validateLead({ name, email, phone, message });
       if (!validation.ok) {
@@ -60,6 +65,9 @@ exports.sendContactEmail = functions
         : [];
 
       const { mailchimpOk } = await sendLead({ name, email, company, phone, types, message });
+
+      // Only chat leads carry a sessionId; the contact form sends none and skips this quietly.
+      if (sessionId) await confirmLead({ sessionId });
 
       return res.status(200).json({
         success: true,
@@ -88,7 +96,7 @@ function clientIp(req) {
   return typeof forwarded === 'string' ? forwarded.split(',')[0].trim() : '';
 }
 
-/** Streams a Bula reply as Server-Sent Events; see CLAUDE.md § Why chat is gen2 and sendContactEmail is not. */
+/** Streams a Sol reply as Server-Sent Events; see CLAUDE.md § Why chat is gen2 and sendContactEmail is not. */
 exports.chat = onRequest(
   {
     cors: true,
@@ -119,18 +127,64 @@ exports.chat = onRequest(
     res.flushHeaders();
 
     const send = (event) => res.write(`data: ${JSON.stringify(event)}\n\n`);
+    const recorder = createTranscriptRecorder(send);
 
     try {
       await streamChat({
         apiKey: googleAiApiKey.value(),
         messages: validation.messages,
-        onEvent: send,
+        onEvent: recorder.emit,
       });
     } catch (error) {
       console.error('Chat stream failed:', error);
       send({ type: 'error', message: CHAT_ERROR_MESSAGE });
     }
 
+    // After the stream: the visitor already has their answer, so a slow or failed write costs
+    // them nothing. Neither call throws. See lib/CLAUDE.md § Transcript persistence.
+    await persistTranscript({
+      sessionId: validation.sessionId,
+      history: validation.messages,
+      reply: recorder.reply(),
+      page: validation.page,
+    });
+
+    // Awaited, not fired and forgotten: once res.end() runs the instance may be frozen mid-write.
+    const proposed = recorder.lead();
+    if (proposed) {
+      await persistLead({ sessionId: validation.sessionId, fields: proposed, page: validation.page });
+    }
+
     return res.end();
+  }
+);
+
+
+/**
+ * The once-a-day review of every Sol conversation. It REPLACED the per-conversation digest
+ * beacon, so it is now the only path a conversation takes to a human — which is why it sends on
+ * silent days and retries. See lib/CLAUDE.md § The daily report replaced the digest.
+ */
+exports.dailyChatReport = onSchedule(
+  {
+    schedule: '0 8 * * *',
+    timeZone: 'America/New_York',
+    secrets: [sendgridApiKey],
+    region: 'us-central1',
+    memory: '512MiB',
+    timeoutSeconds: 300,
+  },
+  async () => {
+    const report = await collectReport({});
+    const result = await sendDailyReport(report);
+
+    const summary = `conversations=${report.conversations} submitted=${report.confirmedLeads}`
+      + ` unconfirmed=${report.extractedOnly} attempts=${result.attempts}`;
+
+    // Thrown, not swallowed: Cloud Scheduler retries a failed run, and a report nobody received
+    // is the one failure mode this whole job exists to prevent.
+    if (!result.ok) throw new Error(`[dailyReport] gave up after ${result.attempts}: ${result.error}`);
+
+    console.info(`[dailyReport] sent: ${summary}`);
   }
 );

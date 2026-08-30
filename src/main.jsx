@@ -3,6 +3,10 @@ import ReactDOM from 'react-dom/client';
 import App from './App';
 import './index.css';
 import { initWebVitals } from './utils/webVitals';
+import { markBrowser } from './utils/browser';
+
+// Stamps html[data-safari] before first paint, so the motion gates apply on the first frame.
+markBrowser();
 
 // Mount over the prerendered markup rather than hydrating it. The snapshot written by
 // scripts/prerender.mjs is a serialised DOM, not a React server render: the browser

@@ -1,13 +1,18 @@
 # functions/ — Cloud Functions for the Nano Kava site
 
-Two entry points in `index.js`, both thin transports:
+Three entry points in `index.js`, all thin transports:
+
+*Corrected 2026-08-26: this read "Two entry points" and listed `sendChatDigest` below. That
+endpoint was **removed** — see `lib/CLAUDE.md § Conversation digests — RETIRED` — and the
+scheduled `dailyChatReport` replaced it.*
 
 | Export | Gen | Owns | Core logic |
 |---|---|---|---|
-| `sendContactEmail` | 1st | `/contact` form POSTs | `lib/leads.js` |
-| `chat` | 2nd | SSE stream for the Bula concierge | `lib/chat.js` |
+| `sendContactEmail` | 1st | `/contact` form POSTs, and confirming a chat lead | `lib/leads.js`, `lib/chatLeads.js` |
+| `chat` | 2nd | SSE stream for Sol; files each turn and any extracted lead to Firestore | `lib/chat.js`, `lib/chatStore.js`, `lib/chatLeads.js` |
+| `dailyChatReport` | 2nd | **Scheduled** 08:00 America/New_York — the daily review email | `lib/dailyReport.js` |
 
-Both entry points are thin because `lib/` is transport-agnostic — the Vite dev middleware in
+The entry points are thin because `lib/` is transport-agnostic — the Vite dev middleware in
 `vite.config.js` requires the same modules directly, so `make preview` serves both endpoints with
 no Firebase emulator. See § Local development.
 
@@ -23,6 +28,10 @@ Long-form reasoning for the core modules lives one level down, in `lib/CLAUDE.md
 | Rate limiting is per-instance and best-effort | The limit's real strength, Firestore follow-up |
 | Thinking budget | Why `thinkingBudget: 0`, with measurements |
 | Prompt caching is implicit | The 4195 vs 4096 margin, and how it breaks silently |
+| Transcript persistence | The 60-message cap, the declarative 90-day TTL, and the append rule |
+| The lead record is not the transcript | `chatLeads`, why it has no TTL, what `confirmed` means |
+| The daily report replaced the digest | The schedule, the retry, and why it sends on silent days |
+| Conversation digests — RETIRED | What the old per-conversation email did, and why it is gone |
 
 
 ## Why chat is gen2 and sendContactEmail is not
@@ -65,7 +74,7 @@ against prompt injection here, alongside § Lead email escaping in code.
 and its own header says so. Edits made directly to it are lost on the next generation, and worse,
 they make the bot's facts disagree with the website's while the diff looks intentional.
 
-To change what Bula knows, change `src/content/` and regenerate. Site copy and bot knowledge are
+To change what Sol knows, change `src/content/` and regenerate. Site copy and bot knowledge are
 one source of truth by construction — the point, since the persona forbids stating anything the
 knowledge base does not contain.
 
@@ -82,7 +91,9 @@ rather than hanging.
 
 `lib/chat.js` has no dependency on `lib/leads.js`, SendGrid or Firebase secret params, so the
 whole chat path — including a `lead_proposed` card — works locally with only `GOOGLE_AI_API_KEY`
-set.
+set. It requires `lib/chatStore.js` for one regex, and that module reaches `firebase-admin`
+lazily, so no credentials are needed either; the dev middleware prints what it would have stored
+rather than writing it. See `lib/CLAUDE.md § Transcript persistence`.
 
 *Corrected 2026-08-25: this previously warned that `send_lead_to_josh` fails locally because
 `sendLead()` cannot read secrets. The tool no longer sends, so that caveat is gone.*
@@ -93,7 +104,7 @@ set.
 route too — otherwise Send 404s locally and the card hangs in its sending state. **It never
 sends.** It calls `validateLead` (the same call the deployed function makes, `phone` included, so
 a payload that would 400 in production 400s here), prints every received field to the terminal
-prefixed `[bula dev] DRY RUN - no email sent`, and returns
+prefixed `[sol dev] DRY RUN - no email sent`, and returns
 `{ success: true, message: 'Dry run - no email sent', dryRun: true }` — the shape `LeadCard` gates
 on with `response.ok && data.success`.
 

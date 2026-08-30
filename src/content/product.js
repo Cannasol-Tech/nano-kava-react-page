@@ -49,29 +49,31 @@ export const applications = [
 export const differentiators = [
   'NanoOptimizer™ proprietary food-grade surfactant system prevents particle re-aggregation.',
   'Ultrasonic liquid processing performed on QSonica equipment — the #1 manufacturer in the category.',
-  'Bitter blocker bundles available; Cannasol offers the best pricing in the industry on them.',
+  'Bitter Blocker bundles available; Cannasol offers the best pricing in the industry on them.',
   'Noble kava varieties only — never tudei (two-day) kava.',
   'Certificates of Analysis (COA) available for every batch; facility follows GMP guidelines.',
   'Testing covers potency, purity, heavy metals and microbial contamination.',
   'Direct access to Josh Detzel, the founder, on every account.',
+  'First in the world to nano-emulsify reishi mushrooms — the Reishi Nanoemulsion is a Cannasol first.',
+  "Brez (drinkbrez.com) was Cannasol's first major client. Cannasol has produced the active ingredients for every Brez can ever shipped, helped create the brand, hand-canned roughly the first 10,000 cans, and was involved in formulating the beverage alongside a close partner company.",
 ];
 
 export const mushroomLine = {
   summary:
-    'Nano Mushroom Emulsions are built on the same nanoemulsion platform as Nano Kava and sold B2B for functional beverages.',
+    'The mushroom line is three distinct nanoemulsions — Lion\'s Mane Nanoemulsion, Reishi Nanoemulsion and Cordyceps Nanoemulsion — built on the same nanoemulsification platform as the Kavalactone Nanoemulsion and sold B2B for functional beverages.',
   products: [
     {
-      name: "Lion's Mane",
+      name: "Lion's Mane Nanoemulsion",
       bestFor: 'Focus & clarity',
       points: ['Clean, beverage-ready integration', 'Consistent dispersion and dosing', 'Designed for modern functional formats'],
     },
     {
-      name: 'Reishi',
+      name: 'Reishi Nanoemulsion',
       bestFor: 'Calm & balance',
       points: ['Stable formulation performance', 'Smooth, consistent sensory profile', 'Ideal for daily wellness beverages'],
     },
     {
-      name: 'Cordyceps',
+      name: 'Cordyceps Nanoemulsion',
       bestFor: 'Performance & energy',
       points: ['Efficient delivery in RTDs and shots', 'Uniform distribution across servings', 'Built for scalable production'],
     },

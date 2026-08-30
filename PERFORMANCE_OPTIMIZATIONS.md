@@ -724,7 +724,7 @@ Check each array: if it references `theme` or `isDark`, use `useMemo` with the a
 
 **Affected areas**:
 - `btn-shine` class (`overflow: hidden` + buttons have `rounded-full`/`rounded-xl`)
-- `KavaLandingPage.jsx` line 405 (hero card: `overflow-hidden rounded-3xl`)
+- ~~`KavaLandingPage.jsx` (hero card: `overflow-hidden rounded-3xl`)~~ — resolved 2026-08-25: the light-mode hero card (`backdrop-blur-xl` + `overflow-hidden rounded-3xl` + border) was replaced by an edge-free radial scrim, which also removes the backdrop-filter.
 - `KavaLandingPage.jsx` line 463 (CTA button: `overflow-hidden rounded-full`)
 
 **How to implement**:

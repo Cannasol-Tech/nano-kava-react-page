@@ -1,11 +1,10 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import { screen, fireEvent, waitFor } from '@testing-library/react';
 import { renderWithProviders } from './renderWithProviders';
-import { MemoryRouter } from 'react-router-dom';
 import toast from 'react-hot-toast';
 import ContactPage from '../components/ContactPage';
 import KavaLandingPage from '../components/KavaLandingPage';
-import { ThemeProvider } from '../context/ThemeContext';
+import { trackPhoneClick, trackEmailClick } from '../utils/gtag';
 
 // Mock react-hot-toast
 vi.mock('react-hot-toast', () => ({
@@ -60,7 +59,7 @@ describe('Toast Notifications', () => {
       renderWithProviders(<ContactPage />);
 
       // Fill out form
-      fireEvent.change(screen.getByLabelText(/your name/i), {
+      fireEvent.change(screen.getByLabelText(/full name/i), {
         target: { value: 'Test User' },
       });
       fireEvent.change(screen.getByLabelText(/email address/i), {
@@ -68,8 +67,7 @@ describe('Toast Notifications', () => {
       });
 
       // Select inquiry type
-      const sampleCheckbox = screen.getByLabelText(/request samples/i);
-      fireEvent.click(sampleCheckbox);
+      fireEvent.click(screen.getByRole('button', { name: /request samples/i }));
 
       // Submit form
       const submitButton = screen.getByRole('button', { name: /send message/i });
@@ -89,7 +87,7 @@ describe('Toast Notifications', () => {
       renderWithProviders(<ContactPage />);
 
       // Fill out form
-      fireEvent.change(screen.getByLabelText(/your name/i), {
+      fireEvent.change(screen.getByLabelText(/full name/i), {
         target: { value: 'Test User' },
       });
       fireEvent.change(screen.getByLabelText(/email address/i), {
@@ -97,8 +95,7 @@ describe('Toast Notifications', () => {
       });
 
       // Select inquiry type
-      const sampleCheckbox = screen.getByLabelText(/request samples/i);
-      fireEvent.click(sampleCheckbox);
+      fireEvent.click(screen.getByRole('button', { name: /request samples/i }));
 
       // Submit form
       const submitButton = screen.getByRole('button', { name: /send message/i });
@@ -115,8 +112,6 @@ describe('Toast Notifications', () => {
 
   describe('Phone and Email Click Tracking', () => {
     it('should track phone clicks in KavaLandingPage', () => {
-      const { trackPhoneClick } = require('../utils/gtag');
-
       renderWithProviders(<KavaLandingPage />);
 
       // Find and click phone link (using aria-label or text content)
@@ -127,8 +122,6 @@ describe('Toast Notifications', () => {
     });
 
     it('should track email clicks in KavaLandingPage', () => {
-      const { trackEmailClick } = require('../utils/gtag');
-
       renderWithProviders(<KavaLandingPage />);
 
       // Find and click email link

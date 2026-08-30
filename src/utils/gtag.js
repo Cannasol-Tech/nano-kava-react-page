@@ -51,9 +51,9 @@ export function trackEmailConversion() {
   });
 }
 
-/** Track a lead captured in the Bula chat — deliberately separate from form_submission. */
+/** Track a lead captured in the Sol chat — deliberately separate from form_submission. */
 export function trackChatLeadSubmitted({ email, name, phone, company } = {}) {
-  const data = { lead_source: 'bula_chat' };
+  const data = { lead_source: 'sol_chat' };
   if (email) data.user_email = email;
   if (name) data.user_name = name;
   if (phone) data.user_phone = phone;

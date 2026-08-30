@@ -1,48 +1,28 @@
-# src/components/chat — Bula assistant
+# src/components/chat — Sol assistant
 
-Floating chat widget. `ChatWidget.jsx` is the only module `src/App.jsx` imports; the panel,
-the emoji grid and the SSE hook are all reached through it.
+`ChatWidget.jsx` is the only module `src/App.jsx` imports. It owns the launcher, the open/close
+lifecycle and every decision about *when* Sol appears; everything else lives one level down.
 
-| File | Owns |
+| Directory | Owns |
 |---|---|
-| `ChatWidget.jsx` | Launcher button, open/close lifecycle, proactive pop-in, Escape + focus return |
-| `ChatPanel.jsx` | Header / transcript / composer, lazy-loaded on first open |
-| `EmojiPicker.jsx` | Curated emoji grid, lazy-loaded on first picker open |
-| `LeadCard.jsx` | Editable lead card, its send state machine, and the contact-endpoint POST |
-| `useChatStream.js` | SSE transport and message state |
+| `panel/` | The conversation surface: header, transcript, composer, emoji, secret phrase |
+| `lead/` | The editable lead card and its send state machine |
+| `transport/` | SSE streaming, message state, and the team conversation digest |
+| `engagement/` | Section nudges, scroll escalation, the three-tap intent quiz |
 
-## Why the blur is browser-gated
+*Restructured 2026-08-25. This file had reached 322 lines — past the ~200 guidance — with no
+subdirectories to split into. Grouping the modules by layer gave each group a `CLAUDE.md` that is
+auto-loaded when an agent reads a sibling, which a single long file could no longer do well.*
 
-`backdrop-filter: blur()` on a `position: fixed` element is the single worst performance
-offender measured on this site: removing all 22 instances cut Safari frame time from ~137ms to
-~26ms, a 53% reduction (`SAFARI_PERFORMANCE.md`, "After Fix 1"). Safari's WebKit does not batch
-backdrop-filter compositing passes the way Blink does, and `NanoScene` repaints behind
-everything, so each blurred layer re-samples an animating source every frame.
-
-The product requirement is a blurred transcript, so the blur is kept where it is affordable and
-dropped where it is not. `ChatPanel.jsx` sniffs Safari with the same expression `NanoScene.jsx`
-already uses — `/^((?!chrome|android).)*safari/i` — and picks one of two classes on the
-transcript element:
-
-- `.bula-transcript--blur` — real `backdrop-filter: blur(18px)` over a 0.55-alpha background.
-- `.bula-transcript--solid` — no filter, background raised to 0.94/0.95 alpha so the panel still
-  reads as a distinct surface.
-
-Both variants live in `src/index.css` under `/* ── Bula chat widget ── */`, keyed off
-`.bula-panel[data-theme='dark'|'light']`. Never move the blur into a Tailwind
-`backdrop-blur-*` utility — that would apply it unconditionally.
-
-Everything else in the widget animates `transform` and `opacity` only, and every animated
-element carries `will-change`. The panel entrance, the edge-light sweep and the ring settle are
-all finite, so the widget's steady-state animation cost is the launcher pulse and (while
-streaming) three typing dots.
+Sections below are the ones that belong to the widget itself.
 
 ## Prerender and first render
 
 `npm run build` runs `scripts/prerender.mjs`, which drives Puppeteer through every SEO route and
-writes the settled DOM to disk; `src/main.jsx` then calls `hydrateRoot` when that markup is
-present. A first client render that differs from the snapshot throws the whole prerendered root
-away. Two consequences bind this directory:
+writes the settled DOM to disk. *Corrected 2026-08-25: this paragraph said `src/main.jsx`
+calls `hydrateRoot`; it has mounted with `createRoot` since the mismatch work described in
+root CLAUDE.md § Prerendering.* The snapshot must still be a settled, legible page, so two
+consequences bind this directory:
 
 1. **The widget renders closed, always.** `isOpen` starts `false` and the panel is not mounted,
    so the snapshot contains only the launcher button.
@@ -50,6 +30,9 @@ away. Two consequences bind this directory:
    pop-in reads storage inside a `useEffect`, mirroring the `showScene` pattern in
    `src/App.jsx`. The effect also bails when `window.__PRERENDER__` is set, the same guard
    `src/hooks/useInView.js` uses, so Puppeteer never snapshots an opened panel.
+3. **The launcher's arrival is the one exception, and it is gated.** `arrival` starts at
+   `'ready'` — not `'pending'` — whenever `isSequenceEnabled()` is false, which covers both
+   prerendering and reduced motion, so the snapshot never captures a launcher at `opacity: 0`.
 
 The Safari check is a module-level constant in `ChatPanel.jsx` rather than an effect because
 that module is only imported after a user or timer opens the panel — never during hydration.
@@ -58,17 +41,55 @@ that module is only imported after a user or timer opens the panel — never dur
 
 | Key | Set when | Effect |
 |---|---|---|
-| `bula:proactive-shown` | The pop-in fires (dwell or scroll depth) | Pop-in never fires again this session |
-| `bula:dismissed` | The user closes the panel | Suppresses the pop-in for the rest of the session |
+| `sol:proactive-shown` | The pop-in fires (dwell or scroll depth) | Pop-in never fires again this session |
+| `sol:dismissed` | The user closes the panel | Suppresses the pop-in for the rest of the session |
+| `sol:quiz-uninvited` | The picker raises itself *uninvited* | No second uninvited open this session — see `engagement/CLAUDE.md § A chip tap is not an interruption` |
+| `sol:session-id` | The first turn of a conversation is sent | **`localStorage`, not `sessionStorage`** — keys the stored transcript across tabs and return visits. See `transport/CLAUDE.md § The session id` |
 
-Both are written as `'1'` and read through `readFlag`/`writeFlag`, which swallow exceptions:
-Safari private mode throws on `sessionStorage` access rather than returning null. Losing the
-flags degrades to "the pop-in may fire once more", which is acceptable; a thrown error would
-take the widget down.
+*Corrected 2026-08-26, twice: this paragraph opened "Both are written as `'1'`" and covered two
+keys, and then listed `sol:session-id` here as a sessionStorage key. It is a **localStorage** key
+— Stephen chose to stitch a visitor's return visits into one transcript, so this table's heading
+is accurate for every row except that one.*
+
+The **flags** are written as `'1'` and read through `readFlag`/`writeFlag`; `sol:session-id` holds
+an opaque id, lives in `localStorage`, and is read through `chatSession.js`. All of them swallow
+exceptions, because Safari private mode throws on storage access rather than returning null.
+Losing a flag degrades to "the pop-in may fire once more"; losing the session id costs transcript
+continuity. Neither is worth a thrown error that would take the widget down.
 
 ## Proactive pop-in trigger
 
-Whichever comes first: a 12s dwell timer, or a sentinel element at 40% of
+*Corrected 2026-08-25: this section previously listed only the dwell timer and the scroll
+sentinel. The load sequence now opens Sol first, at 3.8s, on every fresh load.*
+
+All three triggers funnel through one `popIn` callback so a single session flag governs them:
+
+| Trigger | Fires | Note |
+|---|---|---|
+| `load-sequence` | 3.8s after first paint | Sol has landed and settled; see src/components/CLAUDE.md, § Load sequence |
+| `dwell` | 12s | The fallback when the sequence is gated off (reduced motion) |
+| `scroll-depth` | 40% of the document | Sentinel + IntersectionObserver |
+
+**The load-sequence greeting is not once-per-session.** *Corrected 2026-08-25: it was, and
+Stephen reloaded the page to find Sol shut, because `sol:proactive-shown` was already set in that
+tab.* `popIn` takes `{ once }`; the greeting passes `false`, so only an explicit dismissal
+(`sol:dismissed`) silences it. The dwell and scroll triggers still honour the session flag.
+
+### Getting noticed while scrolling
+
+A visitor who never opens Sol gets two escalations, and only two (`launcherEscalation.js`):
+
+| Depth | Stage | What happens |
+|---|---|---|
+| 22% | `peek` | A teaser bubble over the launcher — the same component the section nudges use |
+| 55% | `insist` | The launcher wiggles **three times and stops** |
+
+`nextStage` advances but never retreats, so scrolling back up does not un-notice him, and it
+returns to `idle` permanently for anyone who has opened, dismissed, or converted. A section nudge
+always outranks the generic teaser. The wiggle is capped at three iterations in CSS for a plain
+reason: a button that shakes forever reads as broken, not as friendly.
+
+Whichever comes first: the load-sequence mark, a 12s dwell timer, or a sentinel element at 40% of
 `document.documentElement.scrollHeight` entering the viewport. The sentinel uses
 `IntersectionObserver` rather than a scroll listener so no scroll handler reads layout — the
 same reason `src/hooks/useScrollDepth.js` works that way. Note that hook positions its sentinels
@@ -76,66 +97,100 @@ with `top: 25%`-style percentages against a static `body`, which resolves agains
 containing block (the viewport), not the document; this directory computes a pixel offset
 instead.
 
-## Lead card
-
-The model **proposes**; the visitor **sends**. A `lead_proposed` frame appends a `role: 'lead'`
-message carrying the extracted `fields`, and `LeadCard.jsx` renders every one of them as an
-editable input — the model can misread an email off a transcript, and correcting it before it
-goes out is the point of the card existing. `isDialogue` excludes lead messages, so a card is
-never echoed back to the model as conversation.
-
-Send is enabled only when `name`, `company`, `interest` and `reason` are all non-empty **and**
-at least one of `email` / `phone` is non-empty. Email and phone are individually optional
-because a buyer will often give one and not the other; requiring neither would produce leads
-nobody can reply to. The blocking condition is surfaced as a one-line hint under the fields
-rather than a validation dialog.
-
-Sending POSTs to `sendContactEmail` — the same Cloud Function `src/components/ContactPage.jsx`
-calls, with the same `response.ok && data.success` success test — so chat leads land in the
-existing inbox and template rather than a second delivery path. `inquiryType` is the literal
-`'Request Samples, Bula Chat'`, which is what makes them identifiable on the receiving end.
-Cancel collapses the card to a one-line note and leaves the conversation running.
-
-### Send-state animation
-
-Three states, all `transform`/`opacity` (`.bula-lead*` in `src/index.css`):
-
-- **sending** — `.bula-lead__sweep` loops an accent beam across the card; the Send button gets a
-  scale-down and swaps its label for a rotating spinner. The button is a fixed `w-[104px]`
-  precisely so that swap cannot reflow the row.
-- **sent** — the card is replaced by a compact confirmation that scales in, a radial ring
-  expands and fades, and a checkmark draws. The check is **two bars animating `scaleX` from a
-  left transform-origin**, not an SVG `stroke-dashoffset` draw: stroke-dash repaints the path
-  every frame, `scaleX` composites. Eight particles burst outward through per-dot
-  `--bula-burst-x/y` custom properties.
-- **failed** — inline error carrying `(216) 921-2240`, fields stay editable, Send re-enables.
-
 ## Analytics
 
 Chat leads must stay separable from contact-form leads in GA4, so `LeadCard` calls
-`trackChatLeadSubmitted` (event `chat_lead_submitted`, `lead_source: 'bula_chat'`) and
+`trackChatLeadSubmitted` (event `chat_lead_submitted`, `lead_source: 'sol_chat'`) and
 deliberately does **not** also fire `trackFormConversion`'s `form_submission`. Anything that
 fires both would silently double-count the same lead against the form conversion tag.
 
 | Event | Fired from |
 |---|---|
-| `bula_chat_open` | `ChatWidget` — with a `trigger` of `launcher`, `dwell` or `scroll-depth` |
-| `bula_first_message` | `ChatPanel`, once per panel |
-| `bula_lead_proposed` | `LeadCard` mount |
-| `bula_lead_cancelled` | `LeadCard` dismiss |
+| `sol_chat_open` | `ChatWidget` — with a `trigger` of `launcher`, `dwell` or `scroll-depth` |
+| `sol_first_message` | `ChatPanel`, once per panel |
+| `sol_lead_proposed` | `LeadCard` mount |
+| `sol_lead_cancelled` | `LeadCard` dismiss |
 | `chat_lead_submitted` | `LeadCard` on `ok && success` |
-| `bula_tool_handoff` | `tool` frame |
+| `sol_tool_handoff` | `tool` frame |
 
-## SSE contract
 
-`useChatStream.js` POSTs `{ messages: [{ role: 'user'|'model', text }] }` and reads `data: {…}`
-frames off `res.body.getReader()`. Event types: `text` (`delta`), `lead_proposed` (`fields`),
-`tool` (`name`, `status`), `done` (`usage`), `error` (`message`). History is capped at 20 messages client-side; `system`
-messages are local-only and are filtered out of the outbound payload.
+## Sol on a phone
 
-The endpoint is a sibling Cloud Function and may not be deployed. Every failure — non-OK status,
-missing body, network error, `error` frame — resolves the pending assistant turn to a message
-carrying `(216) 921-2240`, so the transcript never shows a stack or an empty bubble. The
-greeting works the same way: `requestGreeting` seeds the bubble with the hardcoded
-`FALLBACK_GREETING` marked `pending`, and the first server token replaces it rather than
-appending to it.
+*Added 2026-08-25 from a bug report: on an iPhone 14 Pro Max the panel opened itself and took
+most of the screen, and the page scrolled straight through it.*
+
+The rule is one line: **nothing opens the panel on a phone except a tap.** `popIn` returns early
+when `isMobileViewport()`, which covers the load-sequence greeting, the 12s dwell and the
+scroll-depth trigger in one place rather than three.
+
+What replaces the auto-open is a **greeting bubble** over the launcher — the same `SolNudge`
+component the section prompts use, with `shimmer` set. It carries a deliberately short line
+(`GREETING_BUBBLE`), because on a phone that bubble *is* the introduction. Tapping it opens the
+panel; dismissing it writes `sol:nudge-dismissed` and Sol stays quiet for the session.
+
+One bubble slot, three possible occupants, in priority order: a contextual **section prompt**, the
+mobile **greeting**, then the generic **scroll teaser**. A section prompt is about what the visitor
+is reading, so it always outranks the other two.
+
+**The picker may raise itself on a phone.** *Corrected 2026-08-26; this previously said it never
+did, via a `canOpenQuiz` `isMobile` guard.* The guard was removed because the server tool still
+reported `shown` to the model regardless, so Sol told a visitor to tap through a picker that had
+never rendered — Stephen hit exactly that: "Sol just told me he opened the sample picker which I
+don't even know what that is and I cannot see it." `@media (max-width: 767px)` now sizes the
+modal for a phone, so the original reason for the guard is gone. Every other restraint holds:
+once per session, never after converting, and a chip tap always wins.
+
+### Escape closes one thing
+
+*Added 2026-08-26 from a bug report.* `ChatWidget`'s Escape handler and both modals' handlers all
+sat on `document` with no guard, so one press dismissed the modal **and** unmounted `ChatPanel` —
+the whole conversation, gone, because the visitor closed a picker. `ChatWidget` now ignores
+Escape while `isModalOpen()`; the reasoning and the capture-phase half of the fix are in
+`engagement/CLAUDE.md § One modal at a time`.
+
+### Following Sol's own links
+
+**On a phone the panel closes on navigation; on desktop it does not.** Sol's quick replies link to
+`/contact`, and the panel lives outside the router, so it survived the route change and sat over
+the destination. Measured in WebKit at 430x740: the panel covered **81%** of the screen and
+`document.elementFromPoint` on the contact form's first field returned `div.sol-transcript` — the
+form was there and untappable. Desktop covers 17% and the field is reachable, so it keeps the
+panel and the conversation with it.
+
+### Sizing and scroll
+
+Both live in `src/index.css` under `@media (max-width: 767px)`, which matches `MOBILE_QUERY` in
+`src/utils/viewport.js` — **change one and you must change the other**, or JS and CSS will disagree
+about what a phone is.
+
+- The sheet is `min(58dvh, 520px)`, with a `vh` line written **first** as the fallback. On iOS
+  Safari `100vh` is the URL-bar-*hidden* height, so a `vh`-sized bottom sheet is clipped until the
+  bar retracts; `dvh` tracks the visible viewport.
+- Scroll chaining had **two** causes. The chrome accepted the pan, so `touch-action: none` is set
+  on `.sol-bar` / `.sol-meniscus` / `.sol-edge-light` — deliberately **not** on the panel root,
+  which would intersect with the transcript's `pan-y` and risks breaking its scrolling on WebKit.
+- The second cause is the real one: **`overscroll-behavior` is inert on a container with nothing
+  to scroll.** Such a container is treated as permanently at its boundary and chains anyway.
+  Chrome 144 fixed this to match the spec; Safari has not. The transcript already had
+  `overscroll-contain` and it did nothing on a short conversation, which is exactly when the bug
+  was reported. `.sol-transcript::after` now guarantees a 1px overflow floor.
+
+**Known, unfixed: the iOS keyboard.** iOS resizes the *visual* viewport but not the *layout*
+viewport, so a bottom-anchored composer sits behind the keyboard; `dvh` does not help, because the
+keyboard is not browser UI. The real fix is positioning the sheet from `visualViewport.height` +
+`offsetTop` rather than `bottom`. Not done here: it needs testing on a physical device, which this
+change could not do. The cheap half is done — the composer is 16px on mobile, below which iOS
+zooms the whole page on focus and compounds every other offset.
+
+**No `viewport-fit=cover`.** Safe-area insets would need it, and it makes content extend under the
+notch site-wide — a large change to fix a bottom margin that the default viewport already clears.
+Under the default `viewport-fit=auto` iOS insets the layout viewport to the safe area itself, so
+`bottom: 1rem` is already clear of the home indicator, in portrait and landscape. The tradeoff is
+that the sheet can never be truly edge-to-edge; it is `calc(100dvh - 6rem)`, not `inset: 0`.
+
+*On the size:* Stephen asked for the panel to be **smaller**. Measured against the live Intercom
+and Crisp widgets at 430x932, both go to `position: fixed; inset: 0` — full screen — at this
+width, because a conversation needs a transcript, a composer and room for the keyboard. This sits
+between the two at ~90% height. The complaint was really about a panel that opened *itself*; that
+is fixed separately above. `calc(100dvh - 6rem)` is the one number to change if it still reads
+too large.

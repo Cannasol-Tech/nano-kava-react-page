@@ -1,12 +1,21 @@
 # functions/lib/ — chat + lead cores
 
-Three modules, all transport-agnostic: nothing here may touch `req`/`res`.
+All transport-agnostic: nothing here may touch `req`/`res`.
+
+*Corrected 2026-08-26: this table opened "Three modules" and listed three. It had been five since
+`digest.js` and `businessHours.js` landed; `chatStore.js` and `particlePalette.js` make seven.*
 
 | File | Owns |
 |---|---|
-| `persona.js` | Bula's system instruction. Compliance-bearing — see `../CLAUDE.md § persona.js is compliance-bearing`. |
+| `persona.js` | Sol's system instruction. Compliance-bearing — see `../CLAUDE.md § persona.js is compliance-bearing`. |
 | `chat.js` | Gemini streaming, the lead-proposal tool, request validation, rate limiting. |
 | `leads.js` | Lead validation, the SendGrid templates, Mailchimp capture, the shared secret handles. |
+| `digest.js` | The team conversation digest — see § Conversation digests. |
+| `businessHours.js` | Whether the office is open, for § The phone offer is gated server-side. |
+| `chatStore.js` | Firestore transcript persistence — see § Transcript persistence. |
+| `chatLeads.js` | The extracted-contact record — see § The lead record is not the transcript. |
+| `dailyReport.js` | The once-a-day review email — see § The daily report replaced the digest. |
+| `particlePalette.js` | Sol's colour library and resolver — see § Colour resolution is server-side. |
 
 `chat.js` does **not** import `leads.js`. The chat path proposes a lead; only `sendContactEmail`
 sends one. See § The tool proposes, the visitor sends.
@@ -38,12 +47,86 @@ asks for a contact method. Everything else (`name`, `company`, `interest`, `reas
 `conversation_summary`) is in `required`.
 
 `toolConfig` is `AUTO`, never `ANY`: `ANY` forces a call on every turn, which would pop the card
-unprompted. Round-trips are capped at 2 (`MAX_TOOL_ROUND_TRIPS`). A call to any other tool name
-still emits `{ type: 'tool', name, status: 'failed' }` so the transport contract stays stable.
+unprompted. Round-trips are capped at 2 (`MAX_TOOL_ROUND_TRIPS`) — see § The last round trip still
+runs its tools for what that cap does and does not end. A call to any other tool name still emits
+`{ type: 'tool', name, status: 'failed' }` so the transport contract stays stable.
 
-Chat leads carry the inquiry type `Bula Chat`, which drives the distinct subject line, the Source
-line in the team email, and the `Nano Kava Bula Chat` Mailchimp tag (form leads keep
+Chat leads carry the inquiry type `Sol Chat`, which drives the distinct subject line, the Source
+line in the team email, and the `Nano Kava Sol Chat` Mailchimp tag (form leads keep
 `Nano Kava Contact Form`).
+
+## A tool result is a request, not a fact on screen
+
+`open_sample_quiz` and `show_nano_explainer` return `status: 'requested'` and emit
+`{ type: 'tool', name, status: 'requested' }`. The server cannot observe the visitor's screen: the
+SSE frame may be dropped, the client may decline it (`sampleQuiz.js § canOpenQuiz` has its own
+policy), the panel may already be closed. Anything the tool tells the model must therefore be
+phrased as a request that may fail.
+
+*Corrected 2026-08-26. Both previously returned `status: 'shown'` with wording asserting the thing
+was on screen — the quiz's read "The three-tap picker is on screen." Stephen hit the consequence
+directly: "Sol just told me he opened the sample picker (which I don't even know what that is and
+I cannot see it)." A model handed a fact will repeat it, and then argue with a visitor who says
+otherwise.*
+
+Two consequences the persona carries rather than the code: Sol names these in words a visitor
+recognises ("three quick questions just came up over the chat", never "picker" or "quiz"), and a
+visitor saying they cannot see it ends the matter — he asks the three questions conversationally
+instead of insisting or re-calling the tool.
+
+The client only branches on `status === 'failed'`, so the rename from `shown` to `requested` is
+invisible to `useChatStream`; it is the model-facing string that mattered.
+
+**The quiz fills in no lead.** Its taps come back as the visitor's own next turn and the card only
+follows once they agree — the deliberate decision recorded in
+`src/components/chat/engagement/sampleQuiz.js`. The tool `description` and the persona both said
+it "fills in a sample request for them"; both were rewritten on 2026-08-26.
+
+## Colour resolution is server-side
+
+*Added 2026-08-26 with `set_particle_color`.* `particlePalette.js` decides what a visitor's colour
+word means; the browser only applies the numbers the SSE frame carries. Sol passes the word
+through **exactly as typed** — the tool description tells him not to correct or substitute it —
+and gets back one of four outcomes:
+
+| status | Means | Sol must |
+|---|---|---|
+| `applied` | It is in the library | Confirm in a sentence |
+| `mapped` | Not stocked; the nearest was used | **Say so** — name both, offer another |
+| `reset` | Put back to the captured defaults | Confirm in a sentence |
+| `not_a_color` | Not a colour at all; nothing changed | Say so lightly, name a couple he has |
+
+Two reasons resolution does not live in the browser. The model needs to know what actually
+happened in order to phrase the reply — the `mapped` case is a promise to the visitor and a client
+that resolved silently could not make it. And the client would then hold a second copy of the
+colour library, which is the drift § A tool result is a request, not a fact on screen was written
+about.
+
+"Is this a colour at all?" is answered by a table of ~180 CSS and common colour names plus hex,
+never by the model. `table` is not in it, so it cannot become a colour because a model felt
+agreeable. Nearest-match is redmean-weighted RGB against the canonical anchors — good enough to
+be unsurprising, and every substitution is announced rather than hidden.
+
+**The one duplicated object is `DEFAULT_PALETTE`**, which also lives in
+`src/utils/particlePalette.js` because the client needs it before any turn happens.
+`src/test/particlePalette.test.js` imports both and fails on drift.
+
+## The last round trip still runs its tools
+
+`MAX_TOOL_ROUND_TRIPS` caps how many times `streamChat` goes back to the *model*. It does not cap
+tool execution: every non-empty `callParts` runs through `runToolCall`, and the final iteration
+simply skips the extra request and breaks after running them.
+
+*Corrected 2026-08-26. The break condition was
+`if (callParts.length === 0 || roundTrip === MAX_TOOL_ROUND_TRIPS) break;`, placed **before**
+`runToolCall`, so a tool call arriving on the last round trip was discarded silently. Its
+narration had already streamed (the text of that turn is emitted as it arrives), so Sol said he
+had put a picker on screen and no `sample_quiz` frame was ever sent — the other half of the bug in
+§ A tool result is a request, not a fact on screen.*
+
+Termination is still the `for` bound, not the break: the loop can only run `MAX_TOOL_ROUND_TRIPS +
+1` times regardless of what the model asks for. The final iteration's `contents` pushes are dead
+weight by construction — kept because dropping them would need a second branch to buy nothing.
 
 ## Phone-only leads
 
@@ -168,3 +251,251 @@ result already free.
 ~100 tokens of headroom. Shrinking `knowledge-base.md` or trimming the persona drops it below the
 minimum and caching stops with no error and no log line; the only symptom is cost. `streamChat`
 logs usage every turn precisely so this is checkable.
+
+
+## The phone offer is gated server-side
+
+Sol may offer Josh's number only when the office is actually open, and only to a visitor who
+reads as a real business prospect. The judgement is the model's (`persona.js` § QUALIFYING A
+CALLER); **the clock is not**. `businessHours.js` decides that, and the number is only present in
+the context string while the line is open — Sol cannot offer a call into an empty office because
+he was never handed anything to offer.
+
+Hours are 10:00–19:00 America/New_York, Monday to Friday, via `Intl.DateTimeFormat` so DST is the
+platform's problem rather than an offset table. *Mon–Fri is an assumption, not a stated
+requirement — Stephen specified "10am Est - 7pm Est" with no days. One constant to change.*
+
+**The line is appended to `contents`, never merged into `systemInstruction`.** That prefix must
+stay byte-identical or implicit caching stops — see § Prompt caching is implicit, which also
+explains why the margin leaves no room to be casual about it. Appending a final turn leaves the
+cached prefix untouched.
+
+It is labelled as coming from the server rather than the visitor. A visitor could still type
+something resembling that marker; the worst case is Sol reciting a phone number that is already
+printed in the site's own hero, so the exposure is nil and the guard is not worth more machinery.
+
+
+## Conversation digests — RETIRED
+
+> ⚠️ **Retired 2026-08-26.** Stephen replaced this with one daily report: *"I think the backstop
+> is really all we need. Just get that report emailed to me once per day."* The `sendChatDigest`
+> endpoint is gone from `index.js`, `ChatPanel` no longer beacons, and the `/api/sendChatDigest`
+> dev route is removed. `digest.js` and `src/components/chat/transport/chatDigest.js` are still
+> on disk but **nothing imports them** — they were left rather than deleted only because neither
+> is in git yet. See § The daily report replaced the digest.
+>
+> The section below is kept because its *reasoning* still binds the replacement: the caps, the
+> escaping, and the recipient rule all moved rather than disappeared.
+
+*Added 2026-08-25 at Stephen's request: every substantive Sol conversation is emailed to the team
+with its transcript, whether or not it produced a lead — "so we can see if the bot is messing up
+or responding right to the potential client questions and see what the customers are really
+looking for."*
+
+`digest.js` builds it, `sendChatDigest` in `index.js` serves it, and the browser posts it with
+`navigator.sendBeacon` on `pagehide` — the one transport that survives a tab closing.
+`ChatPanel` also flushes on unmount, guarded by a ref so only one of the two wins.
+
+**The visitor is never told, and Sol does not know it exists.** It is not in his system
+instruction and there is no tool for it. He has one job on that turn and it is not this.
+
+**This endpoint mails visitor-authored text to us, so its validation IS the security surface:**
+
+- **A floor, not just a ceiling.** Fewer than 2 messages, or no visitor turn at all, returns
+  `{ ok: false }` and nothing is sent. Most visits open Sol and say nothing; without this the
+  team would get a mail per pageview.
+- **Caps** on message count (60, most recent kept), per-message length (2000), and per-field
+  length (200). Unknown roles and unknown contact keys are dropped rather than passed through.
+- **Per-IP rate limit** of 6/hour, same shape and same caveat as the chat limiter — see § Rate
+  limiting is per-instance and best-effort.
+- **Everything is HTML-escaped** on the way into the mail body, for the reason in § Lead email
+  escaping, which applies with more force here: this payload is *entirely* visitor-controlled.
+- **Rejections answer 204, not 4xx.** `sendBeacon` cannot read a response and the page must not
+  care; a status the client cannot act on should not look like an error in logs.
+
+### Who receives it
+
+*Stephen's rule, 2026-08-25.* Recipients are earned, not default:
+
+| Situation | Goes to |
+|---|---|
+| Conversation timed out or the tab closed | **Stephen only** — this is review material |
+| The sample form was actually submitted (`leadSent`) | Stephen **and** Josh |
+| The visitor explicitly agreed to be passed on (`shareAuthorized`) | Stephen **and** Josh |
+
+`recipientsFor` is the single decision and it is unit tested. `shareAuthorized` is set by the
+`share_chat_with_josh` tool, which the persona may call **only** on an explicit yes to that
+question. That is model-judged consent, which § The tool proposes, the visitor sends rejects for
+sending mail to a visitor — the difference is blast radius: a mistaken call here copies a
+colleague on an internal note. It still may not send anything to the visitor, and it is never a
+substitute for the lead form.
+
+**When it fires:** the tab going away, the panel unmounting, or three minutes idle
+(`IDLE_TIMEOUT_MS`), whichever comes first, guarded so only one wins.
+
+**What it deliberately does not do: send anything on the model's say-so.** Stephen asked whether
+Sol could fire the lead email when a visitor types "yes" — he cannot, and must not. A model
+asserting that a visitor confirmed is not consent, and prompt-injected text can make a model
+assert anything; only the Send click on the lead card is consent. See § The tool proposes, the
+visitor sends. The digest is a notification to *us*, which is why it is allowed to be automatic.
+
+Worth knowing: the digest contains whatever a visitor typed, so the site's privacy policy should
+say that chat conversations are retained and emailed to the team.
+
+
+## Transcript persistence
+
+*Added 2026-08-26 at Stephen's request: every chat is stored in Firestore, capped, and deleted
+90 days after it started.*
+
+*Corrected later the same day: the cap was 30 messages. Asked whether "30 turns" meant messages
+or exchanges, Stephen chose exchanges, so `MAX_TURNS` is **60**. A turn is still a message; the
+constant counts messages and 60 of them is 30 back-and-forths.*
+
+`chatStore.js` owns it. One document per session at `chatSessions/{sessionId}`:
+
+| Field | Notes |
+|---|---|
+| `messages` | `[{ role: 'user'\|'model', text }]`, **at most `MAX_TURNS` (60 = 30 exchanges)**, most recent kept |
+| `turnCount` | Every turn the chat ever had, including the ones the cap discarded |
+| `page` | Where the conversation started. Set on create, never overwritten |
+| `createdAt` / `updatedAt` | |
+| `expiresAt` | `createdAt + 90 days`. **The TTL policy reads this field and only this field.** |
+
+**Two bounds, because there are two ways to grow without limit.** The 60-message cap bounds a single
+document; the 90-day TTL bounds the collection. Either one alone leaves the other unbounded.
+
+### The TTL lives in firestore.indexes.json
+
+The policy is declared, not clicked:
+
+```json
+{ "collectionGroup": "chatSessions", "fieldPath": "expiresAt", "ttl": true, "indexes": [] }
+```
+
+`make deploy-firestore` applies it alongside the rules — **it deploys `firestore:indexes` as well
+as `firestore:rules`, and it has to.** Deploying that file is what applies the TTL, so a deploy
+made while the `fieldOverride` is missing would *remove* a live policy rather than leave it
+alone. Do not narrow that target to rules only, and do not "tidy" the fieldOverrides array.
+`make firestore-status` prints what is actually deployed.
+
+`"indexes": []` exempts `expiresAt` from single-field indexing. TTL collection does not need a
+user index and nothing queries the field, so indexing it would only add index entries to every
+document write — Google recommends the exemption for exactly this case.
+
+Deletion is not instant by design: Google documents TTL as removing documents *within 24 hours*
+of the timestamp passing. Treat 90 days as a floor, not a guarantee of a hard cutoff.
+
+### Why the server writes it, and why after the stream
+
+The browser never touches Firestore. `firestore.rules` closes client access entirely and the
+Admin SDK bypasses rules, so there is no path for a visitor to write, read or delete a transcript
+— theirs or anyone's. A client-side write would have needed rules permissive enough to be abused,
+for a payload the server already has in hand.
+
+The write happens in `index.js` **after** `streamChat` resolves, so a slow or failed Firestore
+round trip cannot delay a token the visitor is waiting on. `persistTranscript` never throws and
+returns `{ ok, reason }` instead; a lost transcript is telemetry, and it may not cost anyone an
+answer. `createTranscriptRecorder` wraps the SSE sink to capture the reply text, which is how
+`chat.js` stays unaware that a database exists at all.
+
+### The append rule
+
+The client replays a sliding 20-message window every turn, so appending it wholesale would
+duplicate. An **existing** document therefore takes only the new exchange (last user turn +
+reply); a **new** one takes the whole window, which is the only chance to capture the
+client-owned greeting (§ The greeting is client-owned, in `src/components/chat/transport/`).
+
+Consequence: a write that fails loses that turn's pair permanently — the next turn appends only
+*its* pair and never backfills. Accepted rather than fixed; the alternative is diffing a replayed
+window against stored text on every message.
+
+### The session id is optional on purpose
+
+`validateChatRequest` returns `sessionId: null` for a request that omits it **or** sends a
+malformed one, and answers the turn either way. A cached bundle from before this change sends
+none, and persistence may never be the reason a visitor is refused an answer. Only a
+present-and-malformed id is logged. The id must match `/^[A-Za-z0-9_-]{8,64}$/` before it becomes
+a document path — `..` and `/` are the reason that guard exists rather than a length check.
+
+**Nothing local writes.** `vite.config.js` prints what it would have stored, prefixed
+`[sol dev] DRY RUN - nothing written to Firestore`, for the same reason the lead route does not
+send mail. Verifying a real write needs a deploy.
+
+**Privacy:** this doubles down on the note closing § Conversation digests. Chat conversations are
+now emailed to the team *and* retained for 90 days, and the privacy policy should say so.
+
+
+## The lead record is not the transcript
+
+*Added 2026-08-26. Stephen: "I think the user's data should actually be stored separately from
+the chat context as well — since Sol will have already extracted it, right?" He is right that Sol
+extracts it: `proposeLead()` receives structured `name / company / email / phone / interest /
+reason / conversation_summary` at tool-call time, and until this landed the server discarded all
+of it.*
+
+`chatLeads.js` writes `chatLeads/{sessionId}`. The split is the point:
+
+| | `chatSessions` | `chatLeads` |
+|---|---|---|
+| What it is | Telemetry — how Sol performed | A business record — who the prospect is |
+| Retention | 90-day TTL | **None. It does not expire.** |
+| Grows by | Every turn, capped at 60 | Only when the lead tool fires |
+
+**No TTL is deliberate**, and it is the whole reason for a second collection: losing a real
+prospect's details on day 91 is worse than keeping them, while a transcript genuinely is
+disposable. Do not add an `expiresAt` here, and do not add a `chatLeads` fieldOverride to
+`firestore.indexes.json` — its absence *is* the policy.
+
+### `confirmed` is the difference between a guess and a human
+
+`false` on create: Sol extracted it, and **a model can hallucinate an email address**. The card is
+also editable, so what the visitor submits can differ from what he read. `confirmLead()` flips it
+to `true` from `sendContactEmail` when the visitor actually pressed Send, and:
+
+- **It is never downgraded.** A later extraction merges its fields but re-asserts `confirmed` from
+  what is already stored, so a confirmed record cannot be reverted by a subsequent tool call.
+- **It creates the document if the tool never fired**, so a confirmed submission is never lost to
+  a missing extraction.
+- The daily report labels the two differently on purpose — `SUBMITTED by the visitor` versus
+  `extracted by Sol, NOT submitted`. Treating an unconfirmed record as a lead would mean acting on
+  an address nobody typed.
+
+Writes **merge, never replace**: Sol learns the name three turns before the email, and a later
+extraction that omits a field must not erase it. Fields are allow-listed from the tool's declared
+arguments rather than spread, because `args` is model-authored from visitor text.
+
+### How it is captured without touching chat.js
+
+`createTranscriptRecorder` already wraps the SSE sink, and `lead_proposed` already carries every
+extracted field — so `index.js` reads the lead off the recorder after the stream instead of
+threading a session id through `streamChat` → `runToolCall` → `proposeLead`. Three functions'
+signatures stayed still. Both writes are **awaited** before `res.end()`: once the response closes,
+a gen2 instance may be frozen mid-write.
+
+## The daily report replaced the digest
+
+*Added 2026-08-26.* `dailyReport.js` plus the `dailyChatReport` scheduled function: **08:00
+America/New_York, every day**, to `stephen.boyett@cannasolusa.com`.
+
+It reads Firestore rather than the browser, which is the fix for the failure that motivated it:
+`navigator.sendBeacon` is fire-and-forget and **cannot report failure**, so a killed tab, a
+dropped network or a blocked beacon meant that conversation was simply never emailed and nobody
+could tell. Firestore already has every turn.
+
+Three properties are load-bearing now that this is the *only* path a conversation takes to a
+human:
+
+- **It sends on silent days.** A "no conversations" email is deliberate: silence would otherwise
+  be ambiguous between a quiet day and a dead job.
+- **It retries.** `sendWithRetry` makes `RETRY_ATTEMPTS` (4) attempts with exponential backoff,
+  treating a non-2xx as a failure. If all of them fail the function **throws**, so Cloud Scheduler
+  retries the run — swallowing it would recreate the exact bug this replaced.
+- **Leads are fetched by id, not by date.** A lead's timestamps can sit outside the window (Sol
+  extracted it yesterday, the visitor submitted today) and a date query would miss it.
+
+⚠️ **SendGrid's 202 confirms acceptance, not delivery.** Stephen asked for the sender to "verify
+receipt", and this delivers the retry half honestly but not true receipt: that needs the SendGrid
+Event Webhook (`delivered` / `bounced` / `dropped`), which is a public endpoint plus signature
+verification plus storage, and is **not built**. Do not describe the current behaviour as
+confirmed delivery.

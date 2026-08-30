@@ -28,8 +28,9 @@ Cloud Functions have a separate `functions/` directory with its own `package.jso
 **`make deploy` is the only supported way to release this repo — humans and CI alike.**
 
 ```bash
-make deploy        # build -> firebase deploy --only hosting -> IndexNow submission
-make deploy-all    # the above, plus Cloud Functions
+make deploy         # build -> firebase deploy --only hosting -> IndexNow submission
+make deploy-all     # the above, plus Cloud Functions and Firestore (rules + TTL)
+make firestore-status  # show the deployed Firestore indexes and the transcript TTL
 ```
 
 Do **not** run `firebase deploy` directly. It skips the IndexNow ping, and Bing's index is
@@ -45,6 +46,13 @@ through to `dist/404.html` so Firebase returns a real 404 instead of a soft 404.
 React route therefore requires adding it to `src/seo/routes.js` **and** to the `rewrites`
 array, or it will 404 in production.
 Cloud Functions deploy separately for email handling. Project ID: `nano-kava-landing-page`.
+
+Firestore carries stored chat transcripts. `firestore.rules` closes client access entirely — the
+`chat` function writes through the Admin SDK, which bypasses rules. The 90-day retention TTL is
+declared as a `ttl: true` fieldOverride in `firestore.indexes.json`, so `make deploy-all` ships
+both. `make deploy-firestore` deploys **rules and indexes together on purpose**: that file *is*
+the TTL policy, so deploying it without the fieldOverride would delete a live one.
+`make firestore-status` shows what is deployed.
 
 ## Architecture
 
@@ -75,7 +83,11 @@ Canvas components use precomputed Fibonacci sphere points, pre-allocated sort bu
 - Hover/press — `.interactive-btn`, `.interactive-card`, `.hover-lift`, `.active-press`
 - Parallax — the `useScrollTransform(ref)` hook
 
-Animate **only `transform` and `opacity`**. `backdrop-filter: blur()` on a `position: fixed` element is the single worst offender on this site — see `SAFARI_OPTIMIZATIONS.md`.
+Animate **only `transform` and `opacity`**, and hold `will-change` **only while an animation is
+pending or running**. Both rules were being broken and cost 2.5× the frame rate; the measurements,
+the two bugs and the current budget are in `src/CLAUDE.md § The measured budget`. `backdrop-filter:
+blur()` on a `position: fixed` element is the single worst offender on this site — see
+`SAFARI_OPTIMIZATIONS.md`.
 
 ## SEO / AEO
 
@@ -109,6 +121,17 @@ ClaudeBot, PerplexityBot, CCBot) do not run JavaScript and would otherwise recei
   shipping them.
 - It strips the build-time meta tags that react-helmet-async re-emits with `data-rh="true"`,
   so pages ship exactly one `<title>`, description and canonical.
+- It sets `window.__PRERENDER__`, which `useInView` reads to start every section already
+  revealed. The snapshot is therefore fully visible rather than frozen half-way through a
+  scroll animation — it stays legible with JS disabled, and to crawlers that respect CSS.
+
+**`main.jsx` mounts with `createRoot`; it must not hydrate.** The snapshot is a serialised
+DOM, not a React server render: Chrome normalises inline styles when serialising (react-hot
+-toast's `top/left/right/bottom` comes back as `inset`), and effect-driven state is already
+applied. `hydrateRoot` therefore mismatched on every route (React #418 -> #423) and React
+re-rendered the whole root anyway, so hydrating only added a wasted pass. Measured on a 4G
+profile with cold caches (median of 11), mounting over the snapshot is still a clear win
+over no prerendering at all: FCP 580ms -> 460ms, LCP 1376ms -> 772ms.
 
 ### Testing SEO-bearing components
 
@@ -135,12 +158,15 @@ Standards are documented in `docs/sw-testing-standards.md`. Key points:
 - Assert user-visible behavior: headings, CTAs, navigation links. Do not assert animation timings, Tailwind class strings, or pixel layout
 - Test mocks for `IntersectionObserver` and `ResizeObserver` are in `src/test/setupTests.js`
 
-## AI Chat Widget (Bula)
+## AI Chat Widget (Sol)
 
 A floating sales-concierge widget backed by Gemini. Architecture:
 
 - **Content** — `src/content/*.js` is the single source of truth for site facts (see `src/content/CLAUDE.md`). `scripts/build-knowledge-base.mjs` renders it to `functions/knowledge-base.md` on every build.
 - **Backend** — `functions/lib/chat.js` (model call, tool, rate limiting) and `functions/lib/persona.js` (system instruction, compliance guardrails). Exposed as the **2nd-gen** `chat` function for SSE streaming; `sendContactEmail` stays 1st-gen. Shared lead delivery lives in `functions/lib/leads.js`.
+- **Transcripts** — `functions/lib/chatStore.js` files every turn to Firestore at `chatSessions/{sessionId}`, capped at **60 messages (30 exchanges)** and deleted **90 days** after the chat started. Both bounds exist to stop unbounded growth: the cap bounds one document, the TTL bounds the collection. The TTL is declared in `firestore.indexes.json` and deployed by `make deploy-firestore`. Read `functions/lib/CLAUDE.md § Transcript persistence` first.
+- **Leads** — `functions/lib/chatLeads.js` stores what Sol extracted at `chatLeads/{sessionId}`, **with no TTL**: a transcript is telemetry and expires, a prospect is a business record and does not. `confirmed` separates a model's extraction from a human pressing Send. See `functions/lib/CLAUDE.md § The lead record is not the transcript`.
+- **Daily report** — the scheduled `dailyChatReport` function emails every conversation from the last 24h to Stephen at **08:00 America/New_York**, read from Firestore and retried on failure. It **replaced** the per-conversation digest beacon, which is retired; `functions/lib/digest.js` and `src/components/chat/transport/chatDigest.js` are now unreferenced.
 - **Frontend** — `src/components/chat/`, mounted once in `App.jsx` after `<AppRoutes />`.
 - **Local dev** — `vite.config.js` mounts `/api/chat` in the dev server, so `make preview` works with just `GOOGLE_AI_API_KEY` in `.env`. No Firebase emulator needed.
 

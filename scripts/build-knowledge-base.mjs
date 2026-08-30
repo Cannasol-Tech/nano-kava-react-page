@@ -37,6 +37,7 @@ import {
 } from '../src/content/product.js';
 import { company, sampleOffer, equipment, contactRoutes } from '../src/content/company.js';
 import { externalSources } from '../src/content/external.js';
+import { domainKnowledge } from '../src/content/formulation.js';
 
 const OUT = resolve(dirname(fileURLToPath(import.meta.url)), '../functions/knowledge-base.md');
 
@@ -82,11 +83,17 @@ const doc = [
   section('What differentiates Cannasol', bullets(differentiators)),
   section('Applications', bullets(applications)),
   section('How a new customer gets started', bullets(steps.map((s) => `${s.step} ${s.title} — ${s.description}`))),
-  section('Samples and ordering', bullets([sampleOffer.headline, `Price: ${sampleOffer.price}.`, sampleOffer.moq, `Nano Kava sample request link: ${sampleOffer.kavaUrl}`, `Nano Mushroom sample request link: ${sampleOffer.mushroomUrl}`])),
+  section('Samples and ordering', bullets([sampleOffer.headline, `Price: ${sampleOffer.price}.`, sampleOffer.moq, ...sampleOffer.lineUrls.map(({ name, url }) => `${name} sample request link: ${url}`), `All three mushroom nanoemulsions at once: ${sampleOffer.mushroomUrl}`])),
   section('Nano Mushroom line', bullets([mushroomLine.summary, ...mushroomLine.products.map((p) => `${p.name} — best for ${p.bestFor}. ${p.points.join('; ')}.`), ...mushroomLine.benefits, mushroomLine.caveat])),
   section('How to reach Cannasol', bullets([contactRoutes.form, contactRoutes.formPromise, `Inquiry types on the form: ${contactRoutes.inquiryTypes.join(', ')}.`, contactRoutes.faqPage, contactRoutes.mushroomsPage, contactRoutes.escalation])),
   section('Equipment business', bullets([equipment.summary, `Processor range: ${equipment.range}, ${equipment.startingPrice}.`, `Categories: ${equipment.categories.join(', ')}.`])),
   section('Frequently asked questions', faq),
+  section(
+    'General domain knowledge',
+    `_Technical background for formulation conversations. These are process and composition facts, not health or efficacy claims._\n\n${domainKnowledge
+      .map((topic) => `### ${topic.title}\n\n${bullets(topic.facts)}`)
+      .join('\n\n')}`
+  ),
   section('Corporate web presence (snapshot)', external),
 ].join('\n');
 

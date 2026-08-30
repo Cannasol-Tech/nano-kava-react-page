@@ -1,4 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { onCLS, onINP, onLCP, onFCP, onTTFB } from 'web-vitals';
 import { initWebVitals } from '../utils/webVitals';
 
 // Mock web-vitals library
@@ -62,8 +63,6 @@ describe('Web Vitals Monitoring', () => {
   });
 
   it('should initialize all Web Vitals metrics', () => {
-    const { onCLS, onINP, onLCP, onFCP, onTTFB } = require('web-vitals');
-
     initWebVitals();
 
     expect(onCLS).toHaveBeenCalled();
