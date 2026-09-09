@@ -51,7 +51,7 @@ describe('nextStage', () => {
 describe('messageForStage', () => {
   it('gives the teaser something worth reading', () => {
     const message = messageForStage('peek');
-    expect(message).toMatch(/sample|spec|MOQ/i);
+    expect(message).toMatch(/sample|spec|pricing/i);
     expect(message.length).toBeLessThan(70);
   });
 });

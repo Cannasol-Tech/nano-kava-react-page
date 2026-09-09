@@ -24,9 +24,18 @@ whether to care and one at the proof block is comparing suppliers:
 | `benefits` | educate | why it stays clear |
 | `process` | sample | a sample in their own base |
 | `proof` | proof | what others ship, then a sample |
+| `dosing` | cost | cost per serving at the recommended dose |
 | `contact` | close | samples sent out |
 
-Three of the four questions name a sample. That is the point of the feature.
+*Added the `dosing` row 2026-09-09.* The `#calculator` section (the savings calculator) never had
+a prompt here — a nudge toward a calculator that argued against the product was never wanted. The
+ingredient brief replaces it with an honest dosing & cost-per-serving section, so it earns one now.
+**The landing page still had `id="calculator"` on the section when this was written** — the prompt
+below is keyed to `section: 'dosing'` per the copy-update plan's instruction to match whichever id
+the section lands on; until the landing page lane renames the element to `id="dosing"`, dwelling on
+that section will not raise this nudge. Reconcile the two ids together.
+
+Three of the five questions name a sample. That is the point of the feature.
 
 **The restraint rules are the feature, not decoration.** All of them live in `nextPrompt` as one
 pure decision, and `src/test/sectionPrompts.test.js` asserts each:

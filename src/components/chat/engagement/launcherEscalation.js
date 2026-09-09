@@ -20,7 +20,7 @@ export const ESCALATION_STAGES = [
   {
     key: 'peek',
     atRatio: 0.22,
-    message: 'Questions on specs, MOQs or samples? I am right here.',
+    message: 'Questions on specs, pricing or samples? I am right here.',
   },
   {
     key: 'insist',

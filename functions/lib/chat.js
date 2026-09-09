@@ -169,7 +169,7 @@ const TOOLS = [
       {
         name: EXPLAINER_TOOL,
         description:
-          "Raises a short visual on the visitor's screen showing how small ~18nm is, against a " +
+          "Raises a short visual on the visitor's screen showing how small ~20nm is, against a " +
           'human hair, a red blood cell and a virus. Call it when they ask what nano means, how ' +
           'small the droplets are, why particle size matters, or how ultrasonic processing ' +
           'works. It needs no confirmation from them, but it is a request rather than a fact: it ' +

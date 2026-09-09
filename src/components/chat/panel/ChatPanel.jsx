@@ -380,7 +380,7 @@ export default function ChatPanel({
             value={draft}
             onChange={handleDraftChange}
             onKeyDown={handleKeyDown}
-            placeholder="Ask about dosing, stability, MOQs…"
+            placeholder="Ask about dosing, pricing, samples…"
             aria-label="Message Sol"
             className={`sol-composer-input flex-1 resize-none rounded-xl border px-3 py-2 text-sm leading-5 focus:outline-none focus:ring-2 ${theme.bgInput} ${theme.borderInput} ${theme.text} ${theme.placeholder} ${theme.focusRing}`}
           />

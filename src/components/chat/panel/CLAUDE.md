@@ -104,11 +104,14 @@ and assert none of the four properties is set.
 
 ## The secret phrase
 
-Idea #11. Typing exactly `bula` or `18nm` turns the NanoScene shells rainbow for 5s
+*Corrected 2026-09-09: this section previously read `18nm` — the ingredient brief moved the
+measured particle size to `~20 nm`, and the egg now keys on `20nm` to match.*
+
+Idea #11. Typing exactly `bula` or `20nm` turns the NanoScene shells rainbow for 5s
 (`utils/nanoRainbow.js` — one hue addition per point, and exactly zero when it is off) and makes
 Sol wink once.
 
-**Matching is exact on the trimmed entry, never a substring.** "can you hold 18nm through
+**Matching is exact on the trimmed entry, never a substring.** "can you hold 20nm through
 hot-fill?" is a real question from a real formulator and must reach the model. The egg is
 intercepted before the request is made, so it costs no tokens and Sol never answers "bula"
 earnestly.

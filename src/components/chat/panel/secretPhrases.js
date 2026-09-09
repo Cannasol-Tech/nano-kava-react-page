@@ -4,7 +4,7 @@
  *
  * @description:
  *     Chat easter egg (idea #11). Matches only a deliberate one-word entry, so a formulator
- *     asking a real question about 18nm still reaches Sol. See CLAUDE.md § The secret phrase.
+ *     asking a real question about 20nm still reaches Sol. See CLAUDE.md § The secret phrase.
  *
  * @See Also:
  *     src/utils/nanoRainbow.js
@@ -22,14 +22,14 @@ export const SECRET_PHRASES = [
     reply: 'Bula! That is the toast — and the welcome. Watch the particles for a second.',
   },
   {
-    key: '18nm',
-    triggers: ['18nm', '18 nm', '~18nm'],
-    reply: 'Eighteen nanometres, on the nose. Here is what that looks like when it lights up.',
+    key: '20nm',
+    triggers: ['20nm', '20 nm', '~20nm'],
+    reply: 'Twenty nanometres, on the nose. Here is what that looks like when it lights up.',
   },
 ];
 
 /**
- * Exact match on the trimmed entry only. Substring matching would swallow "can you hold 18nm
+ * Exact match on the trimmed entry only. Substring matching would swallow "can you hold 20nm
  * through hot-fill?", which is a real question and the opposite of an easter egg.
  */
 export function matchSecretPhrase(text) {

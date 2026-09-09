@@ -112,7 +112,7 @@ from `label`:
 | Nano Lion's Mane | Lion's Mane Nanoemulsion | |
 | Nano Reishi | Reishi Nanoemulsion | Cannasol were the first in the world to nano-emulsify Reishi |
 | Nano Cordyceps | Cordyceps Nanoemulsion | |
-| Bitter Blocker | Bitter Blocker | kills residual kava bitterness in a finished drink |
+| Bitter Blocker | Bitter Blocker | for bitter botanicals other than kava — the kava nanoemulsion needs none |
 
 *Previously these were collapsed into a single "Nano Mushrooms" chip. Three strains behave
 differently and buyers ask for them by name, so the card names them.*
@@ -131,5 +131,8 @@ of prose Sol had written. `linesFromInterest` now runs once on mount to pre-sele
 the model passed — matching on the **catalogue** name plus `LINE_ALIASES` — and selection lives
 in component state after that.
 
-The bitter blocker is the one most worth pushing, and not for revenue: a kava buyer who is never
-told about it hits the taste problem in their own kitchen and blames the kava.
+*Corrected 2026-09-09: this section previously said the bitter blocker was worth pushing because
+"a kava buyer who is never told about it hits the taste problem in their own kitchen and blames
+the kava" — the ingredient brief supersedes that: the kava nanoemulsion needs no bitter blocker.*
+Bitter Blocker stays worth offering on its own merits — best pricing in the industry, for bitter
+botanicals other than kava — never framed as something the kava formulation requires.

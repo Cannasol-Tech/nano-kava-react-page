@@ -23,8 +23,8 @@ describe('matchSecretPhrase', () => {
     expect(matchSecretPhrase('bula')).toBeTruthy();
     expect(matchSecretPhrase('  BULA  ')).toBeTruthy();
     expect(matchSecretPhrase('Bula!')).toBeTruthy();
-    expect(matchSecretPhrase('18nm')).toBeTruthy();
-    expect(matchSecretPhrase('18NM')).toBeTruthy();
+    expect(matchSecretPhrase('20nm')).toBeTruthy();
+    expect(matchSecretPhrase('20NM')).toBeTruthy();
   });
 
   it('returns a reply for Sol to say', () => {
@@ -35,10 +35,10 @@ describe('matchSecretPhrase', () => {
   });
 
   it('ignores a real question that merely contains the word', () => {
-    // The whole point: a formulator asking about 18nm must reach Sol, not the easter egg.
-    expect(matchSecretPhrase('is it really 18nm in a finished can?')).toBeNull();
+    // The whole point: a formulator asking about 20nm must reach Sol, not the easter egg.
+    expect(matchSecretPhrase('is it really 20nm in a finished can?')).toBeNull();
     expect(matchSecretPhrase('what does bula mean?')).toBeNull();
-    expect(matchSecretPhrase('can you hold 18nm through hot-fill?')).toBeNull();
+    expect(matchSecretPhrase('can you hold 20nm through hot-fill?')).toBeNull();
   });
 
   it('ignores empty and ordinary input', () => {

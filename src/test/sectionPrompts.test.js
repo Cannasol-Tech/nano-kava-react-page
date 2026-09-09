@@ -27,11 +27,11 @@ import {
 
 describe('the prompt ladder', () => {
   it('covers every section of the landing page', () => {
-    expect(SECTION_PROMPTS.map((p) => p.section)).toEqual(['benefits', 'process', 'proof', 'contact']);
+    expect(SECTION_PROMPTS.map((p) => p.section)).toEqual(['benefits', 'process', 'proof', 'dosing', 'contact']);
   });
 
   it('escalates from educating to closing as the visitor reads further', () => {
-    expect(SECTION_PROMPTS.map((p) => p.intent)).toEqual(['educate', 'sample', 'proof', 'close']);
+    expect(SECTION_PROMPTS.map((p) => p.intent)).toEqual(['educate', 'sample', 'proof', 'cost', 'close']);
   });
 
   it('sends a question the visitor could plausibly have typed', () => {
@@ -59,7 +59,7 @@ describe('the prompt ladder', () => {
       .forEach((prompt) => expect(prompt.label).toMatch(/sample/i));
   });
 
-  it('routes three of the four straight at a sample', () => {
+  it('routes at least three of the five straight at a sample', () => {
     const sampleSeeking = SECTION_PROMPTS.filter((p) => /sample/i.test(p.question));
     expect(sampleSeeking.length).toBeGreaterThanOrEqual(3);
   });

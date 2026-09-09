@@ -56,6 +56,13 @@ export const SECTION_PROMPTS = [
     intent: 'proof',
   },
   {
+    id: 'dosing',
+    section: 'dosing',
+    label: 'What does a serving actually cost?',
+    question: 'What does a serving cost at your recommended dose, and how did you land on those numbers?',
+    intent: 'cost',
+  },
+  {
     id: 'contact',
     section: 'contact',
     label: 'How do I get samples sent out?',
