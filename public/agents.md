@@ -14,8 +14,8 @@ co-packers and formulators. Not a consumer storefront — there is no checkout.
 - **Reishi Nanoemulsion** — functional mushroom line, 15–25 mg per serving; Cannasol
   were the first in the world to nano-emulsify reishi
 - **Cordyceps Nanoemulsion** — functional mushroom line, 25–35 mg per serving
-- **Bitter Blocker** — for other bitter botanicals, sold at the best pricing in the
-  industry; the kava nanoemulsion itself needs no bitter blocker
+- **Bitter Blocker** — sold as its own line at the best pricing in the industry, for
+  kava and other bitter botanicals
 
 ## Verified specifications
 

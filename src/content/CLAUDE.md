@@ -68,9 +68,15 @@ the persona section was named THE BOX HAS ROOM FOR THREE.*
 *Corrected 2026-09-09: `mushroomLine.caveat` read "No numeric specifications (particle size, onset,
 shelf life) are published for the mushroom line." That is now false and the field was deleted — the
 brief publishes a dose range and an ingredient cost per serving for each of the three, plus 50/50
-USA/global sourcing. Bitter Blocker also changed role: it stays a purchasable line, but the kava
-nanoemulsion needs no bitter blocker, so nothing here or in `persona.js` may say a kava buyer will
-hit a taste problem without one.*
+USA/global sourcing. Bitter Blocker also changed role: it stays a purchasable line, but nothing here
+or in `persona.js` may say a kava buyer will hit a taste problem without one.*
+
+*Corrected 2026-09-09 (second pass): the line above previously read "the kava nanoemulsion needs no
+bitter blocker" — Stephen's ruling is narrower than that. The site states neither claim: it does not
+say kava needs a Bitter Blocker, and it does not say kava does not need one. The ingredient brief's
+"no need to employ bitter blockers" phrasing is deliberately not carried onto the site, because it
+steers buyers away from the Bitter Blocker product line. Copy describes taste only ("minimal
+kava-characteristic taste") and keeps Bitter Blocker positively on offer as a separate product.*
 
 ## Client and capability facts live in `differentiators`
 

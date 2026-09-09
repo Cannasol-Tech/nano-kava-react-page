@@ -30,7 +30,7 @@ co-packers and formulators.
 | Separation / settling | Stays clear, stays suspended — no settling, no ringing | Separates, rings the bottle |
 | Shelf stability | 12+ months | Poor |
 | Dose consistency | Uniform and precise | Inconsistent |
-| Taste | Minimal kava-characteristic taste; no bitter blocker needed | Strongly bitter |
+| Taste | Minimal kava-characteristic taste | Strongly bitter |
 | Process requirement | Meter in and stir — no high-shear step | Pre-mix and high-shear typically required |
 
 ## What is nano kava?
@@ -92,9 +92,9 @@ it integrates seamlessly into shots, soft drinks, seltzers and flavored waters.
 **Precise dosing** — uniform distribution of kavalactones throughout the emulsion makes
 dosing accurate and effects predictable serving to serving.
 
-**No bitter blocker needed** — the nanoemulsion carries minimal kava-characteristic
-taste on its own. Bitter Blocker is sold as its own line, at the best pricing in the
-industry, for other bitter botanicals.
+**Minimal kava taste** — the nanoemulsion dissolves in with minimal kava-characteristic
+taste. For brands that want a cleaner finish, Bitter Blocker is sold separately at the
+best pricing in the industry.
 
 **Direct access to Josh** — Cannasol's founder works directly with every client, bringing
 insights from top kratom and kava brands.

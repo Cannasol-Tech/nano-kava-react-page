@@ -27,7 +27,7 @@ export const specComparison = [
   { spec: 'Separation / settling', nano: 'Stays clear, stays suspended — no settling, no ringing', traditional: 'Separates, rings the bottle' },
   { spec: 'Shelf stability', nano: '12+ months', traditional: 'Poor' },
   { spec: 'Dose consistency', nano: 'Uniform and precise', traditional: 'Inconsistent' },
-  { spec: 'Taste', nano: 'Minimal kava-characteristic taste; no bitter blocker needed', traditional: 'Strongly bitter' },
+  { spec: 'Taste', nano: 'Minimal kava-characteristic taste', traditional: 'Strongly bitter' },
   { spec: 'Process requirement', nano: 'Meter in and stir — no high-shear step', traditional: 'Pre-mix and high-shear typically required' },
 ];
 
@@ -50,7 +50,7 @@ export const applications = [
 export const differentiators = [
   'NanoOptimizer™ proprietary food-grade surfactant system prevents particle re-aggregation.',
   'Ultrasonic liquid processing performed on QSonica equipment — the #1 manufacturer in the category.',
-  'Bitter Blocker is sold as its own line at the best pricing in the industry — the kava nanoemulsion itself needs no bitter blocker or flavour modifier.',
+  'Bitter Blocker is sold as its own line at the best pricing in the industry, for kava and other bitter botanicals.',
   'Noble kava varieties only — never tudei (two-day) kava.',
   'A Certificate of Analysis (COA) and a particle-size report are supplied with every lot; facility follows GMP guidelines.',
   'Testing covers potency, purity, heavy metals and microbial contamination.',
@@ -153,9 +153,9 @@ export const features = [
   },
   {
     iconKey: 'Shield',
-    title: 'No Bitter Blocker Needed',
+    title: 'Minimal Kava Taste',
     description:
-      'The kava nanoemulsion dissolves in with minimal kava-characteristic taste, so it needs no bitter blocker or flavour modifier. Bitter Blocker is sold separately, at the best pricing in the industry, for other bitter botanicals.',
+      'The kava nanoemulsion dissolves in with minimal kava-characteristic taste. For brands that want a cleaner finish, Bitter Blocker is sold separately at the best pricing in the industry.',
     highlight: 'Best Pricing',
   },
   {
@@ -180,7 +180,7 @@ export const dropInProcess = {
   summary:
     'Drop-in simple: no high-shear equipment, no pre-mix and no heat step. Batch the beverage, meter in the emulsion, stir to disperse. That is the whole process.',
   clarity:
-    'It dissolves completely into the beverage with no cloud, no ring and minimal kava-characteristic taste, so there is no need to employ bitter blockers or flavour modifiers.',
+    'It dissolves completely into the beverage with no cloud, no ring and minimal kava-characteristic taste.',
 };
 
 export const dosing = {

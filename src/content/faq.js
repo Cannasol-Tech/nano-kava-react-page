@@ -82,7 +82,7 @@ export const faqCategories = [
       {
         question: 'Does nano Kava taste bitter like traditional Kava?',
         answer:
-          'The nanoemulsion dissolves completely into the beverage with minimal kava-characteristic taste, so there is no need to employ bitter blockers or flavor modifiers with it. We do sell a standalone Bitter Blocker at the best pricing in the industry if you are working with other bitter botanicals, and it ships in the same sample box on request.',
+          'The nanoemulsion dissolves completely into the beverage with minimal kava-characteristic taste. For brands that want an even cleaner finish, we sell a standalone Bitter Blocker at the best pricing in the industry, and it ships in the same sample box on request.',
       },
       {
         question: 'How stable is nano Kava in beverages?',

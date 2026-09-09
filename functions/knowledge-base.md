@@ -53,9 +53,9 @@ Our nanoemulsified kava extracts integrate seamlessly into various beverage form
 
 With uniform distribution of kavalactones throughout the nanoemulsion, dosing becomes remarkably accurate—ensuring consistent, predictable effects in every serving.
 
-### No Bitter Blocker Needed (Best Pricing)
+### Minimal Kava Taste (Best Pricing)
 
-The kava nanoemulsion dissolves in with minimal kava-characteristic taste, so it needs no bitter blocker or flavour modifier. Bitter Blocker is sold separately, at the best pricing in the industry, for other bitter botanicals.
+The kava nanoemulsion dissolves in with minimal kava-characteristic taste. For brands that want a cleaner finish, Bitter Blocker is sold separately at the best pricing in the industry.
 
 ### Direct Access to Josh (Personal Support)
 
@@ -80,14 +80,14 @@ Our founder works directly with every client, bringing insights from top Kratom 
 | Separation / settling | Stays clear, stays suspended — no settling, no ringing | Separates, rings the bottle |
 | Shelf stability | 12+ months | Poor |
 | Dose consistency | Uniform and precise | Inconsistent |
-| Taste | Minimal kava-characteristic taste; no bitter blocker needed | Strongly bitter |
+| Taste | Minimal kava-characteristic taste | Strongly bitter |
 | Process requirement | Meter in and stir — no high-shear step | Pre-mix and high-shear typically required |
 
 ## What differentiates Cannasol
 
 - NanoOptimizer™ proprietary food-grade surfactant system prevents particle re-aggregation.
 - Ultrasonic liquid processing performed on QSonica equipment — the #1 manufacturer in the category.
-- Bitter Blocker is sold as its own line at the best pricing in the industry — the kava nanoemulsion itself needs no bitter blocker or flavour modifier.
+- Bitter Blocker is sold as its own line at the best pricing in the industry, for kava and other bitter botanicals.
 - Noble kava varieties only — never tudei (two-day) kava.
 - A Certificate of Analysis (COA) and a particle-size report are supplied with every lot; facility follows GMP guidelines.
 - Testing covers potency, purity, heavy metals and microbial contamination.
@@ -107,7 +107,7 @@ Our founder works directly with every client, bringing insights from top Kratom 
 ## Adding it to a batch
 
 - Drop-in simple: no high-shear equipment, no pre-mix and no heat step. Batch the beverage, meter in the emulsion, stir to disperse. That is the whole process.
-- It dissolves completely into the beverage with no cloud, no ring and minimal kava-characteristic taste, so there is no need to employ bitter blockers or flavour modifiers.
+- It dissolves completely into the beverage with no cloud, no ring and minimal kava-characteristic taste.
 
 ## Dosing and cost per serving
 
@@ -249,7 +249,7 @@ A: No. One of the key benefits of our ~20 nm particle size is crystal-clear form
 
 **Q: Does nano Kava taste bitter like traditional Kava?**
 
-A: The nanoemulsion dissolves completely into the beverage with minimal kava-characteristic taste, so there is no need to employ bitter blockers or flavor modifiers with it. We do sell a standalone Bitter Blocker at the best pricing in the industry if you are working with other bitter botanicals, and it ships in the same sample box on request.
+A: The nanoemulsion dissolves completely into the beverage with minimal kava-characteristic taste. For brands that want an even cleaner finish, we sell a standalone Bitter Blocker at the best pricing in the industry, and it ships in the same sample box on request.
 
 **Q: How stable is nano Kava in beverages?**
 

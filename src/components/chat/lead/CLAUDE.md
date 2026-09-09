@@ -133,6 +133,11 @@ in component state after that.
 
 *Corrected 2026-09-09: this section previously said the bitter blocker was worth pushing because
 "a kava buyer who is never told about it hits the taste problem in their own kitchen and blames
-the kava" — the ingredient brief supersedes that: the kava nanoemulsion needs no bitter blocker.*
-Bitter Blocker stays worth offering on its own merits — best pricing in the industry, for bitter
-botanicals other than kava — never framed as something the kava formulation requires.
+the kava" — that framing is gone.*
+Bitter Blocker stays worth offering on its own merits — best pricing in the industry, for kava and
+other bitter botanicals — never framed as something the kava formulation requires.
+
+*Corrected 2026-09-09 (second pass): an earlier version of this correction said "the kava
+nanoemulsion needs no bitter blocker." Stephen's ruling: the site says neither that kava needs a
+Bitter Blocker nor that it does not — copy describes taste only and keeps Bitter Blocker positively
+on offer.*
