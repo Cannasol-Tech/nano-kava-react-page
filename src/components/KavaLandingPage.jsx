@@ -934,15 +934,7 @@ export default function KavaLandingPage() {
                   className={`btn-shine flex items-center justify-center gap-3 px-5 py-4 ${theme.bgButton} ${theme.text} font-semibold rounded-xl border ${theme.borderCard} hover:border-emerald-500/50 transition-colors interactive-btn hover-scale-xs active-press-sm`}
                 >
                   <Phone className="w-5 h-5 flex-shrink-0" />
-                  Office {company.phone}
-                </a>
-                <a
-                  href={`tel:+1${company.founder.directPhone.replace(/\D/g, '')}`}
-                  onClick={() => trackPhoneClick()}
-                  className={`btn-shine flex items-center justify-center gap-3 px-5 py-4 ${theme.bgButton} ${theme.text} font-semibold rounded-xl border ${theme.borderCard} hover:border-emerald-500/50 transition-colors interactive-btn hover-scale-xs active-press-sm`}
-                >
-                  <Phone className="w-5 h-5 flex-shrink-0" />
-                  Josh {company.founder.directPhone}
+                  Call {company.phone}
                 </a>
                 <a
                   href={`mailto:${company.founder.email}`}

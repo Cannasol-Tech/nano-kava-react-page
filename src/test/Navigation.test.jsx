@@ -199,11 +199,12 @@ describe('CTA Buttons', () => {
     expect(screen.getByRole('link', { name: /email us/i })).toBeInTheDocument();
   });
 
-  it("offers Josh's direct line alongside the office number", () => {
+  it('offers only the office number in the footer, not a personal direct line', () => {
     renderWithRouter(<KavaLandingPage />);
 
-    const direct = screen.getByRole('link', { name: /josh \(330\) 808-0546/i });
-    expect(direct).toHaveAttribute('href', 'tel:+13308080546');
+    const officeLink = screen.getByRole('link', { name: /^call \(216\) 921-2240$/i });
+    expect(officeLink).toHaveAttribute('href', 'tel:+12169212240');
+    expect(screen.queryByText(/808-0546/)).not.toBeInTheDocument();
   });
 
   it('states the business hours in ET', () => {
