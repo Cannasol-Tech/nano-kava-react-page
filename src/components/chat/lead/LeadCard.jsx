@@ -3,11 +3,11 @@
  * @author: Stephen Boyett
  *
  * @description:
- *     Inline transcript card for a `lead_proposed` frame. The visitor confirms a name and an
- *     email, an optional company, taps the sample lines they want, and only an explicit Send
- *     posts to the same sendContactEmail function the contact form uses. Runs a sending / sent /
- *     failed state machine whose animations are transform and opacity only — see
- *     CLAUDE.md § Lead card.
+ *     Inline transcript card for a `lead_proposed` frame. The visitor confirms a name and a
+ *     phone or an email (phone preferred), an optional company, taps the sample lines they
+ *     want, and only an explicit Send posts to the same sendContactEmail function the contact
+ *     form uses. Runs a sending / sent / failed state machine whose animations are transform
+ *     and opacity only — see CLAUDE.md § Lead card.
  *
  * @See Also:
  *     src/components/chat/panel/ChatPanel.jsx
@@ -34,6 +34,7 @@ const SALES_PHONE = '(216) 921-2240';
 
 const SHORT_FIELDS = [
   { key: 'name', label: 'Name', type: 'text', autoComplete: 'name' },
+  { key: 'phone', label: 'Phone (preferred)', type: 'tel', autoComplete: 'tel', inputMode: 'tel' },
   { key: 'email', label: 'Email', type: 'email', autoComplete: 'email' },
 ];
 
@@ -138,7 +139,8 @@ export default function LeadCard({ fields, onFollowUp }) {
   useEffect(() => () => abortRef.current?.abort(), []);
 
   const interest = useMemo(() => labelsFor(lines), [lines]);
-  const canSend = isFilled(draft.name) && isFilled(draft.email) && lines.size > 0;
+  const canSend =
+    isFilled(draft.name) && (isFilled(draft.phone) || isFilled(draft.email)) && lines.size > 0;
 
   const editField = useCallback((key, value) => setDraft((prev) => ({ ...prev, [key]: value })), []);
 
@@ -177,7 +179,8 @@ export default function LeadCard({ fields, onFollowUp }) {
         signal: controller.signal,
         body: JSON.stringify({
           name: draft.name,
-          email: draft.email,
+          ...(isFilled(draft.phone) ? { phone: draft.phone.trim() } : {}),
+          ...(isFilled(draft.email) ? { email: draft.email.trim() } : {}),
           ...(isFilled(draft.company) ? { company: draft.company.trim() } : {}),
           inquiryType: INQUIRY_TYPE,
           interest,
@@ -202,10 +205,12 @@ export default function LeadCard({ fields, onFollowUp }) {
   const hint = useMemo(() => {
     if (status === 'confirming') return 'Nothing has been sent yet — Confirm & send does that.';
     if (!isFilled(draft.name)) return 'Add your name so we know who to greet.';
-    if (!isFilled(draft.email)) return 'Add an email so we can reply.';
+    if (!isFilled(draft.phone) && !isFilled(draft.email)) {
+      return 'Add a phone number so Josh can call you — or an email if you prefer.';
+    }
     if (!lines.size) return 'Pick at least one sample to send.';
     return null;
-  }, [draft.email, draft.name, lines, status]);
+  }, [draft.email, draft.name, draft.phone, lines, status]);
 
   if (status === 'cancelled') {
     return (
@@ -241,6 +246,7 @@ export default function LeadCard({ fields, onFollowUp }) {
             <input
               type={field.type}
               autoComplete={field.autoComplete}
+              inputMode={field.inputMode}
               value={draft[field.key]}
               disabled={isSending}
               onChange={(event) => editField(field.key, event.target.value)}

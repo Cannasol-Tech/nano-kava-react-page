@@ -203,6 +203,11 @@ format regex still applies, but only when an email is actually present.
 
 *Corrected 2026-08-25: it previously required `name`, `email` and `message` unconditionally.*
 
+*Corrected 2026-09-09: the chat lead card (`src/components/chat/lead/`) previously required an
+email before Send would enable, out of step with this backend rule — it now requires a phone or
+an email, same as here, and prefers the phone, on Stephen's instruction: Josh would rather call
+than email. See `src/components/chat/lead/CLAUDE.md § Lead card`.*
+
 This does not change the contact form, which still marks email required in its own UI — it exists
 so a chat visitor who will only give a phone number is still a lead rather than a dropped
 conversation. The 400 message is deliberately left as

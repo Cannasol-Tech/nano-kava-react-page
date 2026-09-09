@@ -3,9 +3,10 @@
  * @author: Stephen Boyett
  *
  * @description:
- *     The lead card asks for a name, an email, an optional company and which sample lines the
- *     visitor wants. Covers pill selection and its pre-fill from what Sol extracted, the
- *     validation hint order, the two-step Send -> Confirm & send gate, and the POSTed payload.
+ *     The lead card asks for a name, a phone or an email (phone preferred), an optional company
+ *     and which sample lines the visitor wants. Covers pill selection and its pre-fill from what
+ *     Sol extracted, the validation hint order, the two-step Send -> Confirm & send gate, and the
+ *     POSTed payload.
  *
  * @See Also:
  *     src/components/chat/lead/LeadCard.jsx
@@ -73,12 +74,21 @@ describe('linesFromInterest', () => {
 });
 
 describe('the form the visitor sees', () => {
-  it('asks for a name, an email and an optional company, and nothing else', () => {
+  it('asks for a name, a phone, an email and an optional company, and nothing else', () => {
     renderCard();
     expect(screen.getByRole('textbox', { name: 'Name' })).toHaveValue('Ana Ruiz');
+    expect(screen.getByRole('textbox', { name: /phone/i })).toBeInTheDocument();
     expect(screen.getByRole('textbox', { name: 'Email' })).toHaveValue('ana@brand.com');
     expect(screen.getByRole('textbox', { name: /company/i })).toBeInTheDocument();
-    expect(screen.getAllByRole('textbox')).toHaveLength(3);
+    expect(screen.getAllByRole('textbox')).toHaveLength(4);
+  });
+
+  it('orders phone before email, and labels phone preferred', () => {
+    renderCard();
+    const textboxes = screen.getAllByRole('textbox');
+    expect(textboxes[1].getAttribute('autocomplete')).toBe('tel');
+    expect(textboxes[2].getAttribute('autocomplete')).toBe('email');
+    expect(screen.getByRole('textbox', { name: /phone \(preferred\)/i })).toBeInTheDocument();
   });
 
   it('never gates Send on the company field', () => {
@@ -86,9 +96,9 @@ describe('the form the visitor sees', () => {
     expect(sendButton()).toBeEnabled();
   });
 
-  it('no longer asks for phone, interest or why now', () => {
+  it('no longer asks for interest or why now', () => {
     renderCard();
-    [/phone/i, /interest/i, /why now/i].forEach((name) => {
+    [/interest/i, /why now/i].forEach((name) => {
       expect(screen.queryByRole('textbox', { name })).not.toBeInTheDocument();
     });
   });
@@ -139,13 +149,13 @@ describe('what blocks the send', () => {
     renderCard({ name: '', email: '' });
     expect(sendButton()).toBeDisabled();
     expect(screen.getByText(/add your name/i)).toBeInTheDocument();
-    expect(screen.queryByText(/add an email/i)).not.toBeInTheDocument();
+    expect(screen.queryByText(/add a phone number/i)).not.toBeInTheDocument();
   });
 
-  it('then asks for the email', () => {
+  it('then asks for a phone or an email, naming the phone', () => {
     renderCard({ email: '' });
     expect(sendButton()).toBeDisabled();
-    expect(screen.getByText(/add an email/i)).toBeInTheDocument();
+    expect(screen.getByText(/add a phone number so josh can call you/i)).toBeInTheDocument();
   });
 
   it('then asks for at least one line', () => {
@@ -158,6 +168,16 @@ describe('what blocks the send', () => {
   it('enables Send once a name, an email and a line are all present', () => {
     renderCard();
     expect(sendButton()).toBeEnabled();
+  });
+
+  it('enables Send with a name, a phone (no email) and a line', () => {
+    renderCard({ email: '', phone: '555-0100' });
+    expect(sendButton()).toBeEnabled();
+  });
+
+  it('does not enable Send on a name and a line alone, with neither phone nor email', () => {
+    renderCard({ email: '' });
+    expect(sendButton()).toBeDisabled();
   });
 });
 
@@ -256,6 +276,16 @@ describe('what gets POSTed', () => {
     // submission rather than Sol's extraction. See functions/lib/CLAUDE.md § The lead record.
     expect(Object.keys(body).sort())
       .toEqual(['email', 'inquiryType', 'interest', 'message', 'name', 'sessionId']);
+  });
+
+  it('sends phone and omits email for a phone-only lead', async () => {
+    renderCard({ email: '', phone: '555-0100' });
+    sendNow();
+
+    await waitFor(() => expect(fetchMock).toHaveBeenCalled());
+    const body = bodySent();
+    expect(body.phone).toBe('555-0100');
+    expect(body).not.toHaveProperty('email');
   });
 
   it('pre-fills the company Sol learned and sends it', async () => {

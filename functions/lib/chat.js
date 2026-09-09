@@ -82,20 +82,20 @@ const TOOLS = [
           'send anything: it shows the visitor a pre-filled card with these details, which they ' +
           'review and submit themselves. After calling it, tell the visitor to check the details ' +
           'and press Send. You must collect AT LEAST ONE of email or phone — a lead with neither ' +
-          'cannot be contacted and will be rejected. Prefer email. Only call this once the ' +
-          'visitor has said they want Josh to follow up.',
+          'cannot be contacted and will be rejected. Prefer a phone number; take an email if that ' +
+          'is what they offer. Only call this once the visitor has said they want Josh to follow up.',
         parameters: {
           type: Type.OBJECT,
           properties: {
             name: { type: Type.STRING, description: "The visitor's name, if mentioned. Leave out if unknown." },
             company: { type: Type.STRING, description: "The visitor's company or brand, if mentioned. Leave out if unknown." },
-            email: {
-              type: Type.STRING,
-              description: "The visitor's work email, if mentioned. Leave out if unknown.",
-            },
             phone: {
               type: Type.STRING,
               description: "The visitor's phone number, if mentioned. Leave out if unknown.",
+            },
+            email: {
+              type: Type.STRING,
+              description: "The visitor's work email, if mentioned. Leave out if unknown.",
             },
             interest: {
               type: Type.STRING,

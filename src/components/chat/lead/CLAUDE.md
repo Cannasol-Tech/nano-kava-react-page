@@ -12,21 +12,27 @@ editable input — the model can misread an email off a transcript, and correcti
 goes out is the point of the card existing. `isDialogue` excludes lead messages, so a card is
 never echoed back to the model as conversation.
 
-**The form is Name, Email, an optional Company, and a row of sample-line pills. Nothing else.**
-*Cut down 2026-08-26.* It previously asked for name, company, email, phone, a free-text Interest
-and a free-text "Why now", and required name + company + interest + reason before Send would
-enable. Stephen, looking at it on a phone: reduce it "down to just Name, Email and make the
+**The form is Name, Phone, Email, an optional Company, and a row of sample-line pills. Nothing
+else.** *Cut down 2026-08-26.* It previously asked for name, company, email, phone, a free-text
+Interest and a free-text "Why now", and required name + company + interest + reason before Send
+would enable. Stephen, looking at it on a phone: reduce it "down to just Name, Email and make the
 sample options just choosable by selecting/unselecting their pills". Every field asked for is a
 field that loses leads, and the conversation already tells Josh why they are here.
 
 *Company came back the same day — "maybe you can fit a text box for company in with that
 design" — as a full-width optional field under the pair. This section previously said company
 "is no longer collected"; it is, but it never gates Send, which is the whole difference between
-a field and a barrier.* `phone` is still not collected and is omitted from the payload rather
-than sent empty.
+a field and a barrier.*
 
-Send enables on name + email + at least one selected line. `interest` is composed from the
-selected pills. That still satisfies `validateLead`, which needs `name`, `message`, and one of
+*Corrected 2026-09-09: this section previously said phone "is still not collected and is omitted
+from the payload rather than sent empty," and that Send enabled on name + email. Stephen's rule:
+a lead needs one way to reach the visitor — phone or email — and Josh would rather call than
+email, so the card now collects phone too, ordered before email, labelled "Phone (preferred)".
+`functions/lib/CLAUDE.md § Phone-only leads` carries the matching backend rule; the two were out
+of step until now.*
+
+Send enables on name + (phone or email) + at least one selected line. `interest` is composed from
+the selected pills. That still satisfies `validateLead`, which needs `name`, `message`, and one of
 `email`/`phone`.
 
 **The pills carry their own contrast, deliberately.** Reported 2026-08-26 with a screenshot: the
