@@ -5,8 +5,8 @@
 
 /* SITE */
   Company: Cannasol Technologies
-  Product: Nano Kava — the world's first ~18nm kava nanoemulsion
+  Product: Nano Kava — the first kava nanoemulsion — ~20 nm and 100% water-dispersible
   Standards: HTML5, CSS3, JSON-LD (schema.org), llms.txt, ai.txt, agents.md,
              Atom + JSON Feed, IndexNow, Content Signals, RFC 9116 security.txt
   Components: React, Vite, Tailwind CSS, Firebase Hosting, Puppeteer prerender
-  Last update: 2026/08/25
+  Last update: 2026/09/09

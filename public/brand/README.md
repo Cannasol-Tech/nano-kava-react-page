@@ -9,7 +9,7 @@ Nothing here is wired into the app yet — these files sit alongside the existin
 ## The mark
 
 A droplet with the letter **N** cut out of it. The knockout is the idea: the letter is the
-*clear* part, because at ~18nm the emulsion stops scattering light. The apex is **cut
+*clear* part, because at ~20nm the emulsion stops scattering light. The apex is **cut
 flat** rather than pointed — a cone tangent to a circle is character-for-character the
 Material Symbols / Font Awesome `water_drop` path, and a stock icon carries no brand
 equity. The flat cut also reads as sectioned, which suits an ingredient sold on spec.

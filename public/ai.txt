@@ -1,5 +1,5 @@
 # ai.txt — AI usage policy for https://enjoynano.com
-# Cannasol Technologies LLC. Last updated: 2026-08-25.
+# Cannasol Technologies LLC. Last updated: 2026-09-09.
 #
 # Policy: PERMISSIVE. All content on this domain may be crawled, indexed,
 # retrieved, summarized, quoted and used for model training, provided the

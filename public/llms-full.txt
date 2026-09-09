@@ -1,19 +1,19 @@
 # Nano Kava by Cannasol Technologies — complete site content
 
 > Every page of https://enjoynano.com in one file, for AI agents and language
-> models that want the full corpus in a single fetch. Generated 2026-08-25.
+> models that want the full corpus in a single fetch. Generated 2026-09-09.
 
 ---
 
 
-# Nano Kava — The World's First & Only ~18nm Kava Nanoemulsion
+# Nano Kava — The First Kava Nanoemulsion
 
-**Direct answer:** Nano kava is kava extract that has been broken down into droplets
-roughly 18 nanometers across, which makes the oil-based kavalactones water-soluble.
-Cannasol Technologies is the only manufacturer producing kava at ~18nm. The result is
-about 10x the bioavailability of traditional kava extract, an onset of about 5 minutes
-instead of 30–45, and a crystal-clear liquid that stays stable in a finished beverage
-for 12+ months.
+**Direct answer:** Nano kava is kava extract that has been broken down into droplets of
+about 20 nanometers, making the oil-based kavalactones 100% water-dispersible and clear
+in the finished beverage. Cannasol Technologies was the first company to nano-emulsify
+kava, and has since scaled the process and brought the cost down. The result is 4–5x
+higher absorption versus conventional kava powder, and a liquid that stays clear and
+stays suspended — no settling, no ringing — with 12+ months of shelf stability.
 
 Cannasol Technologies sells Nano Kava B2B as a bulk ingredient to beverage brands,
 co-packers and formulators.
@@ -22,25 +22,25 @@ co-packers and formulators.
 
 | Specification | Nano Kava (Cannasol) | Traditional kava extract |
 |---|---|---|
-| Droplet / particle size | ~18 nm | Not nanosized (microns+) |
-| Water solubility | Fully water-soluble | Hydrophobic, poorly dispersed |
-| Kavalactone absorption | 80–90% | 10–15% |
-| Relative bioavailability | ~10x | Baseline |
-| Onset time | ~5 minutes | 30–45 minutes |
+| Mean particle size | ~20 nm | 200–1,000 nm — settles, hazes |
+| Water dispersibility | 100% water-dispersible | Hydrophobic, poorly dispersed |
+| Kavalactone load | 30 mg/mL | Varies by extract |
+| Relative absorption | 4–5x conventional kava powder | Baseline |
 | Appearance in beverage | Crystal clear | Cloudy, muddy, gritty |
-| Separation / settling | None — permanently suspended | Separates, rings the bottle |
+| Separation / settling | Stays clear, stays suspended — no settling, no ringing | Separates, rings the bottle |
 | Shelf stability | 12+ months | Poor |
-| Dose consistency | Uniform, precise | Inconsistent |
-| Taste | Greatly reduced bitterness; bitter-blocker bundles available | Strongly bitter |
+| Dose consistency | Uniform and precise | Inconsistent |
+| Taste | Minimal kava-characteristic taste; no bitter blocker needed | Strongly bitter |
+| Process requirement | Meter in and stir — no high-shear step | Pre-mix and high-shear typically required |
 
 ## What is nano kava?
 <a id="what-is-nano-kava"></a>
 
 Nano kava is a nanoemulsified form of kava extract in which the particles are reduced
-to approximately 18 nanometers. Cannasol achieves this with its proprietary
-NanoOptimizer™ surfactant system combined with ultrasonic processing. The ultra-small
-droplet size dramatically increases the bioavailability of the kavalactones — up to
-10x versus traditional kava — and cuts onset time to roughly 5 minutes.
+to approximately 20 nanometers. Cannasol achieves this with its proprietary
+NanoOptimizer™ surfactant system combined with ultrasonic processing on QSonica
+equipment. The result is 4–5x higher absorption versus conventional kava powder, so a
+formulator can use roughly a quarter of a conventional dose.
 
 The terms **nano kava**, **nano-kava**, **nano emulsified kava**, **nanoemulsified
 kava** and **kava nanoemulsion** all describe this same product.
@@ -52,48 +52,49 @@ Nanoemulsification is the process of breaking oil-based kavalactones into nanome
 droplets suspended in water, so small the mixture becomes almost transparent. Cannasol
 runs this process on QSonica ultrasonic liquid-processing equipment — QSonica is the
 number-one name in ultrasonic liquid processing. The enormous increase in surface area
-is what makes the kavalactones readily absorbable by the body.
+is what makes the kavalactones far more absorbable by the body.
 
 ## Kavalactone
 <a id="kavalactone"></a>
 
-Kavalactones are the active compound class in the kava plant (*Piper methysticum*),
-responsible for its calming, stress-reducing effects. In traditional preparations they
-are hydrophobic and poorly absorbed. Nanoemulsification is what makes them behave like
-a water-soluble ingredient.
+Kavalactones are the characteristic active constituents of the kava plant (*Piper
+methysticum*). In traditional preparations they are hydrophobic and poorly absorbed.
+Nanoemulsification is what makes them behave like a water-dispersible ingredient.
 
 ## NanoOptimizer™
 <a id="nanooptimizer"></a>
 
 NanoOptimizer™ is Cannasol's proprietary blend of food-grade surfactants that
-encapsulates the kava droplets, keeps them water-soluble, and prevents them from
-re-aggregating. It is the reason the emulsion stays suspended indefinitely with no
-separation, no settling and no ring around the bottle.
+encapsulates the kava droplets, keeps them water-dispersible, and prevents them from
+re-aggregating. It is the reason the emulsion stays clear and stays suspended, with no
+settling and no ring around the bottle.
 
 ## Why traditional kava fails in modern beverages
 
 - Limited absorption in the gastrointestinal tract
-- 30–45 minute onset frustrates consumers
+- Conventional emulsions run 200–1,000 nm, so they settle and haze the beverage
 - Gritty texture and muddy appearance
 - Inconsistent dosing leads to unpredictable effects
 
 ## What Nano Kava delivers
 
-**Enhanced bioavailability** — the increased surface area of ~18nm nanoemulsified
-kavalactones enables superior absorption in the gastrointestinal tract, delivering
-higher bioavailability and more potent effects at lower doses.
+**Enhanced bioavailability** — the increased surface area of ~20 nm nanoemulsified
+kavalactones delivers 4–5x higher absorption versus conventional kava powder, so you
+can formulate at roughly a quarter of a conventional dose.
 
 **Improved palatability** — nanoemulsification eliminates the gritty texture and muddy
 appearance of traditional kava, producing crystal-clear, visually appealing beverages.
 
-**Ease of production** — integrates seamlessly into shots, soft drinks, seltzers and
-flavored waters.
+**Drop-in production** — no high-shear equipment, no pre-mix and no heat step. Batch
+the beverage, meter in the emulsion, stir to disperse — that is the whole process, and
+it integrates seamlessly into shots, soft drinks, seltzers and flavored waters.
 
 **Precise dosing** — uniform distribution of kavalactones throughout the emulsion makes
 dosing accurate and effects predictable serving to serving.
 
-**Bitter blocker bundles** — Cannasol offers industry-best pricing on bitter blockers so
-finished products taste smooth.
+**No bitter blocker needed** — the nanoemulsion carries minimal kava-characteristic
+taste on its own. Bitter Blocker is sold as its own line, at the best pricing in the
+industry, for other bitter botanicals.
 
 **Direct access to Josh** — Cannasol's founder works directly with every client, bringing
 insights from top kratom and kava brands.
@@ -105,20 +106,33 @@ insights from top kratom and kava brands.
 - RTD (ready-to-drink) relaxation beverages
 - Wellness tonics
 - Mocktails and alcohol alternatives
-- Any water-based formulation needing fast-acting, great-tasting kava
+- Any water-based formulation needing clear, great-tasting kava
 
-## Suggested dosing
+## Dosing & cost per serving
 
-Dosing depends on target effect and format. Typical starting points per serving:
+The nanoemulsion is roughly 4–5x more bioavailable than conventional kava powder, so
+conventional kava dosing does not apply. For most social tonics and seltzers, Cannasol
+recommends 50–60 mg of kavalactone per serving.
 
-| Target effect | Kavalactones per serving |
-|---|---|
-| Mild relaxation | 50–100 mg |
-| Moderate | 100–200 mg |
-| Strong | 200–300 mg |
+| Kavalactone / serving | Emulsion | Servings per liter | Cost / serving |
+|---|---|---|---|
+| 40 mg — light | ~1.33 mL | 750 | $0.33 |
+| 50 mg — recommended | ~1.67 mL | 600 | $0.42 |
+| 60 mg — recommended | ~2.00 mL | 500 | $0.50 |
+| 75 mg — max strength | ~2.50 mL | 400 | $0.63 |
 
-Because bioavailability is far higher, less nano kava is needed than traditional extract
-for the same effect. Cannasol dials in dosage with each client.
+Figures are per serving at the 30 mg/mL kavalactone load; cost is ingredient cost only.
+Cannasol works directly with each client to dial in the dose for their specific product.
+
+## Pricing
+
+**$250 per liter** of ~30 mg/mL kavalactone nanoemulsion. That is the 1,000 L tier,
+currently extended to every customer to make development easy. No minimum to get
+started.
+
+Pricing reflects the current 1,000 L promotional tier and is subject to change —
+contact Josh for a written quote. Cost-per-serving figures above are ingredient cost
+only.
 
 ## How to get started
 
@@ -127,18 +141,49 @@ for the same effect. Cannasol dials in dosage with each client.
 3. **Refine & order** — dial in dosage and place your order.
 4. **Scale production** — launch with confidence and ongoing support.
 
+## Where it comes from
+
+Kava extract is imported directly from the South Pacific — grown in Vanuatu, CO2
+extracted through New Zealand — then nanoemulsified in-house in Florida. The material
+is *Piper methysticum* root and rhizome extract, a 5:1 extract. A Certificate of
+Analysis (COA) and a particle-size report are supplied with every lot.
+
 ## Quality and sourcing
 
 - Noble kava varieties only — never tudei (two-day) kava
 - GMP-guideline facility
-- Certificate of Analysis (COA) available for every batch
+- Certificate of Analysis (COA) and a particle-size report supplied with every lot
 - Tested for potency, purity, heavy metals and microbial contamination
 - Full specification sheets and safety data provided for regulatory compliance
+
+## Labeling guidance for brand owners
+
+This is guidance for a brand owner's own label, not advice about consuming kava — have
+your own label reviewed before print.
+
+Brands dosing in the 50–60 mg range often lead with the weight of the whole nano kava
+complex rather than the kavalactone figure alone — a 60 mg dose becomes **"360 mg Nano
+Kava Complex"** on the front of the can. The actual kavalactone content is then
+disclosed in the Supplement Facts panel, where a consumer or a buyer's regulatory team
+can find it.
+
+A panel following 21 CFR 101.36 carries no zero-amount rows, names the plant part,
+discloses kavalactone content, and carries the CRN caution wording (abridged). Every
+ingredient must appear in Other Ingredients.
+
+## Bulk-ingredient disclaimer
+
+Nano Kava is sold as a bulk ingredient for licensed manufacturers and brand owners, not
+as a finished consumer product. Statements have not been evaluated by the Food and Drug
+Administration. Buyers are responsible for the regulatory status, labeling and
+substantiation of their finished products.
 
 ## Contact
 
 Cannasol Technologies — Sarasota, Florida, United States
-Josh Detzel · josh.detzel@cannasolusa.com · +1-216-921-2240
+Josh Detzel · josh.detzel@cannasolusa.com
+Office +1-216-921-2240 · Josh direct +1-330-808-0546
+Hours: Monday–Friday, 9:30 AM – 5:30 PM ET
 Request a free sample: https://enjoynano.com/contact
 
 ## Related pages
@@ -152,145 +197,159 @@ Request a free sample: https://enjoynano.com/contact
 
 # Nano Kava FAQ
 
-Answers about Cannasol Technologies' ~18nm nano-emulsified kava: the technology, dosing,
-safety, taste, clarity, stability, ordering and compliance.
+Answers about Cannasol Technologies' ~20 nm, 100% water-dispersible nano-emulsified
+kava: the technology, dosing, safety, taste, clarity, stability, ordering and
+compliance.
 
 ## The technology
 
 ### What is nano Kava?
 
-Nano Kava is a nanoemulsified form of Kava extract where particles are reduced to
-approximately 18 nanometers in size. This is achieved through our proprietary
-NanoOptimizer™ surfactant system and ultrasonic processing technology. The ultra-small
-particle size dramatically increases bioavailability (up to 10x compared to traditional
-Kava) and reduces onset time to just 5 minutes.
+Nano Kava is a nanoemulsified form of Kava extract with a mean particle size of about
+20 nanometers, made with our proprietary NanoOptimizer™ surfactant system and
+ultrasonic processing. It is a 100% water-dispersible kavalactone nanoemulsion at
+30 mg/mL, crystal clear in a finished beverage, and roughly 4–5x more bioavailable than
+conventional kava powder.
 
-### What makes Cannasol's ~18nm particle size special?
+### What makes Cannasol's ~20 nm particle size special?
 
-Our ~18nm particle size is the smallest in the industry — no competitor has achieved
-this. Smaller particles mean: (1) faster absorption through cell membranes, (2) higher
-bioavailability of kavalactones, (3) crystal-clear formulations with no cloudiness, and
-(4) better shelf stability with no separation. We achieve this through our partnership
-with QSonica, the #1 ultrasonic liquid processing equipment manufacturer.
+Packaging kavalactones at about 20 nanometers multiplies their surface area, so the
+body absorbs far more of what you put in — 4–5x conventional kava powder — and you can
+formulate at roughly a quarter of a conventional dose. It also means crystal-clear
+formulations with no cloudiness, and an emulsion that stays clear and stays suspended.
+We achieve this through our partnership with QSonica, the #1 ultrasonic liquid
+processing equipment manufacturer. Cannasol was the first company to nano-emulsify
+kava, and has since scaled the process and brought the cost down.
 
 ### How does nano Kava compare to traditional Kava extract?
 
-Traditional Kava extracts are hydrophobic (water-fearing), poorly absorbed, and take
-30–45 minutes to feel effects. Only 10–15% of kavalactones are typically absorbed. Our
-nano Kava is water-soluble, absorbs in minutes, and delivers 80–90% kavalactone
-absorption. The result: faster onset, stronger effects at lower doses, and better-tasting
-products.
+A conventional kava emulsion sits at 200–1,000 nm, so it settles and hazes the
+beverage. Ours is 100% water-dispersible at about 20 nm: it stays clear, stays
+suspended, and is absorbed 4–5x better than conventional kava powder. The practical
+result is a clear drink, a lower dose for the same kavalactone delivery, and minimal
+kava-characteristic taste.
 
 ### What is the NanoOptimizer™ surfactant system?
 
-NanoOptimizer™ is our proprietary blend of food-grade surfactants that encapsulate Kava
-particles, making them water-soluble and stable. This system prevents particle
-re-aggregation, ensures consistent dosing, and allows the nano Kava to remain suspended
-indefinitely without separation or settling.
-
-### How fast does nano Kava work?
-
-Most users report feeling effects within 5 minutes of consumption, compared to 30–45
-minutes for traditional Kava. This rapid onset is due to the ultra-small particle size
-allowing for immediate absorption through the oral mucosa and GI tract.
+NanoOptimizer™ is our proprietary blend of food-grade surfactants that encapsulate
+Kava particles, making them water-dispersible and stable. This system prevents
+particle re-aggregation, ensures consistent dosing, and allows the nano Kava to remain
+suspended indefinitely without separation or settling.
 
 ## Dosing and safety
 
+### How much more bioavailable is nano Kava than kava powder?
+
+The nanoemulsion is roughly 4–5x more bioavailable than conventional kava powder.
+Packaging the kavalactones at about 20 nanometers multiplies their surface area, so far
+more of what you put in is absorbed — which is why you can formulate at roughly a
+quarter of a conventional dose.
+
 ### What dosage should I use in my products?
 
-Dosing depends on your target effects and product format. We recommend starting with
-50–100 mg of kavalactones per serving for mild relaxation, 100–200 mg for moderate
-effects, and 200–300 mg for stronger effects. Because of the increased bioavailability,
-you may need less nano Kava than traditional extracts to achieve the same effects. We
-work directly with each client to dial in the perfect dosage for your specific product.
+Because the nanoemulsion is roughly 4–5x more bioavailable than powder-based kava,
+conventional kava dosing does not apply. For most social tonics and seltzers we
+recommend 50–60 mg of kavalactone per serving: 40 mg is a light serving, 50–60 mg is
+the recommended range, and 75 mg is max strength. At 30 mg/mL that is about 1.33 mL,
+1.67–2.00 mL and 2.50 mL of emulsion per serving respectively. We work directly with
+each client to dial in the dose for their specific product.
 
 ### Is nano Kava safe?
 
-Kava has been consumed safely for thousands of years in Pacific Island cultures. Our nano
-Kava uses the same kavalactones, just in a more bioavailable form. We use only noble Kava
-varieties and test for purity and potency. As with any supplement, we recommend following
-standard Kava safety guidelines and consulting with regulatory experts for your specific
-market.
+Kava has been consumed for thousands of years in Pacific Island cultures. Our nano
+Kava is a root and rhizome extract of Piper methysticum, grown in Vanuatu and CO2
+extracted through New Zealand, then nanoemulsified in-house — the same kavalactones,
+in a more bioavailable form. We use only noble Kava varieties and test for purity and
+potency. As with any supplement, we recommend following standard Kava safety
+guidelines and consulting with regulatory experts for your specific market.
 
 ## Formulation
 
 ### What products can I make with nano Kava?
 
 Our nano Kava is ideal for: Kava seltzers and sparkling beverages, functional shots and
-elixirs, RTD (ready-to-drink) relaxation beverages, wellness tonics, mocktails and alcohol
-alternatives — plus any water-based formulation where you need fast-acting, great-tasting
-Kava.
+elixirs, RTD (ready-to-drink) relaxation beverages, wellness tonics, mocktails and
+alcohol alternatives—plus any water-based formulation where you need clear,
+great-tasting Kava.
 
 ### Will nano Kava make my beverage cloudy?
 
-No. One of the key benefits of our ~18nm particle size is crystal-clear formulations.
+No. One of the key benefits of our ~20 nm particle size is crystal-clear formulations.
 Traditional Kava extracts create cloudy, unappealing beverages. Our nano Kava stays
 perfectly clear and stable, giving your products a premium, professional appearance.
 
 ### Does nano Kava taste bitter like traditional Kava?
 
-Our nano Kava has a significantly reduced bitter taste compared to traditional extracts.
-Additionally, we offer bitter blocker bundles — proprietary flavor-masking ingredients
-that can virtually eliminate any remaining Kava taste. This allows you to create smooth,
-palatable products your customers will actually enjoy drinking.
+The nanoemulsion dissolves completely into the beverage with minimal
+kava-characteristic taste, so there is no need to employ bitter blockers or flavor
+modifiers with it. We do sell a standalone Bitter Blocker at the best pricing in the
+industry if you are working with other bitter botanicals, and it ships in the same
+sample box on request.
 
 ### How stable is nano Kava in beverages?
 
-Our nano Kava emulsion is highly stable with a shelf life of 12+ months when stored
-properly. The NanoOptimizer™ system prevents particle re-aggregation, so there's no
-separation, settling, or ring around the bottle. Your products will look as good on day
-365 as they did on day 1.
+Nano Kava carries 12+ months of shelf stability when stored properly, and it stays
+clear and stays suspended the whole time — no settling, no sediment and no "ring
+around the bottle." The NanoOptimizer™ system prevents particle re-aggregation. Every
+formulation is different, so validate stability in your own base; that is exactly what
+the free sample is for.
 
 ## Ordering
 
 ### What is the minimum order quantity?
 
-We work with brands of all sizes, from startups to established beverage companies. Minimum
-order quantities vary based on your needs. Contact us directly to discuss your specific
-requirements — we're flexible and want to help you succeed.
+There is no minimum to get started. Nano Kava is $250 per liter of ~30 mg/mL
+kavalactone nanoemulsion — our 1,000 L tier, currently extended to every customer to
+make development easy. That pricing is a promotional tier and is subject to change, so
+contact us for a written quote.
 
 ### Can I get samples before ordering?
 
-Absolutely. We encourage all potential partners to test our nano Kava in their
-formulations before committing to an order. Contact us to request samples and we'll get
-them shipped to you promptly.
+Absolutely. Tell us the format you are developing and your target dose, confirm a
+ship-to address, and the samples, a COA and a particle-size report are with you within
+a week. Then you start formulating, with support available by phone.
 
 ### What's the process to get started?
 
-Getting started is simple: (1) schedule a discovery call with Josh to discuss your product
-vision, (2) receive samples to test in your formulations, (3) work with us to refine your
-product and dial in the perfect dosage, (4) place your order and scale production. Josh
-works directly with every client to ensure your success.
+Getting started is simple: (1) Schedule a discovery call with Josh to discuss your
+product vision, (2) Receive samples to test in your formulations, (3) Work with us to
+refine your product and dial in the perfect dosage, (4) Place your order and scale
+production. Josh works directly with every client to ensure your success.
 
 ### Do you offer white-label or private-label services?
 
-We primarily supply nano Kava as a bulk ingredient for your own branded products. We don't
-currently offer finished product manufacturing, but we can recommend trusted co-packers
-and formulators if needed.
+We primarily supply nano Kava as a bulk ingredient for your own branded products. We
+don't currently offer finished product manufacturing, but we can recommend trusted
+co-packers and formulators if needed.
 
 ## Quality and compliance
 
 ### What quality certifications do you have?
 
-We maintain strict quality control standards and can provide Certificates of Analysis
-(COA) for all batches. Our facility follows GMP (Good Manufacturing Practice) guidelines.
-We test for potency, purity, heavy metals, and microbial contamination.
+A Certificate of Analysis and a particle-size report are supplied with every lot. Our
+facility follows GMP (Good Manufacturing Practice) guidelines, and we test for
+potency, purity, heavy metals and microbial contamination.
 
 ### Is your Kava sourced from noble varieties?
 
-Yes, we exclusively use noble Kava varieties, which are the traditional, safe varieties
-that have been consumed for centuries. We never use tudei (two-day) Kava or other
-non-noble varieties that have been associated with adverse effects.
+Yes, we exclusively use noble Kava varieties, which are the traditional, safe
+varieties that have been consumed for centuries. We never use tudei (two-day) Kava or
+other non-noble varieties that have been associated with adverse effects.
 
 ### Can you provide documentation for regulatory compliance?
 
-Yes, we provide full documentation including COAs, specifications sheets, and safety data.
-We can work with your regulatory team to ensure you have everything needed for compliance
-in your target markets.
+Yes, we provide full documentation including COAs, particle-size reports,
+specification sheets and safety data. Nano Kava is sold as a bulk ingredient for
+licensed manufacturers and brand owners, not as a finished consumer product: statements
+have not been evaluated by the Food and Drug Administration, and buyers are responsible
+for the regulatory status, labeling and substantiation of their finished products. We
+can work with your regulatory team to ensure you have everything needed in your target
+markets.
 
 ## Contact
 
-Josh Detzel · josh.detzel@cannasolusa.com · +1-216-921-2240
+Josh Detzel · josh.detzel@cannasolusa.com · +1-216-921-2240 (office) ·
++1-330-808-0546 (Josh direct)
 https://enjoynano.com/contact
 
 ---
@@ -299,15 +358,20 @@ https://enjoynano.com/contact
 # Nano Mushroom Extracts
 
 **Direct answer:** Cannasol Technologies applies the same nanoemulsification platform
-behind its ~18nm Nano Kava to functional mushroom extracts — Lion's Mane, Reishi and
-Cordyceps — producing water-soluble, high-bioavailability mushroom ingredients for
-beverages.
+behind its ~20 nm Nano Kava to functional mushroom extracts — Lion's Mane, Reishi and
+Cordyceps — producing water-dispersible, clear-in-solution mushroom ingredients for
+beverages. A daytime counterpart to kava, or stacked into the same line.
 
-## Offerings
+## Offerings and cost per serving
 
-- **Lion's Mane** — nanoemulsified Lion's Mane extract for water-based functional formats
-- **Reishi** — nanoemulsified Reishi extract
-- **Cordyceps** — nanoemulsified Cordyceps extract
+| Extract | Dose range | Cost / serving |
+|---|---|---|
+| Lion's Mane | 25–35 mg | $0.12–$0.17 |
+| Cordyceps | 25–35 mg | $0.14–$0.20 |
+| Reishi | 15–25 mg | $0.11–$0.19 |
+
+Water-dispersible and clear in solution, on 50/50 USA/global sourcing. Cannasol was
+first in the world to nano-emulsify reishi.
 
 ## Why nanoemulsified mushrooms
 
@@ -318,47 +382,77 @@ beverages.
 - **Production-ready stability** — optimized for reliable batch-to-batch performance and
   scalable manufacturing workflows.
 
+## Quality and documentation
+
+A Certificate of Analysis (COA) and a particle-size report are supplied with every lot,
+the same as the kava nanoemulsion.
+
 ## Samples
 
 Free sample packs of the nano mushroom line are available.
 Request one: https://enjoynano.com/contact?inquiry=samples&product=nano-mushrooms
 
+## Bulk-ingredient disclaimer
+
+Nano mushroom extracts are sold as bulk ingredients for licensed manufacturers and
+brand owners, not as finished consumer products. Statements have not been evaluated by
+the Food and Drug Administration. Buyers are responsible for the regulatory status,
+labeling and substantiation of their finished products.
+
 ## Contact
 
 Cannasol Technologies · Sarasota, Florida, USA
-Josh Detzel · josh.detzel@cannasolusa.com · +1-216-921-2240
+Josh Detzel · josh.detzel@cannasolusa.com
+Office +1-216-921-2240 · Josh direct +1-330-808-0546
+Hours: Monday–Friday, 9:30 AM – 5:30 PM ET
 
 ---
 
 
 # Contact Cannasol Technologies
 
-Reach the Nano Kava team for free samples, pricing, formulation support, minimum order
-quantities or partnership inquiries.
+Reach the Nano Kava team for free samples, pricing, formulation support, order
+minimums or partnership inquiries.
 
 ## Direct contact
 
 - **Name:** Josh Detzel
 - **Email:** josh.detzel@cannasolusa.com
-- **Phone:** +1-216-921-2240
+- **Office phone:** +1-216-921-2240
+- **Josh direct:** +1-330-808-0546
 - **Location:** Sarasota, Florida, United States
-- **Hours:** Monday–Friday, 9:00–17:00 ET
+- **Hours:** Monday–Friday, 9:30 AM – 5:30 PM ET
 - **Serves:** United States (beverage brands, co-packers, formulators)
 
 ## Request a free sample
 
-- Nano Kava emulsion sample: https://enjoynano.com/contact?inquiry=samples&product=nano-kava
-- Nano Mushroom sample pack: https://enjoynano.com/contact?inquiry=samples&product=nano-mushrooms
+- Kavalactone Nanoemulsion (Nano Kava) sample: https://enjoynano.com/contact?inquiry=samples&product=nano-kava
+- Lion's Mane Nanoemulsion sample: https://enjoynano.com/contact?inquiry=samples&product=lions-mane
+- Reishi Nanoemulsion sample: https://enjoynano.com/contact?inquiry=samples&product=reishi
+- Cordyceps Nanoemulsion sample: https://enjoynano.com/contact?inquiry=samples&product=cordyceps
+- Bitter Blocker sample: https://enjoynano.com/contact?inquiry=samples&product=bitter-blocker
+- All three mushroom nanoemulsions: https://enjoynano.com/contact?inquiry=samples&product=nano-mushrooms
 - General sample pack: https://enjoynano.com/contact?inquiry=samples
 
 Samples are free. There is no purchase requirement to evaluate the ingredient in your
-formulation.
+formulation. Tell us the format and target dose, and the samples, a COA and a
+particle-size report are with you within a week:
+
+1. Confirm your ship-to address and the format you are developing.
+2. Samples ship with a COA and a particle-size report.
+3. Start formulating — support is available by phone.
 
 ## What to include in an inquiry
 
-Product format (seltzer, shot, RTD, tonic), target kavalactone dose per serving, expected
-annual volume, and target launch market — this lets Cannasol respond with a specific
-recommendation rather than a generic quote.
+Product format (seltzer, shot, RTD, tonic), target kavalactone dose per serving,
+expected annual volume, and target launch market — this lets Cannasol respond with a
+specific recommendation rather than a generic quote.
+
+## Pricing
+
+Nano Kava is $250 per liter of ~30 mg/mL kavalactone nanoemulsion — the 1,000 L tier,
+currently extended to every customer. No minimum to get started. That pricing is a
+promotional tier and is subject to change; contact Josh for a written quote. Cost-per-
+serving figures are ingredient cost only.
 
 ---
-
