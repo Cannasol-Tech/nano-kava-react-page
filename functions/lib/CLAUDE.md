@@ -100,6 +100,56 @@ that reply), because a model that cannot call it can still describe it.
 byte-identical or implicit caching stops — see § Prompt caching is implicit — do not add explicit
 caches. Only the tool list changes.
 
+**Withholding the declaration is not enough, and that surprised us.** *Added 2026-09-08 after the
+first fix was measured failing.* `persona.js` names `open_sample_quiz` in prose, so the model
+emitted a call for it on roughly one turn in three with the tool absent from the declarations —
+and `runToolCall` executed it, raising the picker and printing "three quick questions just came
+up over the chat". `runToolCall` now refuses that call itself and returns `not_available` with the
+reason, which reaches the model in the same turn. Two layers, because either alone leaks:
+withholding stops most calls, refusing stops the rest.
+
+## The length cap
+
+*Added 2026-09-08.* Stephen, against a 145-word reply: cap Sol at about three quarters of it.
+`MAX_REPLY_WORDS` (100) and `MAX_REPLY_SENTENCES` (3) in `chat.js` are the numbers.
+
+Where the rule lives matters more than the numbers. Measured, in order:
+
+| Where the limit was stated | Result |
+|---|---|
+| `persona.js` STYLE, mid-prompt | ignored — 122-158 word replies |
+| Same, with `maxOutputTokens: 170` | replies chopped mid-sentence |
+| Appended after the last turn (`brevityReminder`) | **61-89 words, nothing truncated** |
+
+So the rule rides in the same trailing message as `businessHoursContext()`, read immediately
+before the model answers. `maxOutputTokens` is 220 — a runaway guard, deliberately *above* the
+instructed limit, because a reply cut off mid-sentence reads worse than a long one. Do not lower
+it to enforce brevity; that was tried and it truncates. `test/e2e/sol-conversation.mjs` word-counts
+every reply, which is the only place this can actually be verified.
+
+## Proving a lead was really delivered
+
+*Added 2026-09-08, after a reported "no email was sent" that turned out to be delivered.*
+
+A 200 from `sendContactEmail` means SendGrid accepted the message, not that anyone received it.
+Nothing checked further, so there was no way to tell a delivery failure from an inbox filter.
+
+- `functions/test/leadDelivery.test.js` — fast, sends nothing: both team addresses on one message,
+  the visitor auto-reply, the authenticated From, and a SendGrid throw propagating rather than
+  being reported as a send.
+- `test/e2e/lead-delivery.mjs` — posts a marked lead to the **deployed** function, then polls
+  SendGrid's Email Activity until every row settles and fails on anything but `delivered`. It also
+  checks all four suppression lists. Run it with `make test-lead-delivery`; it emails the team.
+
+Match activity rows by the marker in the company field (it lands in the team subject) plus a time
+window for the auto-reply, whose subject is fixed. **Never by a `unique_args` query** — nothing
+sets any, so that query answers 200 with an empty list and a run that really delivered reads as a
+run that sent nothing. That cost a debugging cycle.
+
+`cannasolusa.com` is on Microsoft 365. Delivery is confirmed by the 250 in the delivered event's
+reason (`Hostname=...outlook.com`); anything after that — Junk, hosted quarantine, a transport
+rule — is invisible to SendGrid and has to be checked in the tenant.
+
 ## Colour resolution is server-side
 
 *Added 2026-08-26 with `set_particle_color`.* `particlePalette.js` decides what a visitor's colour

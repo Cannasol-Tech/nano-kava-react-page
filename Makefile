@@ -1,7 +1,7 @@
 # Cannasol Nano Kava Landing Page - Makefile
 # ============================================
 
-.PHONY: help install install-functions preview preview-mushrooms preview-chrome preview-chrome-mushrooms dev build clean deploy deploy-all deploy-functions deploy-firestore firestore-status kb seo-assets seo-indexnow claude-code
+.PHONY: help install install-functions preview preview-mushrooms preview-chrome preview-chrome-mushrooms dev build clean deploy deploy-all deploy-functions deploy-firestore firestore-status kb seo-assets seo-indexnow claude-code test-lead-delivery test-sol
 
 # Default target
 help:
@@ -145,3 +145,12 @@ deploy-firestore:
 firestore-status:
 	@echo "Deployed Firestore indexes and field overrides (expiresAt should show a TTL):"
 	firebase firestore:indexes --project nano-kava-landing-page
+
+## Proves a sample request is really delivered — posts to the DEPLOYED function and polls
+## SendGrid until every recipient settles. Emails the team; run it deliberately.
+test-lead-delivery:
+	node test/e2e/lead-delivery.mjs
+
+## Live conversation checks against the real model. Needs `make dev` running.
+test-sol:
+	node test/e2e/sol-conversation.mjs

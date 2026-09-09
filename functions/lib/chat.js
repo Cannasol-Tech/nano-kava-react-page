@@ -38,6 +38,13 @@ const MODEL = 'gemini-3.5-flash';
 // Measured: ~500 thinking tokens/turn bought nothing on this workload; see CLAUDE.md § Thinking budget.
 const THINKING_BUDGET = 0;
 
+// Stephen, 2026-09-08, against a 145-word reply: cap Sol at about three quarters of it. ~110
+// words is the instructed target in persona.js; this is the ceiling that makes it a real limit.
+// Set above the target on purpose — a reply chopped mid-sentence reads worse than a long one.
+const MAX_REPLY_WORDS = 100;
+const MAX_REPLY_SENTENCES = 3;
+const MAX_OUTPUT_TOKENS = 220;
+
 const MAX_TOOL_ROUND_TRIPS = 2;
 const MAX_MESSAGES = 20;
 const MAX_MESSAGE_CHARS = 2000;
@@ -352,8 +359,29 @@ function toolsFor({ quizAnswered = false } = {}) {
   return [{ functionDeclarations: TOOLS[0].functionDeclarations.filter((d) => d.name !== QUIZ_TOOL) }];
 }
 
+/** Read immediately before the model answers, which is the only place the cap holds. */
+function brevityReminder() {
+  return '[LENGTH LIMIT — from the Cannasol server] Your reply must be at most '
+    + `${MAX_REPLY_SENTENCES} sentences and under ${MAX_REPLY_WORDS} words. This is a hard limit `
+    + 'and it applies to this reply however much they asked for. Answer the one thing that matters '
+    + 'most, then stop and offer to go deeper. Do not open by complimenting their project or '
+    + 'restating their question, and do not close by summarising what you just said.';
+}
+
 /** Runs a model-requested tool call and returns the functionResponse payload. */
-function runToolCall(call, onEvent) {
+function runToolCall(call, onEvent, { quizAnswered = false } = {}) {
+  // Declaring nothing does not stop the call: persona.js names this tool in prose and the model
+  // asks for it regardless. Refusing here is what keeps the picker off an answered visitor's
+  // screen. See CLAUDE.md § The picker is offered once.
+  if (call.name === QUIZ_TOOL && quizAnswered) {
+    return {
+      status: 'not_available',
+      message: 'Not raised: the visitor already answered these three questions and the answers '
+        + 'are in this conversation. Do not say any questions came up and do not ask them to tap '
+        + 'anything — recap what they told you and offer the sample.',
+    };
+  }
+
   if (call.name === LEAD_TOOL) return proposeLead(call.args || {}, onEvent);
   if (call.name === EXPLAINER_TOOL) return showNanoExplainer(onEvent);
   if (call.name === QUIZ_TOOL) return openSampleQuiz(onEvent);
@@ -371,14 +399,18 @@ async function streamChat({ apiKey, messages, quizAnswered = false, onEvent }) {
   const contents = messages.map(({ role, text }) => ({ role, parts: [{ text }] }));
   // Appended, never merged into systemInstruction: that prefix must stay byte-identical or
   // implicit caching stops. See CLAUDE.md § The phone offer is gated server-side.
-  if (contents.length > 0) contents.push({ role: 'user', parts: [{ text: businessHoursContext() }] });
+  // The length rule rides here rather than only in the persona: last-read wins, and the same
+  // rule buried in STYLE was measured being ignored by 15-45 words. See CLAUDE.md § The length cap.
+  if (contents.length > 0) {
+    contents.push({ role: 'user', parts: [{ text: `${businessHoursContext()}\n\n${brevityReminder()}` }] });
+  }
   const config = {
     systemInstruction: systemInstruction(),
     tools: toolsFor({ quizAnswered }),
     toolConfig: { functionCallingConfig: { mode: FunctionCallingConfigMode.AUTO } },
     safetySettings: SAFETY_SETTINGS,
     thinkingConfig: { thinkingBudget: THINKING_BUDGET },
-    maxOutputTokens: 700,
+    maxOutputTokens: MAX_OUTPUT_TOKENS,
     temperature: 0.7,
   };
 
@@ -411,7 +443,10 @@ async function streamChat({ apiKey, messages, quizAnswered = false, onEvent }) {
     contents.push({ role: 'model', parts: modelParts });
 
     const responseParts = callParts.map(({ functionCall }) => ({
-      functionResponse: { name: functionCall.name, response: runToolCall(functionCall, onEvent) },
+      functionResponse: {
+        name: functionCall.name,
+        response: runToolCall(functionCall, onEvent, { quizAnswered }),
+      },
     }));
     contents.push({ role: 'user', parts: responseParts });
 
@@ -503,6 +538,10 @@ module.exports = {
   runToolCall,
   streamChat,
   toolsFor,
+  MAX_REPLY_WORDS,
+  MAX_REPLY_SENTENCES,
+  MAX_OUTPUT_TOKENS,
+  brevityReminder,
   validateChatRequest,
   rateLimit,
 };

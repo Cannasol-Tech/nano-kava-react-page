@@ -21,6 +21,19 @@
 const results = [];
 const BASE = process.env.CHAT_BASE_URL || 'http://localhost:3000';
 
+// Stephen's cap, 2026-09-08: about three quarters of a 145-word reply he called too long.
+// functions/lib/chat.js § MAX_REPLY_WORDS is the same number; persona.js states it to the model.
+const MAX_REPLY_WORDS = 110;
+
+/** Every reply is length-checked, because a cap nobody measures is a suggestion. */
+const wordCount = (text) => String(text || '').trim().split(/\s+/).filter(Boolean).length;
+
+function checkLength(label, text) {
+  const words = wordCount(text);
+  check(`${label}: within the ${MAX_REPLY_WORDS}-word cap`, words <= MAX_REPLY_WORDS,
+    `${words} words — "${String(text).slice(0, 90)}..."`);
+}
+
 async function converse(turns, { quizAnswered = false } = {}) {
   let lead = null;
   let lastText = '';
@@ -77,6 +90,7 @@ async function scenarioMemoryAcrossTurns() {
     "main worry is it clouding up after a few months on shelf",
     "sure, send me a sample - priya@saltmarsh.co, 503-555-0142",
   ]);
+  checkLength('memory reply', text);
   check('card was proposed', !!lead, `no lead_proposed event. last reply: ${text.slice(0, 140)}`);
   if (!lead) return;
   check('remembered name from turn 2', has(lead.name, 'Priya'), `name = ${JSON.stringify(lead.name)}`);
@@ -93,6 +107,7 @@ async function scenarioUnknownRoutesToContact() {
   const { text, lead } = await converse([
     'what is your price per kilogram at 500kg, and can you ship to Canada next week?',
   ]);
+  checkLength('unanswerable reply', text);
   check('did not invent a price', !/\$\s?\d/.test(text), `leaked a number: ${text.slice(0, 160)}`);
   check('routed to Josh or the contact form', routesToHuman(text), text.slice(0, 160));
   check('did not silently fabricate a lead', lead === null || !!lead, '');
@@ -101,6 +116,7 @@ async function scenarioUnknownRoutesToContact() {
 async function scenarioSampleAskIsImmediate() {
   console.log('\n[3] A bare sample request opens the form immediately');
   const { lead, text } = await converse(['can I get samples?']);
+  checkLength('sample-ask reply', text);
   check('card proposed on the first turn', !!lead, text.slice(0, 160));
   if (lead) check('interest was populated', !!lead.interest, `interest = ${JSON.stringify(lead.interest)}`);
 }
@@ -108,6 +124,7 @@ async function scenarioSampleAskIsImmediate() {
 async function scenarioSellsTheSample() {
   console.log('\n[4] Answers a technical question and still steers to a sample');
   const { text } = await converse(['what surfactant system do you use and why does particle size matter?']);
+  checkLength('technical reply', text);
   check('answered technically', /surfactant|nanoOptimizer|particle|droplet/i.test(text), text.slice(0, 120));
   check('steered toward a sample', /sample/i.test(text), text.slice(0, 200));
 }
@@ -146,6 +163,7 @@ async function scenarioAnsweredPickerIsNotReRaised() {
 
   check('did not ask them to tap through the same three questions',
     !/three quick questions|tap through|came up over the chat/i.test(text), text.slice(0, 200));
+  checkLength('picker recap', text);
   check('recapped the format they gave', /seltzer|rtd/i.test(text), text.slice(0, 200));
   check('moved toward the sample', /sample/i.test(text), text.slice(0, 200));
   check('could not call the picker tool at all', !tools.includes('open_sample_quiz'), tools.join(', '));
@@ -158,7 +176,20 @@ async function scenarioProceedAfterAnswering() {
     'ok, proceed',
   ], { quizAnswered: true });
   check('did not claim to have sent questions', !/i have sent|just came up over the chat/i.test(text), text.slice(0, 200));
+  checkLength('proceed reply', text);
   check('carried the conversation forward', /sample|josh|email|spec|seltzer/i.test(text), text.slice(0, 200));
+}
+
+async function scenarioRepliesAreNotTruncated() {
+  console.log('\n[8] The cap shortens replies without chopping them');
+  for (const turn of [
+    'tell me everything about your nanoemulsion, the process, the specs and the shelf life',
+    'what is the difference between all five of your product lines?',
+  ]) {
+    const { text } = await converse([turn]);
+    checkLength('long-ask reply', text);
+    check('ends on a finished sentence', /[.!?"]\s*$/.test(text.trim()), `...${text.slice(-70)}`);
+  }
 }
 
 async function main() {
@@ -179,6 +210,7 @@ async function main() {
     scenarioGuardrails,
     scenarioAnsweredPickerIsNotReRaised,
     scenarioProceedAfterAnswering,
+    scenarioRepliesAreNotTruncated,
   ]) {
     try {
       await scenario();

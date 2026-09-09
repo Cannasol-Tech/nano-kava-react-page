@@ -78,3 +78,30 @@ describe('withholding the picker once it has been answered', () => {
     expect(names(toolsFor({ quizAnswered: true }))).toContain('send_lead_to_josh');
   });
 });
+
+/**
+ * Withholding the declaration is not enough: persona.js names `open_sample_quiz` in prose, and
+ * the model emits a call for it anyway. The executor is the backstop — it must refuse to raise
+ * a picker the visitor has already answered, and say why, in the same turn.
+ */
+describe('refusing a picker call that was never offered', () => {
+  it('raises nothing and tells the model they already answered', async () => {
+    const { runToolCall } = await import('../lib/chat.js');
+    const events = [];
+
+    const result = runToolCall({ name: 'open_sample_quiz' }, (e) => events.push(e), { quizAnswered: true });
+
+    expect(events.some((e) => e.type === 'sample_quiz')).toBe(false);
+    expect(result.status).toBe('not_available');
+    expect(result.message).toMatch(/already answered/i);
+  });
+
+  it('still raises the picker for a visitor who has not answered', async () => {
+    const { runToolCall } = await import('../lib/chat.js');
+    const events = [];
+
+    runToolCall({ name: 'open_sample_quiz' }, (e) => events.push(e), { quizAnswered: false });
+
+    expect(events.some((e) => e.type === 'sample_quiz')).toBe(true);
+  });
+});
