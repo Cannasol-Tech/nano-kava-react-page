@@ -53,5 +53,5 @@ labeling and substantiation of their finished products.
 
 Cannasol Technologies · Sarasota, Florida, USA
 Josh Detzel · josh.detzel@cannasolusa.com
-Office +1-216-921-2240 · Josh direct +1-330-808-0546
+Office +1-216-921-2240
 Hours: Monday–Friday, 9:30 AM – 5:30 PM ET

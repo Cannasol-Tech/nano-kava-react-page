@@ -503,22 +503,12 @@ export default function ContactPage() {
           <div className="space-y-3 animate-fade-in-up anim-delay-200">
             <ContactInfoCard
               icon={Phone}
-              title="Call Us"
+              title="Phone"
               theme={theme}
               href={company.phoneHref}
               onClick={() => trackPhoneClick()}
             >
               <p className="font-medium">{company.phone}</p>
-            </ContactInfoCard>
-
-            <ContactInfoCard
-              icon={Phone}
-              title="Josh Direct"
-              theme={theme}
-              href={`tel:+1${company.founder.directPhone.replace(/\D/g, '')}`}
-              onClick={() => trackPhoneClick()}
-            >
-              <p className="font-medium">{company.founder.directPhone}</p>
             </ContactInfoCard>
 
             <ContactInfoCard

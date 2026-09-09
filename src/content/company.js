@@ -37,7 +37,6 @@ export const company = {
     name: 'Josh Detzel',
     title: 'Founder',
     email: 'josh.detzel@cannasolusa.com',
-    directPhone: '(330) 808-0546',
   },
   responseTime: 'Josh replies within 24 hours.',
 };
@@ -88,5 +87,5 @@ export const contactRoutes = {
   mushroomsPage:
     "/mushrooms — the Nano Mushroom Emulsion line: Lion's Mane Nanoemulsion, Reishi Nanoemulsion and Cordyceps Nanoemulsion.",
   escalation:
-    'A visitor who wants a human can use the contact form, call the office on (216) 921-2240 or Josh directly on (330) 808-0546 during business hours, email josh.detzel@cannasolusa.com, or let Sol send their details straight to Josh.',
+    'A visitor who wants a human can use the contact form, call the office on (216) 921-2240 during business hours, email josh.detzel@cannasolusa.com, or let Sol send their details straight to Josh.',
 };

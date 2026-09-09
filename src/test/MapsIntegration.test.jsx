@@ -111,7 +111,7 @@ describe('Maps Integration', () => {
     it('renders all contact method cards on contact page', () => {
       renderWithRouter(<ContactPage />);
 
-      expect(screen.getByText(/call us/i)).toBeInTheDocument();
+      expect(screen.getByText(/^phone$/i)).toBeInTheDocument();
       expect(screen.getByText(/email us/i)).toBeInTheDocument();
       expect(screen.getByText(/location/i)).toBeInTheDocument();
       expect(screen.getByText(/hours/i)).toBeInTheDocument();

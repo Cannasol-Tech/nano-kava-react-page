@@ -77,7 +77,6 @@ const founder = {
   name: 'Josh Detzel',
   jobTitle: 'Founder',
   email: company.founder.email,
-  telephone: e164(company.founder.directPhone),
   worksFor: { '@id': ID.organization },
   knowsAbout: [
     'Kava nanoemulsion',
@@ -153,15 +152,6 @@ const organization = {
       '@type': 'ContactPoint',
       contactType: 'sales',
       telephone: e164(company.phone),
-      email: company.founder.email,
-      availableLanguage: 'English',
-      areaServed: 'US',
-    },
-    {
-      '@type': 'ContactPoint',
-      contactType: 'customer support',
-      name: 'Josh Detzel, Founder — direct line',
-      telephone: e164(company.founder.directPhone),
       email: company.founder.email,
       availableLanguage: 'English',
       areaServed: 'US',

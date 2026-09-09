@@ -15,7 +15,6 @@ minimums or partnership inquiries.
 - **Name:** Josh Detzel
 - **Email:** josh.detzel@cannasolusa.com
 - **Office phone:** +1-216-921-2240
-- **Josh direct:** +1-330-808-0546
 - **Location:** Sarasota, Florida, United States
 - **Hours:** Monday–Friday, 9:30 AM – 5:30 PM ET
 - **Serves:** United States (beverage brands, co-packers, formulators)

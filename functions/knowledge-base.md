@@ -9,7 +9,7 @@ _Generated from src/content/ by scripts/build-knowledge-base.mjs. Do not edit by
 - Consumer-facing brand and site: Nano Kava at https://enjoynano.com.
 - Corporate site: https://cannasoltechnologies.com (shop: https://cannasoltechnologies.com/shop/, resources: https://cannasoltechnologies.com/resources).
 - Location: Sarasota, Florida 34234, United States. Hours: Monday–Friday, 9:30 AM – 5:30 PM ET.
-- Phone: (216) 921-2240 (office). Josh Detzel direct: (330) 808-0546.
+- Phone: (216) 921-2240.
 - Founder: Josh Detzel, Founder — josh.detzel@cannasolusa.com. Josh replies within 24 hours.
 
 ## Positioning
@@ -195,7 +195,7 @@ Nano Kava is sold as a bulk ingredient for licensed manufacturers and brand owne
 - Inquiry types on the form: Request Samples, Pricing & Volume Quotes, Formulation Support, Partnership Inquiry, General Question, Other.
 - /faq — 18 answers across product & technology, effects & dosing, formulation & applications, ordering & partnership, and quality & compliance.
 - /mushrooms — the Nano Mushroom Emulsion line: Lion's Mane Nanoemulsion, Reishi Nanoemulsion and Cordyceps Nanoemulsion.
-- A visitor who wants a human can use the contact form, call the office on (216) 921-2240 or Josh directly on (330) 808-0546 during business hours, email josh.detzel@cannasolusa.com, or let Sol send their details straight to Josh.
+- A visitor who wants a human can use the contact form, call the office on (216) 921-2240 during business hours, email josh.detzel@cannasolusa.com, or let Sol send their details straight to Josh.
 
 ## Equipment business
 

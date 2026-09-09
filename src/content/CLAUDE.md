@@ -174,6 +174,13 @@ corporate site changes materially.
 onset, absorption and shelf life". The NANO KAVA INGREDIENT BRIEF is now the SSoT for every spec,
 and it publishes no onset or shelf-life figure at all.*
 
+## Josh's personal cell is off the site — 2026-09-09
+
+The enjoynano NANO KAVA INGREDIENT BRIEF's "Talk to Josh" block (spec C16, previously applied)
+carried a direct cell number. Stephen ruled it off the site entirely: office line only. `company.js`
+`founder.directPhone` was removed, and every rendered surface (components, JSON-LD, the generated
+knowledge base, `public/*.md`/`*.txt` mirrors) now states only `(216) 921-2240`.
+
 ## One sample link per line
 
 *Added 2026-08-26.* `sampleOffer.lineUrls` names all five lines with their own

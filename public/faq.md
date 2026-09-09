@@ -157,6 +157,5 @@ markets.
 
 ## Contact
 
-Josh Detzel · josh.detzel@cannasolusa.com · +1-216-921-2240 (office) ·
-+1-330-808-0546 (Josh direct)
+Josh Detzel · josh.detzel@cannasolusa.com · +1-216-921-2240 (office)
 https://enjoynano.com/contact

@@ -56,7 +56,7 @@ const identity = bullets([
   `Consumer-facing brand and site: ${company.brand} at ${company.site}.`,
   `Corporate site: ${company.corporateSite} (shop: ${company.shop}, resources: ${company.resources}).`,
   `Location: ${company.location}. Hours: ${company.hours}.`,
-  `Phone: ${company.phone} (office). ${company.founder.name} direct: ${company.founder.directPhone}.`,
+  `Phone: ${company.phone}.`,
   `Founder: ${company.founder.name}, ${company.founder.title} — ${company.founder.email}. ${company.responseTime}`,
 ]);
 

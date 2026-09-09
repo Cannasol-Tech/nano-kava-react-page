@@ -44,8 +44,7 @@ describe('ContactPage', () => {
     it('displays phone number with clickable link', () => {
       renderContactPage();
 
-      const phoneLink = screen.getByRole('link', { name: /call us/i }).closest('a') ||
-                       screen.getByText(/\(216\) 921-2240/).closest('a');
+      const phoneLink = screen.getByText(/\(216\) 921-2240/).closest('a');
       expect(phoneLink).toHaveAttribute('href', 'tel:+12169212240');
     });
 
@@ -68,11 +67,11 @@ describe('ContactPage', () => {
       expect(screen.getByText(/9:30\s*am.*5:30\s*pm et\b/i)).toBeInTheDocument();
     });
 
-    it('displays Josh\'s direct line alongside the office number', () => {
+    it('displays the office number once and no personal direct line', () => {
       renderContactPage();
 
-      const joshLink = screen.getByText(/\(330\) 808-0546/).closest('a');
-      expect(joshLink).toHaveAttribute('href', 'tel:+13308080546');
+      expect(screen.getAllByText(/\(216\) 921-2240/)).toHaveLength(1);
+      expect(screen.queryByText(/\(330\) 808-0546/)).toBeNull();
     });
 
     it('shows no minimum to get started, never MOQ', () => {

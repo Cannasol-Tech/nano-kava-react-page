@@ -75,7 +75,7 @@ co-packers and formulators. Not a consumer storefront — there is no checkout.
 |---|---|
 | Company | Cannasol Technologies |
 | Location | Sarasota, Florida, United States |
-| Contact | Josh Detzel — josh.detzel@cannasolusa.com — office (216) 921-2240, Josh direct (330) 808-0546 |
+| Contact | Josh Detzel — josh.detzel@cannasolusa.com — office (216) 921-2240 |
 | Hours | Mon–Fri, 9:30 AM – 5:30 PM ET |
 | Flagship product | Nano Kava emulsion (~20 nm) |
 | Proprietary tech | NanoOptimizer™ food-grade surfactant system |
