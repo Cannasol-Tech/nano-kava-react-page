@@ -6,6 +6,8 @@ const themes = {
     bgCardSolid: 'bg-gradient-to-br from-slate-800/80 to-slate-900/80',
     bgCardAlt: 'bg-slate-800/60',
     bgCardStats: 'bg-gradient-to-br from-slate-800/95 to-slate-900/95',
+    // Near-opaque panel over the fixed canvas — see components/CLAUDE.md § Dosing panel legibility.
+    bgCardOpaque: 'bg-gradient-to-br from-slate-900/95 to-slate-950/95',
     bgNav: 'bg-slate-950/95',
     bgHero: 'bg-gradient-to-b from-slate-950 via-slate-900 to-slate-950',
     bgInput: 'bg-slate-800/60',
@@ -64,6 +66,7 @@ const themes = {
     bgCardSolid: 'bg-white/85',
     bgCardAlt: 'bg-white/75',
     bgCardStats: 'bg-white/80',
+    bgCardOpaque: 'bg-white/95',
     bgNav: 'bg-white/98',
     bgHero: 'bg-gradient-to-b from-white via-slate-50 to-white',
     bgInput: 'bg-slate-100',

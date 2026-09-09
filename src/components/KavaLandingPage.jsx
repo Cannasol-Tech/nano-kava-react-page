@@ -1,3 +1,22 @@
+/**
+ * @file: src/components/KavaLandingPage.jsx
+ * @author: Stephen Boyett
+ *
+ * @description:
+ *     The Nano Kava landing page — hero, spec comparison, features, dosing and cost
+ *     per serving, partnership proof and contact. Every quotable number is rendered
+ *     from src/content/, never typed here. See CLAUDE.md § The savings calculator is
+ *     retired for what replaced the old #calculator section and why.
+ *
+ * @See Also:
+ *     src/content/product.js
+ *     src/components/CLAUDE.md
+ *
+ * ---
+ * @Copyright © 2026 Cannasol Technologies LLC. All Rights Reserved.
+ * ---
+ */
+
 import React, { useState, useRef, useMemo } from 'react';
 import { Helmet } from 'react-helmet-async';
 import JsonLd from '../seo/JsonLd';
@@ -26,8 +45,7 @@ import {
   Menu,
   X,
   Sun,
-  Moon,
-  Calculator
+  Moon
 } from 'lucide-react';
 import { useTheme } from '../context/ThemeContext';
 import { useInView } from '../hooks/useInView';
@@ -35,51 +53,36 @@ import { useScrollTransform } from '../hooks/useScrollTransform';
 import { useScrollDepth } from '../hooks/useScrollDepth';
 import themesConfig from '../theme/themes';
 import {
+  bulkIngredientDisclaimer,
+  dosing,
+  dropInProcess,
   features as contentFeatures,
   perfectFor,
+  positioning,
+  pricing,
   problems,
   process,
   solutionPoints,
+  specComparison,
 } from '../content/product.js';
-import SavingsCalculator from './SavingsCalculator';
+import { company } from '../content/company.js';
 
 // Theme configuration - Single source of truth for all colors
 const themes = themesConfig;
 
 const FEATURE_ICONS = { Beaker, Sparkles, Zap, Target, Shield, HeartHandshake };
 
-// Animated counter component
-const AnimatedCounter = React.memo(function AnimatedCounter({ value, suffix = '', prefix = '' }) {
-  const [ref, isInView] = useInView();
-  const numValue = parseInt(value.replace(/[^0-9]/g, ''));
-  // Start at target value so prerendered HTML shows correct numbers for SEO
-  const [count, setCount] = useState(numValue);
+const specValue = (name) => specComparison.find((row) => row.spec === name)?.nano ?? '';
+const specTraditional = (name) => specComparison.find((row) => row.spec === name)?.traditional ?? '';
 
-  React.useEffect(() => {
-    // useInView reports true immediately under prerender, so counting up would freeze the snapshot mid-count.
-    if (isInView && !window.__PRERENDER__) {
-      const duration = 2000;
-      const steps = 60;
-      const increment = numValue / steps;
-      let current = 0;
-      setCount(0);
+// The pricing card leads on the figure, so it is split off the SSoT sentence rather than retyped.
+const priceFigure = pricing.headline.match(/\$[\d,.]+/)?.[0] ?? '';
+const priceDetail = pricing.headline.replace(priceFigure, '').trim();
 
-      const timer = setInterval(() => {
-        current += increment;
-        if (current >= numValue) {
-          setCount(numValue);
-          clearInterval(timer);
-        } else {
-          setCount(Math.floor(current));
-        }
-      }, duration / steps);
-
-      return () => clearInterval(timer);
-    }
-  }, [isInView, value]);
-
-  return <span ref={ref}>{prefix}{count}{suffix}</span>;
-});
+// Composed from the spec SSoT so it cannot drift; Google truncates past ~160 characters.
+const metaDescription = `Crystal-clear kavalactone nanoemulsion for canned and bottled beverages: ${specValue(
+  'Mean particle size',
+)}, ${specValue('Water dispersibility')}, ${specValue('Relative absorption')} absorption.`;
 
 // Animated gradient orb for hero. Blur lives on a static child so the scale/opacity
 // animation composites a pre-rasterised bitmap instead of re-filtering 600px every frame.
@@ -130,8 +133,6 @@ const AnimatedSection = React.memo(function AnimatedSection({ children, classNam
 });
 
 export default function KavaLandingPage() {
-  const [activeFeature, setActiveFeature] = useState(0);
-  const [formData, setFormData] = useState({ name: '', email: '', company: '', message: '' });
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const { isDark, setIsDark } = useTheme();
 
@@ -142,11 +143,17 @@ export default function KavaLandingPage() {
   // Track scroll depth milestones for analytics
   useScrollDepth();
 
-  const stats = useMemo(() => [
-    { value: '18', prefix: '~', suffix: 'nm', label: 'Particle Size', icon: Droplets },
-    { value: '5', suffix: 'x', label: 'Bioavailability', icon: TrendingUp },
-    { value: '5', suffix: ' min', label: 'Onset Time', icon: Clock }
-  ], []);
+  // Each figure is the head of its SSoT spec value; the label carries the qualifier.
+  const stats = useMemo(() => {
+    const [absorption, ...vsWhat] = specValue('Relative absorption').split(' ');
+    const [dispersibility] = specValue('Water dispersibility').split(' ');
+    return [
+      { value: specValue('Mean particle size'), label: 'Mean particle size', icon: Droplets },
+      { value: specValue('Kavalactone load'), label: 'Kavalactone load', icon: Beaker },
+      { value: absorption, label: `Higher absorption vs ${vsWhat.join(' ')}`, icon: TrendingUp },
+      { value: dispersibility, label: 'Dispersible, clear in the finished beverage', icon: Sparkles },
+    ];
+  }, []);
 
   const features = useMemo(
     () => contentFeatures.map((feature) => ({ ...feature, icon: FEATURE_ICONS[feature.iconKey] })),
@@ -157,10 +164,10 @@ export default function KavaLandingPage() {
     <div className={`min-h-screen ${theme.text} overflow-x-hidden transition-colors duration-500`}>
       <Helmet>
         <title>Nano Kava | Premium Nano-Emulsified Kavalactones — EnjoyNano</title>
-        <meta name="description" content="Nano-emulsified kava with ~18nm particle size. 10x bioavailability, 5-minute onset, crystal-clear kavalactones. Trusted by top beverage brands." />
+        <meta name="description" content={metaDescription} />
         <link rel="canonical" href="https://enjoynano.com/" />
         <meta property="og:title" content="Nano Kava | Premium Nano-Emulsified Kavalactones" />
-        <meta property="og:description" content="Nano-emulsified kava with ~18nm particle size. 10x bioavailability, 5-minute onset, crystal-clear kavalactones." />
+        <meta property="og:description" content={metaDescription} />
         <meta property="og:url" content="https://enjoynano.com/" />
         <link rel="alternate" type="text/markdown" href="https://enjoynano.com/index.md" />
         <meta property="og:type" content="website" />
@@ -197,7 +204,7 @@ export default function KavaLandingPage() {
             {[
               { href: '#benefits', label: 'Benefits' },
               { href: '#process', label: 'Process' },
-              { href: '#calculator', label: 'Calculator' },
+              { href: '#dosing', label: 'Dosing' },
               { href: '#proof', label: 'Partners' },
               { to: '/mushrooms', label: 'Mushrooms' },
               { to: '/faq', label: 'FAQ' },
@@ -277,7 +284,7 @@ export default function KavaLandingPage() {
               {[
                 { href: '#benefits', label: 'Benefits' },
                 { href: '#process', label: 'Process' },
-                { href: '#calculator', label: 'Calculator' },
+                { href: '#dosing', label: 'Dosing' },
                 { href: '#proof', label: 'Partners' },
                 { to: '/mushrooms', label: 'Mushrooms' },
                 { to: '/faq', label: 'FAQ' },
@@ -306,12 +313,12 @@ export default function KavaLandingPage() {
                 Contact Us
               </Link>
               <a
-                href="tel:+12169212240"
+                href={company.phoneHref}
                 onClick={() => trackPhoneClick()}
                 className="flex items-center justify-center gap-2 text-emerald-400 py-2"
               >
                 <Phone className="w-4 h-4" />
-                <span className="font-medium">Call: (216) 921-2240</span>
+                <span className="font-medium">Call: {company.phone}</span>
               </a>
             </div>
           </div>
@@ -361,7 +368,7 @@ export default function KavaLandingPage() {
                 <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
                 <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
               </span>
-              <span className={`text-sm ${theme.textSecondary} font-medium`} style={isDark ? { textShadow: '0 1px 3px rgba(0,0,0,0.5)' } : {}}>The World's First & Only ~18nm Kava Nanoemulsion</span>
+              <span className={`text-sm ${theme.textSecondary} font-medium`} style={isDark ? { textShadow: '0 1px 3px rgba(0,0,0,0.5)' } : {}}>{positioning.badge}</span>
             </div>
 
             {/* Main headline */}
@@ -414,21 +421,23 @@ export default function KavaLandingPage() {
               <span className="sr-only"> — Premium Nano-Emulsified Kavalactones</span>
             </h1>
 
-            {/* Subheadline */}
+            {/* The brief's own hero line carries the page; the sentence under it comes from the SSoT. */}
             <p
-              className={`animate-fade-in-up anim-delay-400 text-xl md:text-2xl leading-relaxed font-bold ${isDark ? 'text-slate-50' : 'text-slate-900'}`}
+              className={`animate-fade-in-up anim-delay-400 text-2xl md:text-4xl font-bold tracking-tight leading-tight ${isDark ? 'text-slate-50' : 'text-slate-900'}`}
             >
-              Cutting-edge nanoemulsification technology that overcomes the solubility and bioavailability challenges of traditional kava.
-              <span className={`font-semibold ${isDark ? 'text-white' : theme.text}`}> Ultra-fine droplets so small they're almost transparent.</span>
-              <br className="hidden md:block" />
-              Trusted by leading Kava seltzer and shot brands.
+              Kava that behaves like water.
+            </p>
+            <p
+              className={`animate-fade-in-up anim-delay-600 mt-5 text-base md:text-xl leading-relaxed ${isDark ? 'text-slate-200' : 'text-slate-700'}`}
+            >
+              {positioning.summary}
             </p>
             </div>
           </div>
 
           {/* CTA Buttons */}
           <div
-            className="animate-fade-in-up anim-delay-600 flex flex-col sm:flex-row gap-4 justify-center mb-16"
+            className="animate-fade-in-up anim-delay-800 flex flex-col sm:flex-row gap-4 justify-center"
           >
             <a
               href="#contact"
@@ -441,36 +450,40 @@ export default function KavaLandingPage() {
               </span>
             </a>
             <a
-              href="tel:+12169212240"
+              href={company.phoneHref}
               onClick={() => trackPhoneClick()}
               className={`btn-shine inline-flex items-center justify-center gap-2 px-8 py-4 ${theme.bgBadge} ${theme.shadowCard} ${theme.text} font-semibold rounded-full text-lg border ${theme.borderCard} hover:border-emerald-500/50 transition-colors interactive-btn hover-scale-xs active-press-sm`}
               style={isDark ? { boxShadow: '0 4px 24px rgba(0,0,0,0.4)' } : { boxShadow: '0 2px 12px rgba(0,0,0,0.1)' }}
             >
               <Phone className="w-5 h-5" />
-              Call Josh: (216) 921-2240
+              Call Josh: {company.phone}
             </a>
           </div>
 
+          <p className={`animate-fade-in-up anim-delay-800 mt-6 mb-16 text-sm ${theme.textMuted}`}>
+            {positioning.trust}
+          </p>
+
           {/* Stats */}
           <div
-            className="animate-fade-in-up anim-delay-800 relative grid grid-cols-1 sm:grid-cols-3 gap-4 md:gap-6 max-w-3xl mx-auto"
+            className="animate-fade-in-up anim-delay-800 relative grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-5 max-w-4xl mx-auto"
           >
-            {stats.map((stat, i) => (
+            {stats.map((stat) => (
               <div
-                key={i}
+                key={stat.label}
                 className="relative group interactive-card hover-lift-sm"
               >
                 {/* Animated border gradient */}
                 <div className="absolute -inset-[1px] bg-gradient-to-r from-emerald-500/50 via-teal-500/50 to-emerald-500/50 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-500 blur-sm" />
                 <div className="absolute -inset-[1px] bg-gradient-to-r from-emerald-500 via-teal-500 to-emerald-500 rounded-2xl opacity-0 group-hover:opacity-30 transition-opacity duration-500" />
-                <div className={`relative ${theme.bgCardStats} ${theme.shadowCard} rounded-2xl p-6 border ${theme.borderCard} group-hover:border-transparent transition-colors`}>
-                  <div className="w-10 h-10 mx-auto mb-3 rounded-lg bg-gradient-to-br from-emerald-500/20 to-teal-500/20 flex items-center justify-center group-hover:shadow-lg group-hover:shadow-emerald-500/20 transition-shadow">
-                    <stat.icon className={`w-5 h-5 ${theme.accentText}`} />
+                <div className={`relative h-full ${theme.bgCardStats} ${theme.shadowCard} rounded-2xl px-4 py-5 md:px-5 md:py-6 border ${theme.borderCard} group-hover:border-transparent transition-colors`}>
+                  <div className="w-9 h-9 mx-auto mb-3 rounded-lg bg-gradient-to-br from-emerald-500/20 to-teal-500/20 flex items-center justify-center">
+                    <stat.icon className={`w-4 h-4 ${theme.accentText}`} />
                   </div>
-                  <div className={`text-3xl md:text-4xl font-bold bg-gradient-to-r ${theme.accentGradient} bg-clip-text text-transparent`}>
-                    <AnimatedCounter value={stat.value} prefix={stat.prefix} suffix={stat.suffix} />
+                  <div className={`text-2xl md:text-3xl font-bold leading-none bg-gradient-to-r ${theme.accentGradient} bg-clip-text text-transparent`}>
+                    {stat.value}
                   </div>
-                  <div className={`${theme.textMuted} text-sm mt-1 group-hover:${theme.textSecondary} transition-colors`}>{stat.label}</div>
+                  <div className={`${theme.textSecondary} text-xs md:text-sm mt-2 leading-snug`}>{stat.label}</div>
                 </div>
               </div>
             ))}
@@ -507,8 +520,8 @@ export default function KavaLandingPage() {
                   for Modern Beverages
                 </h2>
                 <p className={`${theme.textSecondary} text-lg mb-8 leading-relaxed`}>
-                  Traditional Kava preparations suffer from poor bioavailability, gritty texture, and muddy appearance.
-                  Your customers want instant results and a pleasant experience—not a waiting game.
+                  Traditional kava preparations absorb poorly, feel gritty and cloud the can.
+                  That is a formulation problem long before it is a marketing one.
                 </p>
                 <div className="space-y-4 mt-auto">
                   {problems.map((problem, i) => (
@@ -563,6 +576,75 @@ export default function KavaLandingPage() {
         </div>
       </AnimatedSection>
 
+      {/* Spec comparison — every row comes from the SSoT, so the table grows with it */}
+      <AnimatedSection id="specs" className="relative py-20 md:py-28">
+        <div className="max-w-5xl mx-auto px-6">
+          <div className="max-w-2xl mb-10">
+            <h2 className={`text-3xl md:text-4xl font-bold mb-3 ${theme.text}`}>
+              Side by side with a conventional emulsion
+            </h2>
+            <p className={`${theme.textSecondary} text-lg`}>
+              The specs a formulator checks first, on one screen.
+            </p>
+          </div>
+
+          {/* Particle-size comparison. Dot sizes are illustrative, not to scale — see the caption. */}
+          <div className={`rounded-2xl border ${theme.borderCard} ${theme.bgCardAlt} p-6 md:p-8 mb-8`}>
+            <div className="grid sm:grid-cols-2 gap-8">
+              <div>
+                <div className="flex items-center gap-3 h-12 mb-3" aria-hidden="true">
+                  {[34, 22, 28].map((size, i) => (
+                    <span
+                      key={i}
+                      className="rounded-full bg-slate-400/50 border border-slate-400/60"
+                      style={{ width: size, height: size }}
+                    />
+                  ))}
+                </div>
+                <div className={`text-sm font-semibold ${theme.text}`}>Conventional kava emulsion</div>
+                <div className={`text-sm ${theme.textSecondary} mt-1`}>{specTraditional('Mean particle size')}</div>
+              </div>
+              <div>
+                <div className="flex items-center gap-2 h-12 mb-3 flex-wrap" aria-hidden="true">
+                  {Array.from({ length: 14 }).map((_, i) => (
+                    <span key={i} className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
+                  ))}
+                </div>
+                <div className={`text-sm font-semibold ${theme.accentText}`}>Nano Kava</div>
+                <div className={`text-sm ${theme.textSecondary} mt-1`}>
+                  {specValue('Mean particle size')} — {specValue('Separation / settling').toLowerCase()}
+                </div>
+              </div>
+            </div>
+            <p className={`${theme.textSecondary} text-xs mt-6`}>
+              Illustrative comparison — relative sizes exaggerated for legibility.
+            </p>
+          </div>
+
+          <div className="overflow-x-auto">
+            <table className="w-full min-w-[36rem] border-collapse text-left">
+              <caption className="sr-only">Nano Kava compared with a conventional kava emulsion</caption>
+              <thead>
+                <tr className={`border-b ${theme.border}`}>
+                  <th scope="col" className={`py-3 pr-4 text-xs font-semibold uppercase tracking-wide ${theme.textSecondary}`}>Spec</th>
+                  <th scope="col" className={`py-3 pr-4 text-xs font-semibold uppercase tracking-wide ${theme.accentText}`}>Nano Kava</th>
+                  <th scope="col" className={`py-3 text-xs font-semibold uppercase tracking-wide ${theme.textSecondary}`}>Conventional kava</th>
+                </tr>
+              </thead>
+              <tbody>
+                {specComparison.map((row) => (
+                  <tr key={row.spec} className={`border-b ${theme.border}`}>
+                    <th scope="row" className={`py-3 pr-4 align-top text-sm font-medium ${theme.textSecondary}`}>{row.spec}</th>
+                    <td className={`py-3 pr-4 align-top text-sm font-semibold ${theme.text}`}>{row.nano}</td>
+                    <td className={`py-3 align-top text-sm ${theme.textSecondary}`}>{row.traditional}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </AnimatedSection>
+
       {/* Features Section */}
       <AnimatedSection className="relative py-24 md:py-32">
         <div className="max-w-7xl mx-auto px-6">
@@ -572,7 +654,7 @@ export default function KavaLandingPage() {
               <span className={`bg-gradient-to-r ${theme.accentGradientAlt} bg-clip-text text-transparent`}> Kava Consumption</span>
             </h2>
             <p className={`${theme.textSecondary} text-lg max-w-2xl mx-auto`}>
-              Nanoemulsification unlocks the full potential of kava, opening doors for innovative product formulations—from convenient shots to flavor-enhanced beverages—making it easier than ever to experience the relaxing and stress-reducing benefits of kava.
+              Nanoemulsification opens formats that were closed to kavalactones — shots, seltzers, flavoured waters — without the haze, the sediment or the grit that used to come with them.
             </p>
           </div>
 
@@ -581,7 +663,6 @@ export default function KavaLandingPage() {
               <div
                 key={i}
                 className="group relative interactive-card hover-lift"
-                onMouseEnter={() => setActiveFeature(i)}
               >
                 {/* Glow effect on hover */}
                 <div className="absolute -inset-0.5 bg-gradient-to-r from-emerald-500 to-teal-500 rounded-2xl blur opacity-0 group-hover:opacity-20 transition-opacity duration-500" />
@@ -737,27 +818,80 @@ export default function KavaLandingPage() {
         </div>
       </AnimatedSection>
 
-      {/* Savings Calculator Section */}
-      <AnimatedSection id="calculator" className="relative py-24 md:py-32">
+      {/* Replaced the savings calculator, spec A7 — see CLAUDE.md § The savings calculator is retired. */}
+      <AnimatedSection id="dosing" className="relative py-24 md:py-32">
         <div className="max-w-5xl mx-auto px-6">
-          <div className="text-center mb-12">
-            <div className={`inline-flex items-center gap-2 px-4 py-2 ${theme.bgHighlight} rounded-full ${theme.accentText} text-sm font-medium mb-6`}>
-              <Calculator className="w-4 h-4" />
-              Cost Savings Calculator
-            </div>
+          <div className="max-w-2xl mb-10">
             <h2 className={`text-3xl md:text-5xl font-bold mb-4 ${theme.text}`}>
-              Calculate Your
-              <span className={`bg-gradient-to-r ${theme.accentGradientAlt} bg-clip-text text-transparent`}> Savings</span>
+              Dosing &amp; cost per serving
             </h2>
-            <p className={`${theme.textSecondary} text-lg max-w-2xl mx-auto`}>
-              See how much you could save by switching to nano kava. With 10x higher bioavailability,
-              you need significantly less active ingredient for the same powerful effect.
-            </p>
+            <p className={`${theme.textSecondary} text-lg leading-relaxed`}>{dosing.guidance}</p>
           </div>
 
-          <div>
-            <SavingsCalculator isDark={isDark} />
+          {/* bgCardOpaque, not bgCardSolid — see CLAUDE.md § Dosing panel legibility. */}
+          <div className={`rounded-3xl border ${theme.borderCard} ${theme.bgCardOpaque} ${theme.shadowXl} overflow-hidden`}>
+            <div className="overflow-x-auto">
+              <table className="w-full min-w-[34rem] border-collapse text-left">
+                <caption className="sr-only">
+                  Kavalactone per serving, emulsion volume, servings per liter and ingredient cost per serving
+                </caption>
+                <thead>
+                  <tr className={`border-b ${theme.border}`}>
+                    <th scope="col" className={`py-4 pl-6 pr-4 text-xs font-semibold uppercase tracking-wide ${theme.textSecondary}`}>Kavalactone / serving</th>
+                    <th scope="col" className={`py-4 pr-4 text-xs font-semibold uppercase tracking-wide ${theme.textSecondary}`}>Emulsion</th>
+                    <th scope="col" className={`py-4 pr-4 text-xs font-semibold uppercase tracking-wide ${theme.textSecondary}`}>Servings / liter</th>
+                    <th scope="col" className={`py-4 pr-6 text-right text-xs font-semibold uppercase tracking-wide ${theme.textSecondary}`}>Cost / serving</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {dosing.rows.map((row) => {
+                    const recommended = /recommended/i.test(row.kavalactone);
+                    return (
+                      <tr
+                        key={row.kavalactone}
+                        className={`border-b ${theme.border} ${recommended ? theme.bgHighlight : ''}`}
+                      >
+                        <th
+                          scope="row"
+                          className={`py-4 pl-6 pr-4 border-l-[3px] ${recommended ? 'border-emerald-500' : 'border-transparent'} text-sm font-semibold ${theme.text}`}
+                        >
+                          {row.kavalactone}
+                        </th>
+                        <td className={`py-4 pr-4 text-sm tabular-nums ${theme.textSecondary}`}>{row.emulsion}</td>
+                        <td className={`py-4 pr-4 text-sm tabular-nums ${theme.textSecondary}`}>{row.servingsPerLiter}</td>
+                        <td className={`py-4 pr-6 text-right text-sm font-semibold tabular-nums ${theme.text}`}>{row.costPerServing}</td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
           </div>
+
+          <div className="grid md:grid-cols-2 gap-6 mt-6">
+            <div className={`rounded-3xl border ${theme.borderHighlight} ${theme.bgCardOpaque} p-8 flex flex-col`}>
+              <p className={`text-5xl md:text-6xl font-black leading-none ${theme.text}`}>{priceFigure}</p>
+              <p className={`${theme.text} text-lg font-medium mt-3`}>{priceDetail}</p>
+              {/* Stronger than textSecondary — see CLAUDE.md § Dosing panel legibility. */}
+              <p className={`${isDark ? 'text-slate-200' : 'text-slate-700'} mt-4 leading-relaxed`}>{pricing.tier}</p>
+              <Link
+                to="/contact?inquiry=pricing&product=nano-kava"
+                onClick={() => trackCTAClick('Request a written quote', 'dosing')}
+                className={`mt-6 inline-flex items-center gap-2 font-semibold ${theme.accentText} interactive-btn`}
+              >
+                Ask Josh for a written quote
+                <ArrowRight className="w-4 h-4" />
+              </Link>
+            </div>
+
+            <div className={`rounded-3xl border ${theme.borderCard} ${theme.bgCardAlt} p-8`}>
+              <h3 className={`text-lg font-semibold mb-3 ${theme.text}`}>How it goes into your batch</h3>
+              <p className={`${theme.textSecondary} leading-relaxed`}>{dropInProcess.summary}</p>
+              <p className={`${theme.textSecondary} leading-relaxed mt-3`}>{dropInProcess.clarity}</p>
+            </div>
+          </div>
+
+          <p className={`${theme.textSecondary} text-xs leading-relaxed mt-6 max-w-3xl`}>{pricing.caveat}</p>
         </div>
       </AnimatedSection>
 
@@ -785,29 +919,37 @@ export default function KavaLandingPage() {
                 </p>
               </div>
 
-              <div className="grid md:grid-cols-3 gap-4 mb-8">
+              <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
                 <Link to="/contact" onClick={() => trackCTAClick('Contact Form', 'cta-section')}>
                   <div
-                    className={`btn-shine flex items-center justify-center gap-3 px-6 py-4 bg-gradient-to-r ${theme.accent} text-slate-900 font-bold rounded-xl text-lg interactive-btn hover-scale-xs active-press-sm`}
+                    className={`btn-shine flex items-center justify-center gap-3 px-5 py-4 bg-gradient-to-r ${theme.accent} text-slate-900 font-bold rounded-xl interactive-btn hover-scale-xs active-press-sm`}
                   >
                     <MessageCircle className="w-5 h-5" />
                     Contact Form
                   </div>
                 </Link>
                 <a
-                  href="tel:+12169212240"
+                  href={company.phoneHref}
                   onClick={() => trackPhoneClick()}
-                  className={`btn-shine flex items-center justify-center gap-3 px-6 py-4 ${theme.bgButton} ${theme.text} font-semibold rounded-xl text-lg border ${theme.borderCard} hover:border-emerald-500/50 transition-colors interactive-btn hover-scale-xs active-press-sm`}
+                  className={`btn-shine flex items-center justify-center gap-3 px-5 py-4 ${theme.bgButton} ${theme.text} font-semibold rounded-xl border ${theme.borderCard} hover:border-emerald-500/50 transition-colors interactive-btn hover-scale-xs active-press-sm`}
                 >
-                  <Phone className="w-5 h-5" />
-                  (216) 921-2240
+                  <Phone className="w-5 h-5 flex-shrink-0" />
+                  Office {company.phone}
                 </a>
                 <a
-                  href="mailto:josh.detzel@cannasolusa.com"
-                  onClick={() => trackEmailClick()}
-                  className={`btn-shine flex items-center justify-center gap-3 px-6 py-4 ${theme.bgButton} ${theme.text} font-semibold rounded-xl text-lg border ${theme.borderCard} hover:border-emerald-500/50 transition-colors interactive-btn hover-scale-xs active-press-sm`}
+                  href={`tel:+1${company.founder.directPhone.replace(/\D/g, '')}`}
+                  onClick={() => trackPhoneClick()}
+                  className={`btn-shine flex items-center justify-center gap-3 px-5 py-4 ${theme.bgButton} ${theme.text} font-semibold rounded-xl border ${theme.borderCard} hover:border-emerald-500/50 transition-colors interactive-btn hover-scale-xs active-press-sm`}
                 >
-                  <Mail className="w-5 h-5" />
+                  <Phone className="w-5 h-5 flex-shrink-0" />
+                  Josh {company.founder.directPhone}
+                </a>
+                <a
+                  href={`mailto:${company.founder.email}`}
+                  onClick={() => trackEmailClick()}
+                  className={`btn-shine flex items-center justify-center gap-3 px-5 py-4 ${theme.bgButton} ${theme.text} font-semibold rounded-xl border ${theme.borderCard} hover:border-emerald-500/50 transition-colors interactive-btn hover-scale-xs active-press-sm`}
+                >
+                  <Mail className="w-5 h-5 flex-shrink-0" />
                   Email Us
                 </a>
               </div>
@@ -824,7 +966,7 @@ export default function KavaLandingPage() {
                 </a>
                 <div className="flex items-center gap-2">
                   <Clock className="w-4 h-4 text-emerald-400" />
-                  Mon-Fri: 9:30AM - 5:30PM
+                  {company.hours}
                 </div>
               </div>
             </div>
@@ -845,21 +987,17 @@ export default function KavaLandingPage() {
               />
               <span className={`${theme.textSecondary} text-sm`}>© 2026 Cannasol Technologies LLC</span>
             </div>
-            <div className={`flex gap-6 text-sm ${theme.textMuted}`}>
-              <a href="https://cannasoltechnologies.com/shop/" target="_blank" rel="noopener noreferrer" className={`hover:${theme.text} transition-colors`}>Shop</a>
-              <a href="https://cannasoltechnologies.com/resources" target="_blank" rel="noopener noreferrer" className={`hover:${theme.text} transition-colors`}>Resources</a>
+            <div className={`flex gap-6 text-sm ${theme.textSecondary}`}>
+              <a href={company.shop} target="_blank" rel="noopener noreferrer" className={`hover:${theme.text} transition-colors`}>Shop</a>
+              <a href={company.resources} target="_blank" rel="noopener noreferrer" className={`hover:${theme.text} transition-colors`}>Resources</a>
               <Link to="/contact" className={`hover:${theme.text} transition-colors`}>Contact</Link>
             </div>
           </div>
+          <p className={`${theme.textSecondary} text-xs leading-relaxed mt-8 max-w-4xl`}>
+            {bulkIngredientDisclaimer}
+          </p>
         </div>
       </footer>
-
-      {/* Custom styles for hexagon clip path */}
-      <style jsx>{`
-        .clip-hexagon {
-          clip-path: polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%);
-        }
-      `}</style>
     </div>
   );
 }

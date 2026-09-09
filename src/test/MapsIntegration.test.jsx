@@ -53,11 +53,11 @@ describe('Maps Integration', () => {
       expect(screen.getByText(/sarasota, florida, usa/i)).toBeInTheDocument();
     });
 
-    it('displays business hours alongside location', () => {
+    it('displays business hours alongside location, in ET never EST', () => {
       renderWithRouter(<ContactPage />);
 
       expect(screen.getByText(/hours/i)).toBeInTheDocument();
-      expect(screen.getByText(/mon-fri, 9:30 am - 5:30 pm est/i)).toBeInTheDocument();
+      expect(screen.getByText(/9:30\s*am.*5:30\s*pm et\b/i)).toBeInTheDocument();
     });
   });
 

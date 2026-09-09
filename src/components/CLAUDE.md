@@ -101,9 +101,44 @@ draw loop picks them up with no branch in the hot path; ending the run truncates
 NanoScene is absent on Safari, so there the HUD appears without the particle spike — which is
 the correct degradation, not a bug.
 
+## The savings calculator is retired
+
+*Added 2026-09-09.* `SavingsCalculator.jsx` and its test are deleted, and `KavaLandingPage.jsx`'s
+`#calculator` section is now `#dosing` — "Dosing & cost per serving". Spec ruling A7
+(`docs/design-specs/COPY_UPDATE_BUILD_SPEC.md`): rebuilt on the ingredient brief's real figures,
+the ingredient-cost saving goes **negative** at plausible inputs — break-even needs conventional
+extract at roughly $500–625/kg at 30% kavalactones, and typical is well below that. Raise it with
+Josh before anyone rebuilds it; do not ship a calculator that argues against the product.
+
+What replaced it renders `dosing`, `pricing` and `dropInProcess` from `src/content/product.js` and
+types no number of its own. **The row emphasis is keyed off the copy**: a `dosing.rows` entry whose
+`kavalactone` string contains "recommended" gets the accent bar, so rewording those rows in
+`product.js` silently drops it.
+
+**Resolved 2026-09-09.** This section previously said the lab-mode HUD still settled on ~18nm.
+`LabModeHud.jsx` `TARGET_NM` is now `20` and `src/test/labModeHud.test.jsx` asserts
+`18 < nm < 22` (loose bounds around the settled value, same ±2 margin the old assertion used).
+
+## Dosing panel legibility
+
+*Added 2026-09-09.* Stephen's screenshot review flagged the dosing table rows and the `$250`
+pricing card as too transparent over the fixed NanoScene canvas, and the pricing card's tier
+sentence as "nearly unreadable". Both panels sat on tokens built for lighter use — the table
+container used `bgCardSolid` (80–90% opaque) and the pricing card used `bgHighlightBorder`
+(a 10%-opacity emerald tint meant for small badges layered on an *already-opaque* card, not for a
+standalone panel over moving canvas content).
+
+Fix: a new `bgCardOpaque` token in `theme/themes.js` (dark `slate-900/95` → `slate-950/95`, light
+`white/95`), applied to both panels. The pricing card's tier sentence also moved off the shared
+`textSecondary` token (`slate-400`/`slate-600`) to the stronger `isDark ? 'text-slate-200' :
+'text-slate-700'` pair already used inline for the hero subhead — same pattern, not a new token.
+The two "recommended" dosing rows keep their existing `bgHighlight` emerald tint; layered over the
+now near-opaque container it reads as a clear highlight instead of near-invisible.
+
 ## The nano explainer
 
-`NanoExplainer.jsx` is the visual Sol raises when someone asks how small ~18nm is. Sol calls the
+`NanoExplainer.jsx` is the visual Sol raises when someone asks how small ~20nm is (~18nm before
+the 2026-09-09 ingredient-brief update). Sol calls the
 `show_nano_explainer` tool, `functions/lib/chat.js` emits a `nano_explainer` frame, `useChatStream`
 forwards it to `onExplain`, and `ChatPanel` calls `openExplainer()`. It renders from `App.jsx`
 rather than inside the widget so it can overlay the page instead of the chat panel — the two are
@@ -144,7 +179,7 @@ Two constraints shape how it is built:
 
 The content is placeholder-grade by agreement — Stephen, 2026-08-25: *"just go ahead and build
 that screen for me and then we will decide what to put on it later."* The scale rows are
-log-scaled because at linear scale 18nm against an 80,000nm hair is an invisible sliver. It is
+log-scaled because at linear scale 20nm against an 80,000nm hair is an invisible sliver. It is
 product-neutral (`Cannasol droplet`, not `Nano Kava droplet`) because the same modal is raised
 from the mushrooms page.
 

@@ -8,6 +8,13 @@ import ContactPage from '../components/ContactPage';
 import FAQPage from '../components/FAQPage';
 import MushroomsLandingPage from '../components/MushroomsLandingPage';
 import AppRoutes from '../AppRoutes';
+import {
+  bulkIngredientDisclaimer,
+  dosing,
+  positioning,
+  pricing,
+  specComparison,
+} from '../content/product.js';
 
 import { renderWithProviders } from './renderWithProviders';
 
@@ -120,9 +127,7 @@ describe('Full Page Routing', () => {
       renderRoute('/');
 
       expect(await screen.findByRole('heading', { level: 1, name: /nano kava/i }, { timeout: 15000 })).toBeInTheDocument();
-      // Use getAllByText for text that appears multiple times
-      const worldsFirst = screen.getAllByText(/world's first/i);
-      expect(worldsFirst.length).toBeGreaterThan(0);
+      expect(screen.getByText(positioning.badge)).toBeInTheDocument();
     }, 20000);
 
     it('renders FAQ page at /faq', async () => {
@@ -228,13 +233,13 @@ describe('Full Page Routing', () => {
       expect(processLinks[0]).toHaveAttribute('href', '#process');
     });
 
-    it('home page has calculator section link', () => {
+    it('home page has dosing section link', () => {
       renderRoute('/');
 
-      // There may be multiple calculator links (desktop + mobile nav)
-      const calculatorLinks = screen.getAllByRole('link', { name: /calculator/i });
-      expect(calculatorLinks.length).toBeGreaterThan(0);
-      expect(calculatorLinks[0]).toHaveAttribute('href', '#calculator');
+      // There may be multiple dosing links (desktop + mobile nav)
+      const dosingLinks = screen.getAllByRole('link', { name: /^dosing$/i });
+      expect(dosingLinks.length).toBeGreaterThan(0);
+      expect(dosingLinks[0]).toHaveAttribute('href', '#dosing');
     });
 
     it('home page has contact section anchor', () => {
@@ -252,23 +257,55 @@ describe('Page Content Rendering', () => {
       renderWithRouter(<KavaLandingPage />);
 
       expect(screen.getByRole('heading', { level: 1, name: /nano kava/i })).toBeInTheDocument();
-      // These appear multiple times
-      const particleSize = screen.getAllByText(/particle size/i);
-      expect(particleSize.length).toBeGreaterThan(0);
-      const onsetTime = screen.getAllByText(/onset time/i);
-      expect(onsetTime.length).toBeGreaterThan(0);
+      expect(screen.getByText('Kava that behaves like water.')).toBeInTheDocument();
+      expect(screen.getByText(positioning.badge)).toBeInTheDocument();
     });
 
-    it('renders stats section', () => {
+    it('renders the four hero stats from the spec source of truth', () => {
       renderWithRouter(<KavaLandingPage />);
 
-      // These may appear multiple times
-      const particleSize = screen.getAllByText(/particle size/i);
-      expect(particleSize.length).toBeGreaterThan(0);
-      const bioavailability = screen.getAllByText(/bioavailability/i);
-      expect(bioavailability.length).toBeGreaterThan(0);
-      const onsetTime = screen.getAllByText(/onset time/i);
-      expect(onsetTime.length).toBeGreaterThan(0);
+      // These may appear multiple times — the spec table repeats them.
+      expect(screen.getAllByText(/mean particle size/i).length).toBeGreaterThan(0);
+      expect(screen.getAllByText(/kavalactone load/i).length).toBeGreaterThan(0);
+      expect(screen.getByText(/higher absorption vs conventional kava powder/i)).toBeInTheDocument();
+      expect(screen.getByText(/dispersible, clear in the finished beverage/i)).toBeInTheDocument();
+    });
+
+    it('states no onset time and no 10x absorption anywhere on the page', () => {
+      const { container } = renderWithRouter(<KavaLandingPage />);
+
+      expect(container.textContent).not.toMatch(/onset/i);
+      expect(container.textContent).not.toMatch(/10x/i);
+      expect(container.textContent).not.toMatch(/18\s?nm/i);
+      expect(container.textContent).not.toMatch(/first & only/i);
+    });
+
+    it('renders the dosing table, pricing and the no-minimum promise', () => {
+      renderWithRouter(<KavaLandingPage />);
+
+      expect(screen.getByRole('heading', { name: /dosing & cost per serving/i })).toBeInTheDocument();
+      dosing.rows.forEach((row) => {
+        expect(screen.getByRole('rowheader', { name: row.kavalactone })).toBeInTheDocument();
+        expect(screen.getByText(row.costPerServing)).toBeInTheDocument();
+      });
+      expect(screen.getByText('$250')).toBeInTheDocument();
+      expect(screen.getByText(/no minimum to get started/i)).toBeInTheDocument();
+      expect(screen.getByText(pricing.caveat)).toBeInTheDocument();
+    });
+
+    it('renders every spec comparison row from the source of truth', () => {
+      renderWithRouter(<KavaLandingPage />);
+
+      specComparison.forEach((row) => {
+        expect(screen.getByRole('rowheader', { name: row.spec })).toBeInTheDocument();
+      });
+      expect(screen.getByText('12+ months')).toBeInTheDocument();
+    });
+
+    it('carries the bulk-ingredient disclaimer in the footer', () => {
+      renderWithRouter(<KavaLandingPage />);
+
+      expect(screen.getByText(bulkIngredientDisclaimer)).toBeInTheDocument();
     });
 
     it('renders features section', () => {
@@ -331,6 +368,22 @@ describe('Page Content Rendering', () => {
       expect(reishi.length).toBeGreaterThan(0);
       const cordyceps = screen.getAllByText(/cordyceps/i);
       expect(cordyceps.length).toBeGreaterThan(0);
+    });
+
+    it('shows the published dose range and cost per serving for each product', () => {
+      renderWithRouter(<MushroomsLandingPage />);
+
+      // Lion's Mane and Cordyceps share the same 25–35 mg dose range — expect both cards.
+      expect(screen.getAllByText(/dose range: 25–35 mg per serving/i).length).toBe(2);
+      expect(screen.getByText(/cost per serving: \$0\.12–\$0\.17/i)).toBeInTheDocument();
+      expect(screen.getByText(/ingredient cost only.*ask josh for a written quote/i)).toBeInTheDocument();
+    });
+
+    it('carries the 50/50 sourcing and daytime-counterpart line', () => {
+      renderWithRouter(<MushroomsLandingPage />);
+
+      expect(screen.getByText(/50\/50 usa\/global sourcing/i)).toBeInTheDocument();
+      expect(screen.getByText(/daytime counterpart to kava/i)).toBeInTheDocument();
     });
   });
 });

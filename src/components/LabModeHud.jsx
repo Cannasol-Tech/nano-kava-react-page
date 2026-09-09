@@ -4,7 +4,7 @@
  *
  * @description:
  *     Readout that rides the lab-mode easter egg — a nanometer figure settling onto Cannasol's
- *     ~18nm while NanoScene's particle field is spiked. See CLAUDE.md § Lab mode.
+ *     ~20nm while NanoScene's particle field is spiked. See CLAUDE.md § Lab mode.
  *
  * @See Also:
  *     src/utils/labMode.js
@@ -18,7 +18,7 @@
 import React, { useEffect, useState } from 'react';
 import { subscribeLabMode } from '../utils/labMode';
 
-const TARGET_NM = 18;
+const TARGET_NM = 20;
 const TICK_MS = 90;
 const SETTLE_AFTER = 22; // ticks of scatter before the readout locks on
 

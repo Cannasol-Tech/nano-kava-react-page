@@ -28,8 +28,8 @@ describe('Navigation', () => {
       expect(benefitsLinks.length).toBeGreaterThan(0);
       const processLinks = screen.getAllByRole('link', { name: /process/i });
       expect(processLinks.length).toBeGreaterThan(0);
-      const calculatorLinks = screen.getAllByRole('link', { name: /calculator/i });
-      expect(calculatorLinks.length).toBeGreaterThan(0);
+      const dosingLinks = screen.getAllByRole('link', { name: /^dosing$/i });
+      expect(dosingLinks.length).toBeGreaterThan(0);
       const mushroomsLinks = screen.getAllByRole('link', { name: /mushrooms/i });
       expect(mushroomsLinks.length).toBeGreaterThan(0);
       const faqLinks = screen.getAllByRole('link', { name: /faq/i });
@@ -45,8 +45,8 @@ describe('Navigation', () => {
       expect(benefitsLinks[0]).toHaveAttribute('href', '#benefits');
       const processLinks = screen.getAllByRole('link', { name: /process/i });
       expect(processLinks[0]).toHaveAttribute('href', '#process');
-      const calculatorLinks = screen.getAllByRole('link', { name: /calculator/i });
-      expect(calculatorLinks[0]).toHaveAttribute('href', '#calculator');
+      const dosingLinks = screen.getAllByRole('link', { name: /^dosing$/i });
+      expect(dosingLinks[0]).toHaveAttribute('href', '#dosing');
     });
 
     it('has correct href for route links', () => {
@@ -197,5 +197,18 @@ describe('CTA Buttons', () => {
 
     // Email link
     expect(screen.getByRole('link', { name: /email us/i })).toBeInTheDocument();
+  });
+
+  it("offers Josh's direct line alongside the office number", () => {
+    renderWithRouter(<KavaLandingPage />);
+
+    const direct = screen.getByRole('link', { name: /josh \(330\) 808-0546/i });
+    expect(direct).toHaveAttribute('href', 'tel:+13308080546');
+  });
+
+  it('states the business hours in ET', () => {
+    renderWithRouter(<KavaLandingPage />);
+
+    expect(screen.getByText(/9:30 AM – 5:30 PM ET/)).toBeInTheDocument();
   });
 });

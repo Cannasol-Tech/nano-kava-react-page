@@ -50,8 +50,8 @@ describe('LabModeHud', () => {
 
     const readout = screen.getByText(/DROPLET/i).textContent;
     const nm = Number(readout.match(/([\d.]+)\s*nm/)[1]);
-    expect(nm).toBeGreaterThan(16);
-    expect(nm).toBeLessThan(20);
+    expect(nm).toBeGreaterThan(18);
+    expect(nm).toBeLessThan(22);
   }, SLOW);
 });
 
