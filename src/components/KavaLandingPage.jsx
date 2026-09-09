@@ -73,31 +73,6 @@ const themes = themesConfig;
 const FEATURE_ICONS = { Beaker, Sparkles, Zap, Target, Shield, HeartHandshake };
 
 const specValue = (name) => specComparison.find((row) => row.spec === name)?.nano ?? '';
-const specTraditional = (name) => specComparison.find((row) => row.spec === name)?.traditional ?? '';
-
-// Sourced, never retyped — see CLAUDE.md § Particle-size vessel comparison.
-const particleSizeNano = specValue('Mean particle size');
-const particleSizeTraditional = specTraditional('Mean particle size').split(' — ')[0];
-
-// A seeded hash, not Math.random() — see CLAUDE.md § Particle-size vessel comparison.
-function scatterPoints(count, seed) {
-  const points = [];
-  for (let i = 0; i < count; i++) {
-    const h1 = Math.abs(Math.sin((i + seed) * 12.9898) * 43758.5453) % 1;
-    const h2 = Math.abs(Math.sin((i + seed) * 78.233) * 12543.123) % 1;
-    points.push({ x: 10 + h1 * 80, y: 10 + h2 * 130 });
-  }
-  return points;
-}
-const NANO_SUSPENSION = scatterPoints(36, 7);
-// Settled in the bottom third; the ring near the top is the floating film. See CLAUDE.md § Particle-size vessel comparison.
-const SETTLED_DROPLETS = [
-  { x: 30, y: 116, r: 9 },
-  { x: 52, y: 128, r: 10 },
-  { x: 70, y: 114, r: 8 },
-  { x: 42, y: 134, r: 7 },
-  { x: 62, y: 136, r: 6 },
-];
 
 // The pricing card leads on the figure, so it is split off the SSoT sentence rather than retyped.
 const priceFigure = pricing.headline.match(/\$[\d,.]+/)?.[0] ?? '';
@@ -161,11 +136,6 @@ export default function KavaLandingPage() {
   const { isDark, setIsDark } = useTheme();
 
   const theme = isDark ? themes.dark : themes.light;
-  // Vessel comparison colors — a light-grey-blue haze in light mode, or it vanishes on a near-white card.
-  const vesselStroke = isDark ? 'rgba(148, 163, 184, 0.45)' : 'rgba(100, 116, 139, 0.4)';
-  const vesselHaze = isDark ? 'rgba(148, 163, 184, 0.16)' : 'rgba(100, 116, 139, 0.16)';
-  const settledDroplet = isDark ? 'rgba(203, 213, 225, 0.65)' : 'rgba(100, 116, 139, 0.55)';
-  const suspendedDot = isDark ? '#34d399' : '#059669';
   const heroRef = useRef(null);
   const heroStyle = useScrollTransform(heroRef);
 
@@ -620,56 +590,29 @@ export default function KavaLandingPage() {
             </p>
           </div>
 
-          {/* Particle-size vessel comparison — see CLAUDE.md § Particle-size vessel comparison. */}
-          <div className={`rounded-2xl border ${theme.borderCard} ${theme.bgCardOpaque} p-6 md:p-8 mb-8`}>
-            <div className="grid grid-cols-2 gap-6 md:gap-12 max-w-xs sm:max-w-sm md:max-w-lg mx-auto">
-              <div className="flex flex-col items-center text-center">
-                <svg viewBox="0 0 100 150" className="w-full max-w-[110px] md:max-w-[150px]" aria-hidden="true">
-                  <rect x="8" y="8" width="84" height="134" rx="18" fill={vesselHaze} stroke={vesselStroke} strokeWidth="2" />
-                  {SETTLED_DROPLETS.map((d, i) => (
-                    <circle key={i} cx={d.x} cy={d.y} r={d.r} fill={settledDroplet} />
-                  ))}
-                  <circle cx="50" cy="26" r="11" fill="none" stroke={settledDroplet} strokeWidth="2" />
-                </svg>
-                <div className={`mt-3 text-sm font-semibold ${theme.text}`}>Conventional kava emulsion</div>
-                <div className={`text-xs ${theme.textSecondary} mt-1`}>{particleSizeTraditional} &middot; settles, hazes</div>
-              </div>
-              <div className="flex flex-col items-center text-center">
-                <svg viewBox="0 0 100 150" className="w-full max-w-[110px] md:max-w-[150px]" aria-hidden="true">
-                  <rect x="8" y="8" width="84" height="134" rx="18" fill="none" stroke={vesselStroke} strokeWidth="2" />
-                  {NANO_SUSPENSION.map((d, i) => (
-                    <circle key={i} cx={d.x} cy={d.y} r="2" fill={suspendedDot} />
-                  ))}
-                </svg>
-                <div className={`mt-3 text-sm font-semibold ${theme.accentText}`}>Nano Kava</div>
-                <div className={`text-xs ${theme.textSecondary} mt-1`}>{particleSizeNano} &middot; stays clear, stays suspended</div>
-              </div>
-            </div>
-            <p className={`${theme.textSecondary} text-xs mt-6 text-center`}>
-              Illustrative — relative sizes exaggerated for legibility.
-            </p>
-          </div>
-
-          <div className="overflow-x-auto">
-            <table className="w-full min-w-[36rem] border-collapse text-left">
-              <caption className="sr-only">Nano Kava compared with a conventional kava emulsion</caption>
-              <thead>
-                <tr className={`border-b ${theme.border}`}>
-                  <th scope="col" className={`py-3 pr-4 text-xs font-semibold uppercase tracking-wide ${theme.textSecondary}`}>Spec</th>
-                  <th scope="col" className={`py-3 pr-4 text-xs font-semibold uppercase tracking-wide ${theme.accentText}`}>Nano Kava</th>
-                  <th scope="col" className={`py-3 text-xs font-semibold uppercase tracking-wide ${theme.textSecondary}`}>Conventional kava</th>
-                </tr>
-              </thead>
-              <tbody>
-                {specComparison.map((row) => (
-                  <tr key={row.spec} className={`border-b ${theme.border}`}>
-                    <th scope="row" className={`py-3 pr-4 align-top text-sm font-medium ${theme.textSecondary}`}>{row.spec}</th>
-                    <td className={`py-3 pr-4 align-top text-sm font-semibold ${theme.text}`}>{row.nano}</td>
-                    <td className={`py-3 align-top text-sm ${theme.textSecondary}`}>{row.traditional}</td>
+          {/* bgCardOpaque, not bare — see CLAUDE.md § Dosing panel legibility (same panel system). */}
+          <div className={`rounded-3xl border ${theme.borderCard} ${theme.bgCardOpaque} ${theme.shadowXl} overflow-hidden`}>
+            <div className="overflow-x-auto">
+              <table className="w-full min-w-[36rem] border-collapse text-left">
+                <caption className="sr-only">Nano Kava compared with a conventional kava emulsion</caption>
+                <thead>
+                  <tr className={`border-b ${theme.border} ${theme.bgCardAlt}`}>
+                    <th scope="col" className={`py-4 pl-6 pr-4 text-xs font-semibold uppercase tracking-wide ${theme.textSecondary}`}>Spec</th>
+                    <th scope="col" className={`py-4 pr-4 text-xs font-semibold uppercase tracking-wide ${theme.accentText}`}>Nano Kava</th>
+                    <th scope="col" className={`py-4 pr-6 text-xs font-semibold uppercase tracking-wide ${theme.textSecondary}`}>Conventional kava</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
+                </thead>
+                <tbody>
+                  {specComparison.map((row) => (
+                    <tr key={row.spec} className={`border-b ${theme.border} last:border-b-0`}>
+                      <th scope="row" className={`py-4 pl-6 pr-4 align-top text-sm font-medium ${theme.textSecondary}`}>{row.spec}</th>
+                      <td className={`py-4 pr-4 align-top text-sm font-semibold ${theme.text}`}>{row.nano}</td>
+                      <td className={`py-4 pr-6 align-top text-sm ${theme.textSecondary}`}>{row.traditional}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
           </div>
         </div>
       </AnimatedSection>

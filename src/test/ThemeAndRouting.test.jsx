@@ -303,16 +303,13 @@ describe('Page Content Rendering', () => {
       expect(screen.getByText('12+ months')).toBeInTheDocument();
     });
 
-    it('renders the particle-size vessel comparison with sizes sourced from the spec table', () => {
+    it('still renders the Shelf stability row on the spec table', () => {
       renderWithRouter(<KavaLandingPage />);
 
-      const meanSize = specComparison.find((row) => row.spec === 'Mean particle size');
-      const traditionalSize = meanSize.traditional.split(' — ')[0];
-
-      expect(screen.getByText('Conventional kava emulsion')).toBeInTheDocument();
-      expect(screen.getAllByText('Nano Kava').length).toBeGreaterThan(0);
-      expect(screen.getByText(`${traditionalSize} · settles, hazes`)).toBeInTheDocument();
-      expect(screen.getByText(`${meanSize.nano} · stays clear, stays suspended`)).toBeInTheDocument();
+      const shelfStability = specComparison.find((row) => row.spec === 'Shelf stability');
+      expect(screen.getByRole('rowheader', { name: 'Shelf stability' })).toBeInTheDocument();
+      expect(screen.getByText(shelfStability.nano)).toBeInTheDocument();
+      expect(screen.getByText(shelfStability.traditional)).toBeInTheDocument();
     });
 
     it('carries the bulk-ingredient disclaimer in the footer', () => {

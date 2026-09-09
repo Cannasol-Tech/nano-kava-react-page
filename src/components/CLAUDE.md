@@ -152,33 +152,9 @@ asserts `costPerServing` with `getAllByText`, not `getByText`.
 
 ## Particle-size vessel comparison
 
-*Added 2026-09-09 (fix round 1, Task 8).* Stephen's screenshot review: three grey circles of
-uneven size, a dotted green line, then two captions — "doesn't look great," fix or remove; the
-brief carries this diagram, so it stays, redesigned. The old version showed size only, and
-abstractly. The new one is two vessel cross-sections (`viewBox 0 0 100 150` inline SVG, no new
-dependency, no animation): **left**, "Conventional kava emulsion" — a hazy fill, five large grey
-droplets settled in the bottom third, one stroke-only ring near the top standing in for the
-floating film a hazy emulsion leaves at the surface; **right**, "Nano Kava" — no fill, just the
-vessel outline, 36 tiny emerald dots scattered evenly through the whole height. Haze *and*
-settling *and* clarity *and* suspension, in one glance, rather than a number.
-
-**The nano vessel's scatter is a seeded hash, not `Math.random()`.** `scatterPoints()` in
-`KavaLandingPage.jsx` takes a fixed seed, so the 36 points are identical on every render and every
-screenshot — a decorative visual that reshuffled itself on each reload would read as a bug during
-review, not as texture.
-
-**Both size strings are sourced, never retyped.** `particleSizeNano` reads `specComparison`'s
-`Mean particle size` row's `nano` cell (`~20 nm`) directly; `particleSizeTraditional` splits the
-`traditional` cell (`'200–1,000 nm — settles, hazes'`) on `' — '` and keeps only the value half —
-the short captions ("settles, hazes" / "stays clear, stays suspended") are local presentational
-strings, not spec-table content, so they are not sourced the same way.
-
-**The light-theme haze is grey-blue, not white.** A white haze on the light theme's near-white
-`bgCardOpaque` card would vanish; `vesselHaze` uses `rgba(100, 116, 139, 0.16)` (a muted slate)
-in both themes rather than a literal white/grey pair, so it never depends on which theme's card
-tint it happens to sit on. `vesselStroke` and `settledDroplet` likewise stay theme-aware muted
-slate tones — the card moved to `bgCardOpaque` (from `bgCardAlt`) for the same reason the dosing
-panel did, see § Dosing panel legibility.
+*Added, then removed, 2026-09-09 at Stephen's request ("it looks bad").* The brief's diagram is
+not reproduced on the site; the spec table's "Mean particle size" row carries the 200–1,000 nm
+vs ~20 nm fact instead.
 
 ## Section intro legibility
 
