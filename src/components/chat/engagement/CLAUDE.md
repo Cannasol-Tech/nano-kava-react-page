@@ -35,6 +35,8 @@ below is keyed to `section: 'dosing'` per the copy-update plan's instruction to 
 the section lands on; until the landing page lane renames the element to `id="dosing"`, dwelling on
 that section will not raise this nudge. Reconcile the two ids together.
 
+Reconciled 2026-09-09: the landing page landed on `id="dosing"`, so the nudge is live.
+
 Three of the five questions name a sample. That is the point of the feature.
 
 **The restraint rules are the feature, not decoration.** All of them live in `nextPrompt` as one

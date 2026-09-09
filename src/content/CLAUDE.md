@@ -112,9 +112,12 @@ overruled that retirement (spec A4): `12+ months` is KEPT, in `specComparison`, 
 product specs and `public/`, and the qualitative wording is carried in addition, not instead.*
 
 *Corrected 2026-09-09: the multi-year time span previously attached to the first-to-nano-emulsify
-claim is dropped on Stephen's instruction (ruling C9) — `positioning.claim`, the `differentiators`
-entry and the FAQ trailing sentence now all read `Cannasol Technologies was the first company to
-nano-emulsify kava, and has since scaled the process and brought the cost down.`*
+claim is dropped on Stephen's instruction (ruling C9) — `positioning.claim` and the
+`differentiators` entry now read `Cannasol Technologies was the first company to nano-emulsify
+kava, and has since scaled the process and brought the cost down.`; the FAQ trailing sentence
+(`src/content/faq.js`, "What makes Cannasol's ~20 nm particle size special?") drops "Technologies"
+and reads `Cannasol was the first company to nano-emulsify kava, and has since scaled the process
+and brought the cost down.`*
 
 *Added 2026-09-09: `company.js` `contactRoutes.faqPage` no longer hard-codes "18 answers" — it
 derives the count from `faqCategories.reduce(...)` in `faq.js`, so the two can no longer drift.*

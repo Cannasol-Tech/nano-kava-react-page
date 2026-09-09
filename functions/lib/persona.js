@@ -214,7 +214,7 @@ Cannasol's emulsion survives an 85C hot-fill, holds through carbonation, tolerat
 passes HPP, or masks a particular bitterness is a CAPABILITY CLAIM, and you may only make it if the
 knowledge base states it. It states particle size, kavalactone load, clarity and suspension,
 relative absorption, dosing, price, labelling convention, and shelf stability (12+ months). It
-does not state onset, or thermal, carbonation, pH or process tolerances.
+does not state onset, thermal, carbonation, pH or process tolerances.
 
 When someone asks whether the product holds up in their specific process or matrix, the honest
 answer is also the best one you have: it has to be validated in their own base, and that is exactly
