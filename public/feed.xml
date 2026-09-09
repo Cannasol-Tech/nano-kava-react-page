@@ -1,19 +1,19 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <feed xmlns="http://www.w3.org/2005/Atom">
   <title>Nano Kava by Cannasol Technologies</title>
-  <subtitle>The world's first and only ~18nm kava nanoemulsion.</subtitle>
+  <subtitle>The first kava nanoemulsion — ~20 nm and 100% water-dispersible.</subtitle>
   <link href="https://enjoynano.com/feed.xml" rel="self"/>
   <link href="https://enjoynano.com/"/>
   <id>https://enjoynano.com/</id>
   <updated>2026-09-09T00:00:00Z</updated>
   <author><name>Cannasol Technologies</name><email>josh.detzel@cannasolusa.com</email></author>
   <entry>
-    <title>Nano Kava — the world's first ~18nm kava nanoemulsion</title>
+    <title>Nano Kava — the first kava nanoemulsion, ~20 nm and 100% water-dispersible</title>
     <link href="https://enjoynano.com/"/>
     <link rel="alternate" type="text/markdown" href="https://enjoynano.com/index.md"/>
     <id>https://enjoynano.com/</id>
     <updated>2026-09-09T00:00:00Z</updated>
-    <summary>Nano-emulsified kava with an approximately 18 nanometer droplet size: ~10x the bioavailability of traditional kava extract, 80–90% kavalactone absorption, ~5-minute onset, crystal clear and fully water-soluble.</summary>
+    <summary>Nano-emulsified kava with a mean particle size of ~20 nm: 100% water-dispersible, 30 mg/mL kavalactone load, 4–5x higher absorption than conventional kava powder, and crystal clear in the finished beverage.</summary>
   </entry>
   <entry>
     <title>Nano Kava FAQ — kavalactone questions answered</title>
@@ -21,7 +21,7 @@
     <link rel="alternate" type="text/markdown" href="https://enjoynano.com/faq.md"/>
     <id>https://enjoynano.com/faq</id>
     <updated>2026-09-09T00:00:00Z</updated>
-    <summary>Eighteen answered questions on nano kava: particle size, dosing, safety, taste, clarity, shelf stability, minimum order quantity, certifications and regulatory documentation.</summary>
+    <summary>18 answered questions on nano kava: particle size, dosing, safety, taste, clarity, shelf stability, pricing and samples, certifications and regulatory documentation.</summary>
   </entry>
   <entry>
     <title>Nano Mushroom extracts — nanoemulsified functional mushrooms</title>
@@ -29,7 +29,7 @@
     <link rel="alternate" type="text/markdown" href="https://enjoynano.com/mushrooms.md"/>
     <id>https://enjoynano.com/mushrooms</id>
     <updated>2026-09-09T00:00:00Z</updated>
-    <summary>Nanoemulsified Lion's Mane, Reishi and Cordyceps extracts built on the same nanoemulsion platform as Nano Kava, for water-soluble, high-bioavailability functional beverages.</summary>
+    <summary>Nanoemulsified Lion's Mane, Reishi and Cordyceps extracts built on the same nanoemulsion platform as Nano Kava — water-dispersible, high-bioavailability functional beverages, dosed 15–35 mg per serving.</summary>
   </entry>
   <entry>
     <title>Contact Cannasol Technologies — request a free Nano Kava sample</title>
@@ -37,6 +37,6 @@
     <link rel="alternate" type="text/markdown" href="https://enjoynano.com/contact.md"/>
     <id>https://enjoynano.com/contact</id>
     <updated>2026-09-09T00:00:00Z</updated>
-    <summary>Talk to Josh Detzel about Nano Kava samples, pricing, minimum order quantity and formulation support for your beverage brand.</summary>
+    <summary>Talk to Josh Detzel about Nano Kava samples, pricing and formulation support for your beverage brand.</summary>
   </entry>
 </feed>

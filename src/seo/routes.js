@@ -13,11 +13,15 @@
  *     src/AppRoutes.jsx
  *
  * ---
- * @Copyright © 2026 Cannasol Technologies. All Rights Reserved.
+ * @Copyright © 2026 Cannasol Technologies LLC. All Rights Reserved.
  * ---
  */
 
+import { faqCategories } from '../content/faq.js';
+
 export const SITE = 'https://enjoynano.com';
+
+const faqAnswerCount = faqCategories.reduce((count, category) => count + category.faqs.length, 0);
 
 /**
  * A route that is prerendered to static HTML and listed in sitemap.xml / the feeds.
@@ -29,9 +33,9 @@ export const ROUTES = [
     markdown: '/index.md',
     changefreq: 'weekly',
     priority: '1.0',
-    title: "Nano Kava — the world's first ~18nm kava nanoemulsion",
+    title: 'Nano Kava — the first kava nanoemulsion, ~20 nm and 100% water-dispersible',
     summary:
-      'Nano-emulsified kava with an approximately 18 nanometer droplet size: ~10x the bioavailability of traditional kava extract, 80–90% kavalactone absorption, ~5-minute onset, crystal clear and fully water-soluble.',
+      'Nano-emulsified kava with a mean particle size of ~20 nm: 100% water-dispersible, 30 mg/mL kavalactone load, 4–5x higher absorption than conventional kava powder, and crystal clear in the finished beverage.',
     image: '/og-image.png',
   },
   {
@@ -40,8 +44,7 @@ export const ROUTES = [
     changefreq: 'monthly',
     priority: '0.9',
     title: 'Nano Kava FAQ — kavalactone questions answered',
-    summary:
-      'Eighteen answered questions on nano kava: particle size, dosing, safety, taste, clarity, shelf stability, minimum order quantity, certifications and regulatory documentation.',
+    summary: `${faqAnswerCount} answered questions on nano kava: particle size, dosing, safety, taste, clarity, shelf stability, pricing and samples, certifications and regulatory documentation.`,
   },
   {
     path: '/mushrooms',
@@ -50,7 +53,7 @@ export const ROUTES = [
     priority: '0.8',
     title: 'Nano Mushroom extracts — nanoemulsified functional mushrooms',
     summary:
-      "Nanoemulsified Lion's Mane, Reishi and Cordyceps extracts built on the same nanoemulsion platform as Nano Kava, for water-soluble, high-bioavailability functional beverages.",
+      "Nanoemulsified Lion's Mane, Reishi and Cordyceps extracts built on the same nanoemulsion platform as Nano Kava — water-dispersible, high-bioavailability functional beverages, dosed 15–35 mg per serving.",
   },
   {
     path: '/contact',
@@ -59,7 +62,7 @@ export const ROUTES = [
     priority: '0.7',
     title: 'Contact Cannasol Technologies — request a free Nano Kava sample',
     summary:
-      'Talk to Josh Detzel about Nano Kava samples, pricing, minimum order quantity and formulation support for your beverage brand.',
+      'Talk to Josh Detzel about Nano Kava samples, pricing and formulation support for your beverage brand.',
   },
 ];
 

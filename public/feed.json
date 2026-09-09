@@ -1,7 +1,7 @@
 {
   "version": "https://jsonfeed.org/version/1.1",
   "title": "Nano Kava by Cannasol Technologies",
-  "description": "The world's first and only ~18nm kava nanoemulsion.",
+  "description": "The first kava nanoemulsion — ~20 nm and 100% water-dispersible.",
   "home_page_url": "https://enjoynano.com/",
   "feed_url": "https://enjoynano.com/feed.json",
   "language": "en-US",
@@ -15,9 +15,9 @@
     {
       "id": "https://enjoynano.com/",
       "url": "https://enjoynano.com/",
-      "title": "Nano Kava — the world's first ~18nm kava nanoemulsion",
-      "summary": "Nano-emulsified kava with an approximately 18 nanometer droplet size: ~10x the bioavailability of traditional kava extract, 80–90% kavalactone absorption, ~5-minute onset, crystal clear and fully water-soluble.",
-      "content_text": "Nano-emulsified kava with an approximately 18 nanometer droplet size: ~10x the bioavailability of traditional kava extract, 80–90% kavalactone absorption, ~5-minute onset, crystal clear and fully water-soluble.",
+      "title": "Nano Kava — the first kava nanoemulsion, ~20 nm and 100% water-dispersible",
+      "summary": "Nano-emulsified kava with a mean particle size of ~20 nm: 100% water-dispersible, 30 mg/mL kavalactone load, 4–5x higher absorption than conventional kava powder, and crystal clear in the finished beverage.",
+      "content_text": "Nano-emulsified kava with a mean particle size of ~20 nm: 100% water-dispersible, 30 mg/mL kavalactone load, 4–5x higher absorption than conventional kava powder, and crystal clear in the finished beverage.",
       "date_modified": "2026-09-09T00:00:00Z",
       "_markdown": "https://enjoynano.com/index.md"
     },
@@ -25,8 +25,8 @@
       "id": "https://enjoynano.com/faq",
       "url": "https://enjoynano.com/faq",
       "title": "Nano Kava FAQ — kavalactone questions answered",
-      "summary": "Eighteen answered questions on nano kava: particle size, dosing, safety, taste, clarity, shelf stability, minimum order quantity, certifications and regulatory documentation.",
-      "content_text": "Eighteen answered questions on nano kava: particle size, dosing, safety, taste, clarity, shelf stability, minimum order quantity, certifications and regulatory documentation.",
+      "summary": "18 answered questions on nano kava: particle size, dosing, safety, taste, clarity, shelf stability, pricing and samples, certifications and regulatory documentation.",
+      "content_text": "18 answered questions on nano kava: particle size, dosing, safety, taste, clarity, shelf stability, pricing and samples, certifications and regulatory documentation.",
       "date_modified": "2026-09-09T00:00:00Z",
       "_markdown": "https://enjoynano.com/faq.md"
     },
@@ -34,8 +34,8 @@
       "id": "https://enjoynano.com/mushrooms",
       "url": "https://enjoynano.com/mushrooms",
       "title": "Nano Mushroom extracts — nanoemulsified functional mushrooms",
-      "summary": "Nanoemulsified Lion's Mane, Reishi and Cordyceps extracts built on the same nanoemulsion platform as Nano Kava, for water-soluble, high-bioavailability functional beverages.",
-      "content_text": "Nanoemulsified Lion's Mane, Reishi and Cordyceps extracts built on the same nanoemulsion platform as Nano Kava, for water-soluble, high-bioavailability functional beverages.",
+      "summary": "Nanoemulsified Lion's Mane, Reishi and Cordyceps extracts built on the same nanoemulsion platform as Nano Kava — water-dispersible, high-bioavailability functional beverages, dosed 15–35 mg per serving.",
+      "content_text": "Nanoemulsified Lion's Mane, Reishi and Cordyceps extracts built on the same nanoemulsion platform as Nano Kava — water-dispersible, high-bioavailability functional beverages, dosed 15–35 mg per serving.",
       "date_modified": "2026-09-09T00:00:00Z",
       "_markdown": "https://enjoynano.com/mushrooms.md"
     },
@@ -43,8 +43,8 @@
       "id": "https://enjoynano.com/contact",
       "url": "https://enjoynano.com/contact",
       "title": "Contact Cannasol Technologies — request a free Nano Kava sample",
-      "summary": "Talk to Josh Detzel about Nano Kava samples, pricing, minimum order quantity and formulation support for your beverage brand.",
-      "content_text": "Talk to Josh Detzel about Nano Kava samples, pricing, minimum order quantity and formulation support for your beverage brand.",
+      "summary": "Talk to Josh Detzel about Nano Kava samples, pricing and formulation support for your beverage brand.",
+      "content_text": "Talk to Josh Detzel about Nano Kava samples, pricing and formulation support for your beverage brand.",
       "date_modified": "2026-09-09T00:00:00Z",
       "_markdown": "https://enjoynano.com/contact.md"
     }

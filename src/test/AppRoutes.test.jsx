@@ -32,9 +32,10 @@ describe('AppRoutes', () => {
       )
     ).toBeInTheDocument();
 
-    expect(screen.getByText(/lion's mane/i)).toBeInTheDocument();
-    expect(screen.getByText(/reishi/i)).toBeInTheDocument();
-    expect(screen.getByText(/cordyceps/i)).toBeInTheDocument();
+    // Each name now also appears in the mushroomLine.summary prose, not just the card heading.
+    expect(screen.getAllByText(/lion's mane/i).length).toBeGreaterThan(0);
+    expect(screen.getAllByText(/reishi/i).length).toBeGreaterThan(0);
+    expect(screen.getAllByText(/cordyceps/i).length).toBeGreaterThan(0);
 
     const contactSales = screen.getAllByRole('link', { name: /contact sales/i })[0];
     expect(contactSales).toHaveAttribute('href', '/contact');

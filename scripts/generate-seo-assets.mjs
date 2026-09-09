@@ -12,7 +12,7 @@
  *     public/robots.txt
  *
  * ---
- * @Copyright © 2026 Cannasol Technologies. All Rights Reserved.
+ * @Copyright © 2026 Cannasol Technologies LLC. All Rights Reserved.
  * ---
  */
 
@@ -21,6 +21,7 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { execSync } from 'node:child_process';
 import { ROUTES, SITE, absolute } from '../src/seo/routes.js';
+import { positioning } from '../src/content/product.js';
 
 const PUBLIC = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..', 'public');
 
@@ -92,7 +93,7 @@ function atom(lastmod) {
   return `<?xml version="1.0" encoding="UTF-8"?>
 <feed xmlns="http://www.w3.org/2005/Atom">
   <title>Nano Kava by Cannasol Technologies</title>
-  <subtitle>The world's first and only ~18nm kava nanoemulsion.</subtitle>
+  <subtitle>${escape(positioning.badge)}.</subtitle>
   <link href="${SITE}/feed.xml" rel="self"/>
   <link href="${SITE}/"/>
   <id>${SITE}/</id>
@@ -108,7 +109,7 @@ function jsonFeed(lastmod) {
     {
       version: 'https://jsonfeed.org/version/1.1',
       title: 'Nano Kava by Cannasol Technologies',
-      description: "The world's first and only ~18nm kava nanoemulsion.",
+      description: `${positioning.badge}.`,
       home_page_url: `${SITE}/`,
       feed_url: `${SITE}/feed.json`,
       language: 'en-US',

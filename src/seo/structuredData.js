@@ -12,13 +12,19 @@
  *     public/llms.txt
  *
  * ---
- * @Copyright © 2026 Cannasol Technologies. All Rights Reserved.
+ * @Copyright © 2026 Cannasol Technologies LLC. All Rights Reserved.
  * ---
  */
 
 import { faqEntries } from '../content/faq.js';
+import { positioning, specComparison, pricing } from '../content/product.js';
+import { company } from '../content/company.js';
 
 const SITE = 'https://enjoynano.com';
+
+/** company.js stores phones as "(216) 921-2240"; schema.org telephone wants E.164-ish "+1-216-921-2240". */
+const digits = (phone) => phone.replace(/\D/g, '');
+const e164 = (phone) => `+1-${digits(phone).slice(0, 3)}-${digits(phone).slice(3, 6)}-${digits(phone).slice(6)}`;
 
 export const ID = {
   website: `${SITE}/#website`,
@@ -70,8 +76,8 @@ const founder = {
   '@id': ID.founder,
   name: 'Josh Detzel',
   jobTitle: 'Founder',
-  email: 'josh.detzel@cannasolusa.com',
-  telephone: '+1-216-921-2240',
+  email: company.founder.email,
+  telephone: e164(company.founder.directPhone),
   worksFor: { '@id': ID.organization },
   knowsAbout: [
     'Kava nanoemulsion',
@@ -95,7 +101,7 @@ const brand = {
     'nano emulsified kavalactones',
     'EnjoyNano',
   ],
-  slogan: "The world's first and only ~18nm kava nanoemulsion",
+  slogan: positioning.badge,
   logo: `${SITE}/cannasol-logo.png`,
   url: SITE,
 };
@@ -115,10 +121,10 @@ const organization = {
   },
   image: `${SITE}/og-image.png`,
   description:
-    "Manufacturer of Nano Kava, the world's first and only ~18nm kava nanoemulsion, plus nanoemulsified functional mushroom extracts. B2B ingredient supplier to beverage brands, co-packers and formulators.",
-  slogan: "The world's first and only ~18nm kava nanoemulsion",
-  telephone: '+1-216-921-2240',
-  email: 'josh.detzel@cannasolusa.com',
+    'Manufacturer of Nano Kava — the first kava nanoemulsion, ~20 nm and 100% water-dispersible — plus nanoemulsified functional mushroom extracts. B2B ingredient supplier to beverage brands, co-packers and formulators.',
+  slogan: positioning.badge,
+  telephone: e164(company.phone),
+  email: company.founder.email,
   priceRange: '$$',
   founder: { '@id': ID.founder },
   brand: { '@id': ID.brand },
@@ -134,7 +140,7 @@ const organization = {
     'Kavalactone bioavailability',
     'Ultrasonic liquid processing',
     'Nanoemulsified functional mushroom extracts',
-    'Water-soluble kava extract',
+    'Water-dispersible kava extract',
   ],
   openingHoursSpecification: {
     '@type': 'OpeningHoursSpecification',
@@ -146,8 +152,17 @@ const organization = {
     {
       '@type': 'ContactPoint',
       contactType: 'sales',
-      telephone: '+1-216-921-2240',
-      email: 'josh.detzel@cannasolusa.com',
+      telephone: e164(company.phone),
+      email: company.founder.email,
+      availableLanguage: 'English',
+      areaServed: 'US',
+    },
+    {
+      '@type': 'ContactPoint',
+      contactType: 'customer support',
+      name: 'Josh Detzel, Founder — direct line',
+      telephone: e164(company.founder.directPhone),
+      email: company.founder.email,
       availableLanguage: 'English',
       areaServed: 'US',
     },
@@ -189,7 +204,7 @@ const glossary = {
       name: 'Nano kava',
       alternateName: ['nano-kava', 'nano emulsified kava', 'nanoemulsified kava', 'kava nanoemulsion'],
       description:
-        'Nano kava is kava extract whose kavalactones have been broken into droplets of approximately 18 nanometers by nanoemulsification, making the normally hydrophobic compounds fully water-soluble. Compared with traditional kava extract it delivers roughly 10x the bioavailability, 80–90% kavalactone absorption instead of 10–15%, and an onset of about 5 minutes instead of 30–45 minutes.',
+        'Nano kava is kava extract whose kavalactones have been broken into droplets averaging approximately 20 nanometers by nanoemulsification, making the normally hydrophobic compounds 100% water-dispersible. Compared with conventional kava powder it delivers 4–5x higher absorption.',
       inDefinedTermSet: { '@id': ID.terms },
       sameAs: [KG.kava, KG.nanoemulsion],
     },
@@ -198,7 +213,7 @@ const glossary = {
       '@id': `${SITE}/#term-nanoemulsification`,
       name: 'Nanoemulsification',
       description:
-        'Nanoemulsification is the process of breaking an oil phase into nanometer-scale droplets suspended in water, producing a mixture so fine that it appears transparent and resists separation. Cannasol Technologies performs it with ultrasonic liquid processing to reach an ~18nm droplet size for kava.',
+        'Nanoemulsification is the process of breaking an oil phase into nanometer-scale droplets suspended in water, producing a mixture so fine that it appears transparent and resists separation. Cannasol Technologies performs it with ultrasonic liquid processing to reach an ~20 nm droplet size for kava.',
       inDefinedTermSet: { '@id': ID.terms },
       sameAs: [KG.nanoemulsion, KG.emulsion],
     },
@@ -216,7 +231,7 @@ const glossary = {
       '@id': `${SITE}/#term-nanooptimizer`,
       name: 'NanoOptimizer™',
       description:
-        'NanoOptimizer™ is Cannasol Technologies’ proprietary blend of food-grade surfactants that encapsulates kava droplets, keeps them water-soluble, and prevents re-aggregation so the emulsion stays suspended indefinitely without separation or settling.',
+        'NanoOptimizer™ is Cannasol Technologies’ proprietary blend of food-grade surfactants that encapsulates kava droplets, keeps them water-dispersible, and prevents re-aggregation so the emulsion stays suspended indefinitely without separation or settling.',
       inDefinedTermSet: { '@id': ID.terms },
       sameAs: [KG.surfactant],
     },
@@ -230,15 +245,8 @@ const spec = (name, value, unit) => ({
   ...(unit ? { unitText: unit } : {}),
 });
 
-/**
- * Numeric spec with a UN/CEFACT unit code. Engines can compare these across suppliers;
- * a unitText-only string is only readable as prose. C45 = nanometre, MIN = minute.
- */
-const measured = (name, value, unitCode, unitText) => ({
-  '@type': 'PropertyValue',
-  name,
-  value: { '@type': 'QuantitativeValue', value, unitCode, unitText },
-});
+/** The product's own spec values, from the specComparison SSoT (src/content/product.js). */
+const specProperties = specComparison.map((row) => spec(row.spec, row.nano));
 
 const nanoKavaProduct = {
   '@type': 'Product',
@@ -252,10 +260,9 @@ const nanoKavaProduct = {
     'nanoemulsified kava',
     'Kava nanoemulsion',
     'Nano-emulsified kavalactones',
-    'Water-soluble kava extract',
+    'Water-dispersible kava extract',
   ],
-  description:
-    "The world's first and only ~18nm kava nanoemulsion. Approximately 10x the bioavailability of traditional kava extract, 80–90% kavalactone absorption, ~5-minute onset, crystal-clear appearance and 12+ month shelf stability. Supplied B2B as a bulk ingredient for functional beverages.",
+  description: `${positioning.summary} 12+ month shelf stability. Supplied B2B as a bulk ingredient for functional beverages.`,
   image: `${SITE}/og-image.png`,
   url: SITE,
   brand: { '@id': ID.brand },
@@ -267,31 +274,38 @@ const nanoKavaProduct = {
     '@type': 'BusinessAudience',
     name: 'Beverage brands, co-packers and formulators',
   },
-  additionalProperty: [
-    measured('Droplet size', 18, 'C45', 'nanometer'),
-    measured('Onset time', 5, 'MIN', 'minute'),
-    spec('Relative bioavailability vs traditional kava extract', '10x'),
-    spec('Kavalactone absorption', '80–90', 'percent'),
-    spec('Appearance in finished beverage', 'Crystal clear — no cloudiness or sediment'),
-    spec('Water solubility', 'Fully water-soluble'),
-    spec('Shelf stability', '12+', 'month'),
-    spec('Kava variety', 'Noble varieties only — never tudei'),
-    spec('Surfactant system', 'NanoOptimizer™ food-grade surfactant system'),
-    spec('Processing method', 'Ultrasonic liquid processing (QSonica equipment)'),
+  additionalProperty: specProperties,
+  offers: [
+    {
+      '@type': 'Offer',
+      '@id': `${SITE}/#offer-nano-kava-sample`,
+      name: 'Free Nano Kava sample',
+      price: '0.00',
+      priceCurrency: 'USD',
+      availability: 'https://schema.org/InStock',
+      itemCondition: 'https://schema.org/NewCondition',
+      url: `${SITE}/contact?inquiry=samples&product=nano-kava`,
+      seller: { '@id': ID.organization },
+      businessFunction: 'http://purl.org/goodrelations/v1#Sell',
+      eligibleCustomerType: 'http://purl.org/goodrelations/v1#Business',
+    },
+    {
+      '@type': 'Offer',
+      '@id': `${SITE}/#offer-nano-kava-bulk`,
+      name: 'Nano Kava bulk ingredient — 1,000 L promotional tier',
+      price: '250.00',
+      priceCurrency: 'USD',
+      unitText: 'liter',
+      unitCode: 'LTR',
+      availability: 'https://schema.org/InStock',
+      itemCondition: 'https://schema.org/NewCondition',
+      url: SITE,
+      seller: { '@id': ID.organization },
+      businessFunction: 'http://purl.org/goodrelations/v1#Sell',
+      eligibleCustomerType: 'http://purl.org/goodrelations/v1#Business',
+      description: pricing.caveat,
+    },
   ],
-  offers: {
-    '@type': 'Offer',
-    '@id': `${SITE}/#offer-nano-kava-sample`,
-    name: 'Free Nano Kava sample',
-    price: '0.00',
-    priceCurrency: 'USD',
-    availability: 'https://schema.org/InStock',
-    itemCondition: 'https://schema.org/NewCondition',
-    url: `${SITE}/contact?inquiry=samples&product=nano-kava`,
-    seller: { '@id': ID.organization },
-    businessFunction: 'http://purl.org/goodrelations/v1#Sell',
-    eligibleCustomerType: 'http://purl.org/goodrelations/v1#Business',
-  },
 };
 
 const nanoMushroomProduct = {
@@ -300,7 +314,7 @@ const nanoMushroomProduct = {
   name: 'Nano Mushroom Emulsions',
   alternateName: ['Nanoemulsified functional mushroom extracts'],
   description:
-    "Nanoemulsified functional mushroom extracts — Lion's Mane, Reishi and Cordyceps — built on the same nanoemulsion platform as Cannasol's ~18nm Nano Kava, for water-soluble, high-bioavailability use in functional beverages.",
+    "Nanoemulsified functional mushroom extracts — Lion's Mane, Reishi and Cordyceps — built on the same nanoemulsion platform as Cannasol's Nano Kava, for water-dispersible, high-bioavailability use in functional beverages.",
   url: `${SITE}/mushrooms`,
   brand: { '@id': ID.brand },
   manufacturer: { '@id': ID.organization },
@@ -389,23 +403,16 @@ const comparison = {
   '@id': `${SITE}/#comparison-nano-vs-traditional`,
   name: 'Nano Kava vs traditional kava extract',
   description:
-    'Specification-by-specification comparison of Cannasol Technologies’ ~18nm Nano Kava against traditional kava extract.',
+    'Specification-by-specification comparison of Cannasol Technologies’ Nano Kava against traditional kava extract.',
   itemListOrder: 'https://schema.org/ItemListUnordered',
-  numberOfItems: 6,
-  itemListElement: [
-    { name: 'Droplet size', nano: '~18 nm', traditional: 'Not nanosized (microns and larger)' },
-    { name: 'Kavalactone absorption', nano: '80–90%', traditional: '10–15%' },
-    { name: 'Onset time', nano: '~5 minutes', traditional: '30–45 minutes' },
-    { name: 'Water solubility', nano: 'Fully water-soluble', traditional: 'Hydrophobic, poorly dispersed' },
-    { name: 'Appearance in beverage', nano: 'Crystal clear', traditional: 'Cloudy, muddy, gritty' },
-    { name: 'Shelf stability', nano: '12+ months, no separation', traditional: 'Separates and settles' },
-  ].map((row, i) => ({
+  numberOfItems: specComparison.length,
+  itemListElement: specComparison.map((row, i) => ({
     '@type': 'ListItem',
     position: i + 1,
-    name: row.name,
+    name: row.spec,
     item: {
       '@type': 'Thing',
-      name: row.name,
+      name: row.spec,
       description: `Nano Kava: ${row.nano}. Traditional kava extract: ${row.traditional}.`,
     },
   })),
@@ -423,11 +430,11 @@ const headQuestions = {
   itemListElement: [
     [
       'What is nano kava?',
-      'Nano kava is kava extract whose kavalactones have been broken into droplets of approximately 18 nanometers by nanoemulsification, making the normally hydrophobic compounds fully water-soluble and rapidly absorbable. Cannasol Technologies of Sarasota, Florida manufactures the only ~18nm kava nanoemulsion, sold B2B as Nano Kava.',
+      'Nano kava is kava extract whose kavalactones have been broken into droplets averaging approximately 20 nanometers by nanoemulsification, making the normally hydrophobic compounds 100% water-dispersible and rapidly absorbable. Cannasol Technologies of Sarasota, Florida manufactures the kava nanoemulsion, sold B2B as Nano Kava.',
     ],
     [
       'What is nano emulsified kava?',
-      'Nano-emulsified kava is the same thing as nano kava: kava extract processed by ultrasonic nanoemulsification until its kavalactone droplets reach nanometer scale. Cannasol Technologies reaches approximately 18 nanometers, which yields roughly 10x the bioavailability of traditional kava extract, 80–90% kavalactone absorption instead of 10–15%, and a crystal-clear rather than cloudy finished beverage.',
+      'Nano-emulsified kava is the same thing as nano kava: kava extract processed by ultrasonic nanoemulsification until its kavalactone droplets reach nanometer scale. Cannasol Technologies reaches approximately 20 nanometers, which yields 4–5x higher absorption than conventional kava powder and a crystal-clear rather than cloudy finished beverage.',
     ],
     [
       'Who makes nano kava?',
@@ -435,15 +442,15 @@ const headQuestions = {
     ],
     [
       'How is nano kava different from traditional kava extract?',
-      'Traditional kava extract is hydrophobic, absorbs at only 10–15%, takes 30–45 minutes to take effect, and makes beverages cloudy and prone to separation. Cannasol Technologies\u2019 ~18nm Nano Kava is fully water-soluble, absorbs at 80–90%, takes effect in about 5 minutes, stays crystal clear, and remains stable for 12+ months with no separation or settling.',
+      'Traditional kava extract is hydrophobic, poorly dispersed in water, and makes beverages cloudy and prone to separation. Cannasol Technologies\u2019 ~20 nm Nano Kava is 100% water-dispersible, delivers 4–5x higher absorption than conventional kava powder, stays crystal clear, and remains stable for 12+ months with no separation or settling.',
     ],
     [
       'What is a kava nanoemulsion?',
-      'A kava nanoemulsion is kava extract suspended in water as nanometer-scale droplets stabilised by a surfactant system, so the mixture stays transparent and does not separate. Cannasol Technologies produces its kava nanoemulsion at approximately 18 nanometers using the proprietary NanoOptimizer\u2122 food-grade surfactant system and QSonica ultrasonic liquid-processing equipment.',
+      'A kava nanoemulsion is kava extract suspended in water as nanometer-scale droplets stabilised by a surfactant system, so the mixture stays transparent and does not separate. Cannasol Technologies produces its kava nanoemulsion at approximately 20 nanometers using the proprietary NanoOptimizer\u2122 food-grade surfactant system and QSonica ultrasonic liquid-processing equipment.',
     ],
     [
       'Where can I buy nano kava in bulk?',
-      'Cannasol Technologies supplies Nano Kava in bulk directly to beverage brands, co-packers and formulators. Free samples are available and minimum order quantity is negotiated per customer rather than fixed. Request a sample at https://enjoynano.com/contact or contact Josh Detzel at josh.detzel@cannasolusa.com.',
+      'Cannasol Technologies supplies Nano Kava in bulk directly to beverage brands, co-packers and formulators. Nano Kava is $250 per liter of ~30 mg/mL kavalactone nanoemulsion, with no minimum to get started. Request a sample at https://enjoynano.com/contact or contact Josh Detzel at josh.detzel@cannasolusa.com.',
     ],
   ].map(([name, text], i) => ({
     '@type': 'ListItem',
@@ -463,9 +470,9 @@ const headQuestions = {
 const explainer = {
   '@type': 'TechArticle',
   '@id': `${SITE}/#article-what-is-nano-kava`,
-  headline: 'What nano-emulsified kava is, and how an ~18nm kava nanoemulsion is made',
+  headline: 'What nano-emulsified kava is, and how a ~20 nm kava nanoemulsion is made',
   description:
-    "A technical explanation of kava nanoemulsification: why kavalactones are poorly absorbed in traditional extracts, how ultrasonic processing with the NanoOptimizer\u2122 surfactant system reduces droplet size to approximately 18 nanometers, and what that changes in a finished beverage.",
+    "A technical explanation of kava nanoemulsification: why kavalactones are poorly absorbed in traditional extracts, how ultrasonic processing with the NanoOptimizer\u2122 surfactant system reduces droplet size to approximately 20 nanometers, and what that changes in a finished beverage.",
   articleSection: 'Functional beverage ingredients',
   inLanguage: 'en-US',
   isAccessibleForFree: true,
@@ -481,8 +488,8 @@ const explainer = {
     'nanoemulsified kava',
     'kava nanoemulsion',
     'nano-emulsified kavalactones',
-    'water-soluble kava',
-    '18nm kava',
+    'water-dispersible kava',
+    '20nm kava',
   ],
   proficiencyLevel: 'Expert',
 };
@@ -507,8 +514,7 @@ export const homeSchema = graph(
     '@id': ID.home,
     url: `${SITE}/`,
     name: 'Nano Kava | Premium Nano-Emulsified Kavalactones',
-    description:
-      "Nano-emulsified kava with ~18nm particle size. 10x bioavailability, 5-minute onset, crystal-clear kavalactones. The world's first and only ~18nm kava nanoemulsion.",
+    description: `Nano-emulsified kava with ~20 nm particle size, 100% water-dispersible, 4–5x higher absorption than conventional kava powder, crystal-clear kavalactones. ${positioning.badge}.`,
     isPartOf: { '@id': ID.website },
     inLanguage: 'en-US',
     primaryImageOfPage: `${SITE}/og-image.png`,
@@ -568,7 +574,7 @@ export const mushroomsSchema = graph(
     url: `${SITE}/mushrooms`,
     name: 'Nano Mushroom Extracts | Nanoemulsified Functional Mushrooms',
     description:
-      "Nanoemulsified functional mushroom extracts for maximum bioavailability. Lion's Mane, Reishi, Cordyceps and more — powered by nano-emulsification technology.",
+      "Nanoemulsified functional mushroom extracts — Lion's Mane, Cordyceps and Reishi nanoemulsions. Water-dispersible, clear in solution, with published dose ranges and cost per serving, on 50/50 USA/global sourcing.",
     isPartOf: { '@id': ID.website },
     inLanguage: 'en-US',
     about: { '@id': ID.nanoMushrooms },
