@@ -58,15 +58,15 @@ describe('NanoExplainer', () => {
 
     const dialog = screen.getByRole('dialog');
     expect(dialog).toHaveAttribute('aria-modal', 'true');
-    expect(dialog).toHaveAccessibleName(/how small is 18 nanometres/i);
+    expect(dialog).toHaveAccessibleName(/how small is 20 nanometres/i);
   }, SLOW);
 
-  it('puts 18nm in context against something everyone can picture', async () => {
+  it('puts 20nm in context against something everyone can picture', async () => {
     const { openExplainer } = await setup();
     open(openExplainer);
 
     expect(screen.getByText(/human hair/i)).toBeInTheDocument();
-    expect(screen.getByText(/~18 nm/i)).toBeInTheDocument();
+    expect(screen.getByText(/~20 nm/i)).toBeInTheDocument();
     // Product-neutral on purpose: the same visual is raised from the mushrooms page.
     expect(screen.getByText(/cannasol droplet/i)).toBeInTheDocument();
   }, SLOW);
@@ -78,7 +78,8 @@ describe('NanoExplainer', () => {
     expect(screen.getByText(/traditional emulsion/i)).toBeInTheDocument();
     expect(screen.getByText(/nano — clear/i)).toBeInTheDocument();
     expect(screen.getByText(/bioavailability/i)).toBeInTheDocument();
-    expect(screen.getByText(/onset time/i)).toBeInTheDocument();
+    // Onset is retired site-wide (2026-09 ingredient brief) — never restated here.
+    expect(screen.queryByText(/onset/i)).toBeNull();
   }, SLOW);
 
   it('states the figures as specs, never as an outcome for a person', async () => {

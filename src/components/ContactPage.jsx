@@ -23,6 +23,7 @@ import {
 } from 'lucide-react';
 import themesConfig from '../theme/themes';
 import { trackFormConversion, trackPhoneClick, trackEmailClick } from '../utils/gtag';
+import { company, sampleOffer } from '../content/company';
 
 // Theme configuration - matches other pages
 const themes = themesConfig;
@@ -416,7 +417,7 @@ export default function ContactPage() {
     <div className={`min-h-screen ${theme.text} transition-colors duration-500`}>
       <Helmet>
         <title>Contact Us | Nano Kava by EnjoyNano</title>
-        <meta name="description" content="Get in touch with the EnjoyNano team. Questions about nano kava, wholesale orders, or nano-emulsified kavalactone technology? We'd love to hear from you." />
+        <meta name="description" content="Reach the EnjoyNano team for nano kava samples, $250/L pricing, or formulation support. Questions about nano-emulsified kavalactone technology? We'd love to hear from you." />
         <link rel="canonical" href="https://enjoynano.com/contact" />
         <meta property="og:title" content="Contact EnjoyNano — Nano Kava Team" />
         <meta property="og:description" content="Reach out for nano kava samples, pricing, formulation support, or partnership inquiries." />
@@ -504,10 +505,20 @@ export default function ContactPage() {
               icon={Phone}
               title="Call Us"
               theme={theme}
-              href="tel:+12169212240"
+              href={company.phoneHref}
               onClick={() => trackPhoneClick()}
             >
-              <p className="font-medium">(216) 921-2240</p>
+              <p className="font-medium">{company.phone}</p>
+            </ContactInfoCard>
+
+            <ContactInfoCard
+              icon={Phone}
+              title="Josh Direct"
+              theme={theme}
+              href={`tel:+1${company.founder.directPhone.replace(/\D/g, '')}`}
+              onClick={() => trackPhoneClick()}
+            >
+              <p className="font-medium">{company.founder.directPhone}</p>
             </ContactInfoCard>
 
             <ContactInfoCard
@@ -528,12 +539,21 @@ export default function ContactPage() {
               <p className="font-medium">Sarasota, Florida, USA</p>
             </ContactInfoCard>
 
-            <ContactInfoCard 
-              icon={Clock} 
-              title="Hours" 
+            <ContactInfoCard
+              icon={Clock}
+              title="Hours"
               theme={theme}
             >
-              <p className="font-medium">Mon-Fri, 9:30 AM - 5:30 PM EST</p>
+              <p className="font-medium">{company.hours}</p>
+            </ContactInfoCard>
+
+            <ContactInfoCard
+              icon={Briefcase}
+              title="Samples"
+              theme={theme}
+            >
+              <p>{sampleOffer.turnaround}</p>
+              <p className="mt-1">{sampleOffer.moq}</p>
             </ContactInfoCard>
 
             {/* Quick Links */}

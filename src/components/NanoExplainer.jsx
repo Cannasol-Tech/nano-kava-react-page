@@ -3,7 +3,7 @@
  * @author: Stephen Boyett
  *
  * @description:
- *     The scale visual Sol raises when someone asks how small ~18nm is. Rises into place while
+ *     The scale visual Sol raises when someone asks how small ~20nm is. Rises into place while
  *     its blur, tint and shadow resolve on one shared timer, plays a five-second comparison,
  *     and hands off to the sample request. See CLAUDE.md § The nano explainer.
  *
@@ -25,19 +25,16 @@ import { trackCTAClick, trackEvent } from '../utils/gtag';
 
 const CLOSE_MS = 260;
 
-// Widths are log-scaled: linear, 18nm against a hair is an invisible sliver next to a full bar.
-// Both figures are the site's own stat cards, and the persona confirms absorption and onset are
-// in the knowledge base. Stated as specs, never as an outcome for a person.
+// Widths are log-scaled \u2014 linear would make ~20 nm invisible against an 80,000 nm hair.
 const STATS = [
-  { value: '5\u00d7', label: 'bioavailability' },
-  { value: '5 min', label: 'onset time' },
+  { value: '4\u20135\u00d7', label: 'bioavailability' },
 ];
 
 const SCALE = [
   { label: 'Human hair', size: '80,000 nm', pct: 100 },
   { label: 'Red blood cell', size: '7,000 nm', pct: 74 },
   { label: 'Virus', size: '100 nm', pct: 38 },
-  { label: 'Cannasol droplet', size: '~18 nm', pct: 17, ours: true },
+  { label: 'Cannasol droplet', size: '~20 nm', pct: 18, ours: true },
 ];
 
 export default function NanoExplainer() {
@@ -101,7 +98,7 @@ export default function NanoExplainer() {
 
         <p className="nano-modal__eyebrow">Ultrasonic nanoemulsification</p>
         <h2 id="nano-explainer-title" className="nano-modal__title">
-          How small is 18 nanometres?
+          How small is 20 nanometres?
         </h2>
 
         <ul className="nano-modal__scale">

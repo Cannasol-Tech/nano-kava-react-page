@@ -62,10 +62,24 @@ describe('ContactPage', () => {
       expect(screen.getByText(/sarasota, florida/i)).toBeInTheDocument();
     });
 
-    it('displays business hours', () => {
+    it('displays business hours in ET, never EST', () => {
       renderContactPage();
 
-      expect(screen.getByText(/mon-fri, 9:30 am - 5:30 pm est/i)).toBeInTheDocument();
+      expect(screen.getByText(/9:30\s*am.*5:30\s*pm et\b/i)).toBeInTheDocument();
+    });
+
+    it('displays Josh\'s direct line alongside the office number', () => {
+      renderContactPage();
+
+      const joshLink = screen.getByText(/\(330\) 808-0546/).closest('a');
+      expect(joshLink).toHaveAttribute('href', 'tel:+13308080546');
+    });
+
+    it('shows no minimum to get started, never MOQ', () => {
+      renderContactPage();
+
+      expect(screen.getByText(/no minimum to get started/i)).toBeInTheDocument();
+      expect(screen.queryByText(/\bMOQ\b/i)).toBeNull();
     });
 
     it('displays quick links section', () => {

@@ -7,10 +7,25 @@ import { useTheme } from '../context/ThemeContext';
 import { trackPhoneConversion } from '../utils/gtag';
 import { ArrowLeft, Leaf, Sparkles, Sun, Moon, ArrowRight, Beaker, Droplets, ShieldCheck, Dumbbell, Phone, Menu, X } from 'lucide-react';
 import { useInView } from '../hooks/useInView';
+import { mushroomLine } from '../content/product';
 
 import themesConfig from '../theme/themes';
 
 const themes = themesConfig;
+
+// Icons stay in the component layer per src/content/CLAUDE.md — content exports names only.
+const PRODUCT_ICONS = {
+  "Lion's Mane Nanoemulsion": Sparkles,
+  'Reishi Nanoemulsion': Leaf,
+  'Cordyceps Nanoemulsion': Dumbbell,
+};
+const BENEFIT_ICONS = [Droplets, Beaker, ShieldCheck];
+
+// mushroomLine.benefits are single "Title — sentence." strings; split for the card layout.
+function splitBenefit(text) {
+  const [title, rest] = text.split(' — ');
+  return { title, description: rest ? rest.charAt(0).toUpperCase() + rest.slice(1) : '' };
+}
 
 function MushroomsLandingPage() {
   const { isDark, setIsDark } = useTheme();
@@ -21,60 +36,11 @@ function MushroomsLandingPage() {
 
   const theme = useMemo(() => (isDark ? themes.dark : themes.light), [isDark]);
 
-  const products = useMemo(
-    () => [
-      {
-        title: "Lion's Mane",
-        bestFor: 'Focus & clarity',
-        icon: Sparkles,
-        points: [
-          'Clean, beverage-ready integration',
-          'Consistent dispersion and dosing',
-          'Designed for modern functional formats'
-        ]
-      },
-      {
-        title: 'Reishi',
-        bestFor: 'Calm & balance',
-        icon: Leaf,
-        points: [
-          'Stable formulation performance',
-          'Smooth, consistent sensory profile',
-          'Ideal for daily wellness beverages'
-        ]
-      },
-      {
-        title: 'Cordyceps',
-        bestFor: 'Performance & energy',
-        icon: Dumbbell,
-        points: [
-          'Efficient delivery in RTDs and shots',
-          'Uniform distribution across servings',
-          'Built for scalable production'
-        ]
-      }
-    ],
-    []
-  );
-
   const benefits = useMemo(
-    () => [
-      {
-        title: 'Faster absorption pathways',
-        description: 'Nanoemulsification helps enable faster uptake and more consistent consumer experience.',
-        icon: Droplets
-      },
-      {
-        title: 'Formulation-friendly',
-        description: 'Designed to integrate smoothly in water-based formulations with consistent dispersion.',
-        icon: Beaker
-      },
-      {
-        title: 'Production-ready stability',
-        description: 'Optimized for reliable batch-to-batch performance and scalable manufacturing workflows.',
-        icon: ShieldCheck
-      }
-    ],
+    () => mushroomLine.benefits.map((text, i) => ({
+      ...splitBenefit(text),
+      icon: BENEFIT_ICONS[i] || Droplets,
+    })),
     []
   );
 
@@ -82,10 +48,10 @@ function MushroomsLandingPage() {
     <div className={`min-h-screen ${theme.text} overflow-x-hidden transition-colors duration-500`}>
       <Helmet>
         <title>Nano Mushroom Extracts | Nanoemulsified Functional Mushrooms — EnjoyNano</title>
-        <meta name="description" content="Nanoemulsified functional mushroom extracts for maximum bioavailability. Lion's Mane, Reishi, Cordyceps and more — powered by nano-emulsification technology." />
+        <meta name="description" content="Nanoemulsified Lion's Mane, Reishi and Cordyceps — 100% water-dispersible, clear in solution, with published dose ranges and cost per serving." />
         <link rel="canonical" href="https://enjoynano.com/mushrooms" />
         <meta property="og:title" content="Nano Mushroom Extracts — Nanoemulsified Functional Mushrooms" />
-        <meta property="og:description" content="Nanoemulsified functional mushroom extracts: Lion's Mane, Reishi, Cordyceps with maximum bioavailability." />
+        <meta property="og:description" content="Lion's Mane, Reishi and Cordyceps nanoemulsions — water-dispersible, clear in solution, with published dose ranges and cost per serving." />
         <meta property="og:url" content="https://enjoynano.com/mushrooms" />
         <link rel="alternate" type="text/markdown" href="https://enjoynano.com/mushrooms.md" />
         <meta property="og:type" content="website" />
@@ -288,20 +254,23 @@ function MushroomsLandingPage() {
               <p className={`mt-4 text-lg ${theme.textSecondary} max-w-3xl`}>
                 Built for B2B formulation teams that need consistency, clean sensory profiles, and predictable performance across production runs.
               </p>
+              <p className={`mt-3 ${theme.textSecondary} max-w-3xl`}>
+                {mushroomLine.summary}
+              </p>
             </div>
 
             <div className="grid md:grid-cols-3 gap-6 mt-10">
-              {products.map((p, i) => {
-                const Icon = p.icon;
+              {mushroomLine.products.map((p, i) => {
+                const Icon = PRODUCT_ICONS[p.name] || Sparkles;
                 return (
                   <div
-                    key={p.title}
+                    key={p.name}
                     className={`${theme.bgCard} border ${theme.borderCard} rounded-3xl p-8 transition-colors duration-500`}
                     style={{ transitionDelay: offeringsInView ? `${(i + 1) * 80}ms` : '0ms' }}
                   >
                     <div className="flex items-start justify-between gap-4">
                       <div>
-                        <h3 className={`text-2xl font-bold ${theme.text}`}>{p.title}</h3>
+                        <h3 className={`text-2xl font-bold ${theme.text}`}>{p.name}</h3>
                         <p className={`mt-1 ${theme.textSecondary}`}>Best for: <span className="font-medium">{p.bestFor}</span></p>
                       </div>
                       <div className={`w-12 h-12 rounded-2xl ${theme.bgIconBox} flex items-center justify-center`}
@@ -319,7 +288,12 @@ function MushroomsLandingPage() {
                       ))}
                     </div>
 
-                    <div className="mt-8">
+                    <div className={`mt-6 pt-4 border-t ${theme.border}/50 text-sm ${theme.textMuted} space-y-0.5`}>
+                      <p>Dose range: {p.dose}</p>
+                      <p>Cost per serving: {p.costPerServing}</p>
+                    </div>
+
+                    <div className="mt-6">
                       <Link to="/contact" className={`${theme.accentText} font-semibold inline-flex items-center gap-2 hover:opacity-90 transition-opacity`}>
                         Talk formulation
                         <ArrowRight className="w-4 h-4" />
@@ -329,6 +303,9 @@ function MushroomsLandingPage() {
                 );
               })}
             </div>
+            <p className={`mt-6 text-sm ${theme.textMuted}`}>
+              Ingredient cost only; pricing is subject to change — ask Josh for a written quote.
+            </p>
           </div>
         </section>
 

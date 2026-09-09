@@ -147,10 +147,10 @@ export default function FAQPage() {
     <div className={`min-h-screen ${theme.text} transition-colors duration-500`}>
       <Helmet>
         <title>Nano Kava FAQ | Kavalactone Questions Answered — EnjoyNano</title>
-        <meta name="description" content="Frequently asked questions about nano kava, kavalactones, nano-emulsified kava technology, dosing, safety, and bioavailability benefits." />
+        <meta name="description" content="Frequently asked questions about nano kava — kavalactone dosing, ~20 nm particle size, clarity, shelf stability, pricing, and documentation (COA, particle-size report)." />
         <link rel="canonical" href="https://enjoynano.com/faq" />
         <meta property="og:title" content="Nano Kava FAQ — Kavalactone Questions Answered" />
-        <meta property="og:description" content="Get answers about nano kava, kavalactones, dosing, safety, and nano-emulsified kava benefits." />
+        <meta property="og:description" content="Get answers about nano kava dosing, particle size, clarity, shelf stability, pricing, and documentation." />
         <meta property="og:url" content="https://enjoynano.com/faq" />
         <link rel="alternate" type="text/markdown" href="https://enjoynano.com/faq.md" />
         <meta property="og:type" content="website" />
