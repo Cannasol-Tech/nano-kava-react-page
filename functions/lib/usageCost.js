@@ -18,11 +18,27 @@
  */
 
 /**
- * gemini-3.5-flash paid tier, USD per million tokens, from ai.google.dev/gemini-api/docs/pricing
+ * gemini-3.8-flash paid tier, USD per million tokens, from ai.google.dev/gemini-api/docs/pricing
  * on 2026-09-09. `cached` is the implicit-cache read rate — 10x cheaper than fresh input, which
- * is why the stable prefix in persona.js earns its keep. Re-check when the model changes.
+ * is why the stable prefix in persona.js earns its keep.
+ *
+ * Dated, because 3.8's launch pricing is promotional and **doubles on 2027-01-01**. A flat
+ * constant would keep reporting half the real cost from New Year's Day with nothing to notice.
+ * Newest first; re-check the whole table when MODEL changes.
  */
-const RATES_PER_MILLION = { input: 1.50, output: 9.00, cached: 0.15 };
+const RATE_SCHEDULE = [
+  { from: Date.UTC(2027, 0, 1), input: 1.50, output: 7.50, cached: 0.15 },
+  { from: 0, input: 0.75, output: 3.75, cached: 0.075 },
+];
+
+/** The rates in force when the turn happened, not when the report is read. */
+function ratesOn(when = new Date()) {
+  const at = when instanceof Date ? when.getTime() : Number(when) || Date.now();
+  return RATE_SCHEDULE.find((tier) => at >= tier.from) || RATE_SCHEDULE[RATE_SCHEDULE.length - 1];
+}
+
+/** Today's rates, for callers that just want to read them. */
+const RATES_PER_MILLION = ratesOn();
 
 const EMPTY_USAGE = { promptTokens: 0, cachedTokens: 0, outputTokens: 0, costUsd: 0, turns: 0 };
 
@@ -32,24 +48,25 @@ const count = (value) => (Number.isFinite(value) && value > 0 ? Math.trunc(value
  * `cachedContentTokenCount` is a SUBSET of `promptTokenCount`, not an addition — billing the
  * whole prompt at the input rate and the cache on top double-counts every cached token.
  */
-function costOf(usage) {
+function costOf(usage, when = new Date()) {
+  const rates = ratesOn(when);
   const prompt = count(usage?.promptTokenCount);
   const cached = Math.min(count(usage?.cachedContentTokenCount), prompt);
   const output = count(usage?.candidatesTokenCount);
 
-  return ((prompt - cached) * RATES_PER_MILLION.input
-    + cached * RATES_PER_MILLION.cached
-    + output * RATES_PER_MILLION.output) / 1e6;
+  return ((prompt - cached) * rates.input
+    + cached * rates.cached
+    + output * rates.output) / 1e6;
 }
 
 /** One turn, in the shape the session document stores. A turn with no usage block counts zero. */
-function usageFrom(usage) {
+function usageFrom(usage, when = new Date()) {
   if (!usage) return { ...EMPTY_USAGE, turns: 0 };
   return {
     promptTokens: count(usage.promptTokenCount),
     cachedTokens: Math.min(count(usage.cachedContentTokenCount), count(usage.promptTokenCount)),
     outputTokens: count(usage.candidatesTokenCount),
-    costUsd: costOf(usage),
+    costUsd: costOf(usage, when),
     turns: 1,
   };
 }
@@ -74,4 +91,6 @@ function formatUsd(amount) {
   return value < 0.01 ? `$${value.toFixed(3)}` : `$${value.toFixed(2)}`;
 }
 
-module.exports = { RATES_PER_MILLION, EMPTY_USAGE, usageFrom, costOf, addUsage, formatUsd };
+module.exports = {
+  RATES_PER_MILLION, RATE_SCHEDULE, ratesOn, EMPTY_USAGE, usageFrom, costOf, addUsage, formatUsd,
+};

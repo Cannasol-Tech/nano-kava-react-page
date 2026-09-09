@@ -512,7 +512,7 @@ describe('what a conversation cost', () => {
     expect(stored.usage.cachedTokens).toBe(8148);
     expect(stored.usage.outputTokens).toBe(102);
     expect(stored.usage.turns).toBe(1);
-    expect(stored.usage.costUsd).toBeCloseTo(0.0066567, 7);
+    expect(stored.usage.costUsd).toBeCloseTo(0.0032518, 7);   // gemini-3.8-flash launch rates
   });
 
   it('accumulates across the turns of one conversation', async () => {
@@ -525,7 +525,7 @@ describe('what a conversation cost', () => {
 
     const stored = db.docs.get(`${COLLECTION}/${SESSION}`);
     expect(stored.usage.turns).toBe(3);
-    expect(stored.usage.costUsd).toBeCloseTo(0.0066567 * 3, 6);
+    expect(stored.usage.costUsd).toBeCloseTo(0.0032518 * 3, 6);
   });
 
   // Every session written before this shipped has no usage field; adding to it must not NaN.

@@ -303,10 +303,14 @@ and knowledge base:
 | thinking on (default) | 487–530 tokens | 3.4s |
 | `thinkingBudget: 0` | 0 tokens | 1.3–2.4s |
 
-Answer accuracy was equal. Thinking tokens bill as **output** ($9/MTok here), so at ~500/turn they
-cost more than the visible answer (~85 tokens) and roughly doubled the per-turn price. This
-workload is knowledge-base lookup plus tone, not reasoning. Raise the constant if the bot ever has
-to do real multi-step work.
+Answer accuracy was equal. Thinking tokens bill as **output**, so at ~500/turn they cost more than
+the visible answer (~85 tokens) and roughly doubled the per-turn price. This workload is
+knowledge-base lookup plus tone, not reasoning. Raise the constant if the bot ever has to do real
+multi-step work.
+
+*Still 0 on `gemini-3.8-flash`, verified 2026-09-09: `thoughtsTokenCount` comes back 0 and the
+model answers normally, so the switch did not quietly re-enable thinking. The measurements above
+were taken on 3.5 and were not repeated; only the zero was re-confirmed.*
 
 ## Prompt caching is implicit — do not add explicit caches
 
@@ -314,10 +318,15 @@ The system instruction (persona + knowledge base) is a stable prefix and Gemini'
 caching picks it up with no configuration. Do **not** add `ai.caches.create()`: at this volume it
 bills hourly storage for a result that is already nearly free.
 
-**Measured 2026-09-09, over 95 production turns.** *This section previously said the prefix was
-4195 tokens with ~100 tokens of headroom over the 4096 minimum, and that `cachedContentTokenCount`
-came back "around 2030". Both were true once and neither is now — the knowledge base has roughly
-doubled since.*
+**Measured 2026-09-09, over 95 production turns on `gemini-3.5-flash`.** *This section previously
+said the prefix was 4195 tokens with ~100 tokens of headroom over the 4096 minimum, and that
+`cachedContentTokenCount` came back "around 2030". Both were true once and neither is now — the
+knowledge base has roughly doubled since.*
+
+**The switch to `gemini-3.8-flash` the same day did not change any of this.** Re-verified over
+four consecutive turns: 8,152 of 11,227 prompt tokens cached, the first call cold and every one
+after it warm — the same shape and very nearly the same numbers as 3.5. The prices below are 3.5's
+and the break-even is recomputed for 3.8 at the end of this section.
 
 | | |
 |---|---|
@@ -339,14 +348,19 @@ Two things follow, and neither is what the old warning said:
 ~22 conversations/month, so most conversations begin cold. That is exactly what an explicit cache
 would fix, and it still does not pay:
 
-| | cost |
-|---|---|
-| Explicit cache storage, always warm | $1.00/M tokens/hour → **$7.33/month** for a 10,038-token prefix |
-| Saved at current volume | ~$1.09/month |
-| **Break-even** | **~1,021 model turns/month (~170 conversations/month)** |
+| | on 3.5 (measured) | on 3.8 (current) |
+|---|---|---|
+| Explicit cache storage, always warm | $1.00/M/hour → **$7.33/month** | $0.50/M/hour → **$3.66/month** |
+| Saved at current volume | ~$1.09/month | ~$0.55/month |
+| **Break-even** | ~1,021 turns/month (~170 conversations) | **~1,021 turns/month (~170 conversations)** |
 
-So revisit `ai.caches.create()` when the daily report shows roughly **170+ conversations a month**,
-and not before. Below that it is a net loss of about $6/month.
+Both the storage price and the input price halved on 3.8, so the break-even is unchanged — the
+ratio, not the absolute rate, is what decides it. Revisit `ai.caches.create()` when the daily
+report shows roughly **170+ conversations a month**, and not before.
+
+⚠️ **3.8's promotional pricing ends 2027-01-01 and every rate doubles.** That does not move the
+break-even either, for the same reason, but it does double the running cost — `RATE_SCHEDULE` in
+`usageCost.js` already carries both tiers so the report stays honest through the change.
 
 ## What a conversation costs
 
@@ -367,9 +381,18 @@ days, and no billing export exists, so cost per conversation could not be answer
 Sessions written before this shipped have no `usage` field; `addUsage` treats absent as zero
 rather than NaN, so old documents still total correctly.
 
-Rates live in **one** place (`RATES_PER_MILLION`) and are asserted literally in
-`functions/test/usageCost.test.js` — a silent edit to a rate is a silently wrong cost report. They
-are gemini-3.5-flash paid tier as published on 2026-09-09; re-check them when `MODEL` changes.
+Rates live in **one** place (`RATE_SCHEDULE`) and are asserted in `functions/test/usageCost.test.js`
+— a silent edit to a rate is a silently wrong cost report. They are `gemini-3.8-flash` paid tier as
+published on 2026-09-09; **re-check the whole table when `MODEL` changes.**
+
+The table is dated rather than flat because 3.8 launched on promotional pricing that **doubles on
+2027-01-01** ($0.75 → $1.50 in, $3.75 → $7.50 out, $0.075 → $0.15 cached). `costOf(usage, when)`
+prices a turn at the rates in force when it happened, so a stored total stays correct across the
+change and January's report does not silently halve the real cost.
+
+**Switching to 3.8 on 2026-09-09 cut the per-turn price by ~51%** — $0.0067 → $0.0033 on the same
+11k-token turn — with all 33 live conversation checks passing, including the compliance guardrails
+and prompt-injection resistance.
 
 
 ## The phone offer is gated server-side

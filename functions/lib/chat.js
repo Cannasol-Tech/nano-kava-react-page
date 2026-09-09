@@ -33,7 +33,7 @@ const { isValidSessionId } = require('./chatStore');
 const { businessHoursContext } = require('./businessHours');
 const { resolveColorRequest, TARGETS } = require('./particlePalette');
 
-const MODEL = 'gemini-3.5-flash';
+const MODEL = 'gemini-3.8-flash';
 
 // Measured: ~500 thinking tokens/turn bought nothing on this workload; see CLAUDE.md § Thinking budget.
 const THINKING_BUDGET = 0;
