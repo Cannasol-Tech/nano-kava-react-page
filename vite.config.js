@@ -28,6 +28,9 @@ const MAX_BODY_BYTES = 256 * 1024;
 const DRY_RUN = '[sol dev] DRY RUN - no email sent';
 const DRY_RUN_STORE = '[sol dev] DRY RUN - nothing written to Firestore';
 
+// Module scope: chatDevServer's own `require` is function-scoped and out of reach here.
+const { costOf } = createRequire(import.meta.url)('./functions/lib/usageCost.js');
+
 /** Prints what Josh would have received, so a local Send can be verified without mailing anyone. */
 function logDryRun({ name, email, company, phone, inquiryType, message }) {
   const fields = [
@@ -44,10 +47,15 @@ function logDryRun({ name, email, company, phone, inquiryType, message }) {
 }
 
 /** DRY RUN, like the lead and digest routes: no local credentials, so nothing is written. */
-function logStoreDryRun({ sessionId, messages, page }, reply, maxTurns) {
+function logStoreDryRun({ sessionId, messages, page }, reply, maxTurns, usage) {
   const turns = messages.length + (reply ? 1 : 0);
   console.log(`${DRY_RUN_STORE} session: ${sessionId || '(none sent)'} page: ${page || '(none)'}`);
   console.log(`${DRY_RUN_STORE}   would store ${Math.min(turns, maxTurns)} of ${turns} turns (cap ${maxTurns}), expiring in 90 days`);
+  // The one number a local run can show honestly: the turn really was billed.
+  if (usage) {
+    console.log(`${DRY_RUN_STORE}   this turn cost $${costOf(usage).toFixed(5)} `
+      + `(${usage.promptTokenCount} in, ${usage.cachedContentTokenCount || 0} cached, ${usage.candidatesTokenCount} out)`);
+  }
 }
 
 function readJsonBody(req) {
@@ -133,7 +141,7 @@ function chatDevServer(mode) {
         quizAnswered: validation.quizAnswered,
         onEvent: recorder.emit,
       });
-      logStoreDryRun(validation, recorder.reply(), MAX_TURNS);
+      logStoreDryRun(validation, recorder.reply(), MAX_TURNS, recorder.usage());
     } catch (err) {
       console.error('[chat dev]', err);
       send({ type: 'error', message: 'Chat failed locally — see the Vite terminal output.' });

@@ -147,6 +147,7 @@ exports.chat = onRequest(
       sessionId: validation.sessionId,
       history: validation.messages,
       reply: recorder.reply(),
+      usage: recorder.usage(),
       page: validation.page,
     });
 

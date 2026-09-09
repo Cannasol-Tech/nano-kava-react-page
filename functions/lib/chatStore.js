@@ -18,6 +18,8 @@
  * ---
  */
 
+const { addUsage, usageFrom } = require('./usageCost');
+
 const COLLECTION = 'chatSessions';
 
 // 30 exchanges, and a turn is a message — Stephen, 2026-08-26, choosing pairs over messages.
@@ -85,7 +87,9 @@ function additionsFor(existing, history, reply) {
  * Upserts one turn's worth of transcript. Never throws: a lost transcript is telemetry, and the
  * visitor's answer has already streamed by the time this runs.
  */
-async function persistTranscript({ db = chatDb(), sessionId, history, reply, page, now = new Date() }) {
+async function persistTranscript({
+  db = chatDb(), sessionId, history, reply, page, usage, now = new Date(),
+}) {
   // Absent is ordinary — an old cached bundle sends none. Present-and-wrong is worth a line.
   if (sessionId === null || sessionId === undefined) return { ok: false, reason: 'no-session-id' };
   if (!isValidSessionId(sessionId)) {
@@ -111,6 +115,10 @@ async function persistTranscript({ db = chatDb(), sessionId, history, reply, pag
         messages: capTurns([...(existing?.messages || []), ...additions]),
         turnCount: (existing?.turnCount || 0) + additions.length,
         page: existing?.page ?? clip(page, MAX_PAGE_CHARS),
+        // Tokens and dollars for the whole conversation. Cloud Logging drops the per-turn line
+        // after 30 days, so this document is the only durable record — see CLAUDE.md § What a
+        // conversation costs.
+        usage: addUsage(existing?.usage, usageFrom(usage)),
         createdAt: existing?.createdAt ?? now,
         updatedAt: now,
         expiresAt: existing?.expiresAt ?? expiresAtFrom(now),
@@ -130,10 +138,13 @@ async function persistTranscript({ db = chatDb(), sessionId, history, reply, pag
 function createTranscriptRecorder(onEvent) {
   const spoken = [];
   let proposedLead = null;
+  let turnUsage = null;
 
   return {
     emit(event) {
       if (event?.type === 'text' && typeof event.delta === 'string') spoken.push(event.delta);
+      // The only frame carrying token counts. A stream that errors never sends one.
+      if (event?.type === 'done' && event.usage) turnUsage = event.usage;
       // `lead_proposed` already carries everything the lead tool extracted, so reading it here
       // saves threading a session through chat.js's tool machinery. Last proposal wins.
       if (event?.type === 'lead_proposed' && event.fields) proposedLead = event.fields;
@@ -141,6 +152,7 @@ function createTranscriptRecorder(onEvent) {
     },
     reply: () => spoken.join(''),
     lead: () => proposedLead,
+    usage: () => turnUsage,
   };
 }
 

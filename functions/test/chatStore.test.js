@@ -476,3 +476,76 @@ describe('createTranscriptRecorder lead capture', () => {
     expect(recorder.lead()).toBeNull();
   });
 });
+
+/**
+ * Cost tracking, added 2026-09-09. Usage was logged per turn and thrown away: Cloud Logging
+ * drops it after 30 days, so nothing could say what a conversation or a lead had cost.
+ * See CLAUDE.md § What a conversation costs.
+ */
+describe('what a conversation cost', () => {
+  const SESSION = 'session-costaaaa';
+  const USAGE = { promptTokenCount: 11159, candidatesTokenCount: 102, cachedContentTokenCount: 8148 };
+
+  it('records the turn the recorder saw on the done frame', () => {
+    const recorder = createTranscriptRecorder(() => {});
+    recorder.emit({ type: 'text', delta: 'hello' });
+    recorder.emit({ type: 'done', usage: USAGE });
+
+    expect(recorder.usage()).toEqual(USAGE);
+  });
+
+  it('has no usage to report when the stream failed before the done frame', () => {
+    const recorder = createTranscriptRecorder(() => {});
+    recorder.emit({ type: 'error', message: 'boom' });
+
+    expect(recorder.usage()).toBeNull();
+  });
+
+  it('stores tokens and dollars on the session', async () => {
+    const db = fakeDb();
+    await persistTranscript({
+      db, sessionId: SESSION, history: [{ role: 'user', text: 'hi' }], reply: 'hello', usage: USAGE,
+    });
+
+    const stored = db.docs.get(`${COLLECTION}/${SESSION}`);
+    expect(stored.usage.promptTokens).toBe(11159);
+    expect(stored.usage.cachedTokens).toBe(8148);
+    expect(stored.usage.outputTokens).toBe(102);
+    expect(stored.usage.turns).toBe(1);
+    expect(stored.usage.costUsd).toBeCloseTo(0.0066567, 7);
+  });
+
+  it('accumulates across the turns of one conversation', async () => {
+    const db = fakeDb();
+    for (const text of ['one', 'two', 'three']) {
+      await persistTranscript({
+        db, sessionId: SESSION, history: [{ role: 'user', text }], reply: 'ok', usage: USAGE,
+      });
+    }
+
+    const stored = db.docs.get(`${COLLECTION}/${SESSION}`);
+    expect(stored.usage.turns).toBe(3);
+    expect(stored.usage.costUsd).toBeCloseTo(0.0066567 * 3, 6);
+  });
+
+  // Every session written before this shipped has no usage field; adding to it must not NaN.
+  it('starts a total on a document that predates cost tracking', async () => {
+    const db = fakeDb({ [`${COLLECTION}/${SESSION}`]: { sessionId: SESSION, messages: [], turnCount: 0 } });
+    await persistTranscript({
+      db, sessionId: SESSION, history: [{ role: 'user', text: 'hi' }], reply: 'hello', usage: USAGE,
+    });
+
+    expect(db.docs.get(`${COLLECTION}/${SESSION}`).usage.turns).toBe(1);
+  });
+
+  it('stores a zeroed total rather than nothing when a turn reports no usage', async () => {
+    const db = fakeDb();
+    await persistTranscript({
+      db, sessionId: SESSION, history: [{ role: 'user', text: 'hi' }], reply: 'hello',
+    });
+
+    expect(db.docs.get(`${COLLECTION}/${SESSION}`).usage).toEqual(
+      { promptTokens: 0, cachedTokens: 0, outputTokens: 0, costUsd: 0, turns: 0 }
+    );
+  });
+});

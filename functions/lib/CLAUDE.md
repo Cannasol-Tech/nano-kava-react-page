@@ -311,14 +311,65 @@ to do real multi-step work.
 ## Prompt caching is implicit — do not add explicit caches
 
 The system instruction (persona + knowledge base) is a stable prefix and Gemini's **implicit**
-caching picks it up with no configuration — `cachedContentTokenCount` comes back around 2030 on
-repeat calls. Do **not** add `ai.caches.create()`: explicit caching bills hourly storage for a
-result already free.
+caching picks it up with no configuration. Do **not** add `ai.caches.create()`: at this volume it
+bills hourly storage for a result that is already nearly free.
 
-⚠️ **The margin is thin.** The prefix measures 4195 tokens against Gemini 3.x's 4096 minimum —
-~100 tokens of headroom. Shrinking `knowledge-base.md` or trimming the persona drops it below the
-minimum and caching stops with no error and no log line; the only symptom is cost. `streamChat`
-logs usage every turn precisely so this is checkable.
+**Measured 2026-09-09, over 95 production turns.** *This section previously said the prefix was
+4195 tokens with ~100 tokens of headroom over the 4096 minimum, and that `cachedContentTokenCount`
+came back "around 2030". Both were true once and neither is now — the knowledge base has roughly
+doubled since.*
+
+| | |
+|---|---|
+| System instruction | **10,038 tokens** (persona ~4,400 + knowledge base ~5,600) |
+| Cached when it hits | **~8,140** — 81% of the prefix |
+| Turns that hit at all | **58%** |
+| Cost per turn | ~$0.0067 · ~$0.06 per conversation |
+
+Two things follow, and neither is what the old warning said:
+
+- **The 4096 minimum is no longer a live risk.** There is 2.5x headroom. Trimming the knowledge
+  base is now a cost *saving* (it is resent every turn) rather than something that silently kills
+  caching. It only becomes dangerous again below ~4.1k tokens.
+- **~1,898 prefix tokens never cache, even on a hit.** Cache hits land in blocks (observed at
+  ~4,050 and ~8,140), so the tail past the last whole block is billed at full rate every turn.
+  Padding the prefix to reach another block saves ~$0.002/turn and is not worth junk tokens.
+
+**The 42% miss rate is cold starts, not a bug.** The implicit cache has a short TTL and traffic is
+~22 conversations/month, so most conversations begin cold. That is exactly what an explicit cache
+would fix, and it still does not pay:
+
+| | cost |
+|---|---|
+| Explicit cache storage, always warm | $1.00/M tokens/hour → **$7.33/month** for a 10,038-token prefix |
+| Saved at current volume | ~$1.09/month |
+| **Break-even** | **~1,021 model turns/month (~170 conversations/month)** |
+
+So revisit `ai.caches.create()` when the daily report shows roughly **170+ conversations a month**,
+and not before. Below that it is a net loss of about $6/month.
+
+## What a conversation costs
+
+*Added 2026-09-09, at Stephen's request: "what is the cost of Sol so far? Are we measuring?" — the
+answer was no. Usage was `console.log`ged per turn and discarded; Cloud Logging drops it after 30
+days, and no billing export exists, so cost per conversation could not be answered historically.*
+
+- `usageCost.js` holds the rates and the arithmetic. **`cachedContentTokenCount` is a subset of
+  `promptTokenCount`, not an addition** — billing the whole prompt and the cache on top
+  double-counts every cached token, which is the easy way to get this wrong.
+- `createTranscriptRecorder` captures the `done` frame's usage; `persistTranscript` accumulates
+  `usage: { promptTokens, cachedTokens, outputTokens, costUsd, turns }` onto the session document.
+  A stream that errors never sends a `done`, so that turn stores zeroes rather than failing.
+- The daily report renders one line: cost, per conversation, **per submitted lead**, turns, tokens
+  and cache-hit share. Cost per lead is the number worth watching — it is what a conversation has
+  to earn.
+
+Sessions written before this shipped have no `usage` field; `addUsage` treats absent as zero
+rather than NaN, so old documents still total correctly.
+
+Rates live in **one** place (`RATES_PER_MILLION`) and are asserted literally in
+`functions/test/usageCost.test.js` — a silent edit to a rate is a silently wrong cost report. They
+are gemini-3.5-flash paid tier as published on 2026-09-09; re-check them when `MODEL` changes.
 
 
 ## The phone offer is gated server-side

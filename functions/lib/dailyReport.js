@@ -20,6 +20,7 @@
 
 const sgMail = require('@sendgrid/mail');
 const { sendgridApiKey } = require('./leads');
+const { addUsage, formatUsd, EMPTY_USAGE } = require('./usageCost');
 const { chatDb, COLLECTION: SESSIONS_COLLECTION } = require('./chatStore');
 const { LEADS_COLLECTION } = require('./chatLeads');
 
@@ -67,6 +68,7 @@ function summariseReport({ sessions = [], leads = [], window }) {
       visitorTurns: visitorTurns(s.messages),
       startedAt: toDate(s.createdAt),
       messages: Array.isArray(s.messages) ? s.messages : [],
+      usage: s.usage || null,
       lead: leadBySession.get(s.sessionId) || null,
     }))
     .sort((a, b) => (a.startedAt?.getTime() || 0) - (b.startedAt?.getTime() || 0));
@@ -78,7 +80,33 @@ function summariseReport({ sessions = [], leads = [], window }) {
     conversations: rows.length,
     confirmedLeads: withLead.filter((r) => r.lead.confirmed === true).length,
     extractedOnly: withLead.filter((r) => r.lead.confirmed !== true).length,
+    cost: costSummary(rows, withLead.filter((r) => r.lead.confirmed === true).length),
   };
+}
+
+/**
+ * Cost per lead is the number worth watching — it is what a conversation has to earn. Null
+ * rather than zero when nothing converted, because "no leads yet" is not "free".
+ */
+function costSummary(rows, confirmedLeads) {
+  const total = rows.reduce((acc, r) => addUsage(acc, r.usage || EMPTY_USAGE), EMPTY_USAGE);
+  return {
+    ...total,
+    perConversation: rows.length > 0 ? total.costUsd / rows.length : null,
+    perConfirmedLead: confirmedLeads > 0 ? total.costUsd / confirmedLeads : null,
+  };
+}
+
+/** One line, in the email everyone reads daily — the only place cost is ever looked at. */
+function costReportLine(cost) {
+  const c = cost || EMPTY_USAGE;
+  const per = c.perConversation === null || c.perConversation === undefined
+    ? '' : ` (${formatUsd(c.perConversation)}/conversation`;
+  const perLead = c.perConfirmedLead ? `, ${formatUsd(c.perConfirmedLead)}/lead)` : (per ? ')' : '');
+  const cached = c.promptTokens > 0 ? Math.round((c.cachedTokens / c.promptTokens) * 100) : 0;
+  return `Model cost: ${formatUsd(c.costUsd)}${per}${perLead} · ${c.turns} model turn`
+    + `${c.turns === 1 ? '' : 's'} · ${c.promptTokens.toLocaleString()} in / `
+    + `${c.outputTokens.toLocaleString()} out · ${cached}% cached`;
 }
 
 const dayLabel = (date) =>
@@ -130,7 +158,8 @@ function leadHtml(lead) {
 }
 
 function buildReportEmail(report) {
-  const { conversations, confirmedLeads, extractedOnly, rows, window } = report;
+  const { conversations, confirmedLeads, extractedOnly, rows, window, cost } = report;
+  const costLine = costReportLine(cost);
   const day = dayLabel(window.until);
 
   const subject = conversations === 0
@@ -144,6 +173,7 @@ function buildReportEmail(report) {
     `Conversations: ${conversations}`,
     `Leads submitted: ${confirmedLeads}`,
     `Contact details captured but not submitted: ${extractedOnly}`,
+    costLine,
     '',
     ...(conversations === 0
       ? ['No conversations in this window. (This report is sent daily either way, so silence',
@@ -183,6 +213,7 @@ function buildReportEmail(report) {
         ${conversations} conversation${conversations === 1 ? '' : 's'} &middot;
         ${confirmedLeads} submitted &middot; ${extractedOnly} unconfirmed
       </p>
+      <p style="margin:6px 0 0;color:#94a3b8;font-size:12px;">${escapeHtml(costLine)}</p>
     </div>
     <div style="border:1px solid #e5e7eb;border-top:0;border-radius:0 0 10px 10px;padding:18px 20px;">
       ${body}

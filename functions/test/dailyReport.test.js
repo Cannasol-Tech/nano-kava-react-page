@@ -339,3 +339,65 @@ describe('report content at realistic volume', () => {
     expect(mail.html).toContain('Können Sie 18nm halten? 🍹');
   });
 });
+
+/**
+ * Cost reporting, added 2026-09-09 at Stephen's request. The report is the one thing anyone
+ * reads daily, so it is where the running cost belongs — see CLAUDE.md § What a conversation costs.
+ */
+describe('what the day cost', () => {
+  const usage = (over = {}) => ({
+    promptTokens: 11159, cachedTokens: 8148, outputTokens: 102, costUsd: 0.0066567, turns: 1, ...over,
+  });
+
+  it('totals tokens and dollars across the day', () => {
+    const report = summariseReport({
+      sessions: [
+        session({ sessionId: 'a', usage: usage() }),
+        session({ sessionId: 'b', usage: usage({ costUsd: 0.02, turns: 3, promptTokens: 30000 }) }),
+      ],
+      leads: [],
+      window: reportWindow(NOW),
+    });
+
+    expect(report.cost.turns).toBe(4);
+    expect(report.cost.promptTokens).toBe(41159);
+    expect(report.cost.costUsd).toBeCloseTo(0.0266567, 6);
+  });
+
+  it('reports the cost of a lead, which is the number worth watching', () => {
+    const report = summariseReport({
+      sessions: [session({ usage: usage({ costUsd: 0.06 }) })],
+      leads: [lead({ confirmed: true })],
+      window: reportWindow(NOW),
+    });
+
+    expect(report.cost.perConversation).toBeCloseTo(0.06, 6);
+    expect(report.cost.perConfirmedLead).toBeCloseTo(0.06, 6);
+  });
+
+  // Sessions written before cost tracking carry no usage; a report must not read NaN.
+  it('reads zero, not NaN, for conversations that predate cost tracking', () => {
+    const report = summariseReport({ sessions: [session()], leads: [], window: reportWindow(NOW) });
+
+    expect(report.cost.costUsd).toBe(0);
+    expect(report.cost.perConfirmedLead).toBeNull();
+  });
+
+  it('puts the running cost in the email where it will actually be seen', () => {
+    const report = summariseReport({
+      sessions: [session({ usage: usage({ costUsd: 0.06 }) })],
+      leads: [lead({ confirmed: true })],
+      window: reportWindow(NOW),
+    });
+    const mail = buildReportEmail(report);
+
+    expect(mail.text).toMatch(/Model cost/i);
+    expect(mail.text).toMatch(/\$0\.06/);
+    expect(mail.html).toMatch(/\$0\.06/);
+  });
+
+  it('still reports a cost line on a day with no conversations', () => {
+    const report = summariseReport({ sessions: [], leads: [], window: reportWindow(NOW) });
+    expect(buildReportEmail(report).text).toMatch(/Model cost/i);
+  });
+});
