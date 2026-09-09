@@ -58,7 +58,7 @@ export const kavaBotany = {
     '"Noble" cultivars are the traditionally consumed varieties. "Tudei" (two-day) and wild varieties are outside that tradition and are excluded from quality supply chains. Cannasol uses noble varieties only.',
     'Kavalactones are strongly lipophilic and poorly water-soluble. That single property is the root formulation problem: traditional extracts disperse badly in water-based beverages, which drives cloudiness, sedimentation and inconsistent dosing.',
     'Extraction routes include water, ethanol, acetone-free hydroalcoholic systems and supercritical CO2. The route affects the kavalactone profile and the residual plant matrix.',
-    'Kava carries a distinctive bitter, earthy, astringent profile and a characteristic mouthfeel. Bitterness management is a normal part of beverage development with this ingredient.',
+    'Kava carries a distinctive bitter, earthy, astringent profile and a characteristic mouthfeel. Bitterness management is a normal part of beverage development with conventional kava extracts; the nanoemulsion carries only minimal kava-characteristic taste.',
     'Regulatory status for kava differs substantially between markets and has changed over time. Market authorisation and labelling are the brand\'s responsibility and require their own regulatory counsel.',
   ],
 };

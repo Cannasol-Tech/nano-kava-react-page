@@ -15,7 +15,7 @@ _Generated from src/content/ by scripts/build-knowledge-base.mjs. Do not edit by
 ## Positioning
 
 - The first kava nanoemulsion — ~20 nm and 100% water-dispersible
-- Cannasol Technologies was the first company to nano-emulsify kava, over four to five years ago, and has spent that time scaling the process and bringing the cost down.
+- Cannasol Technologies was the first company to nano-emulsify kava, and has since scaled the process and brought the cost down.
 - Nano Kava is a crystal-clear, 100% water-dispersible kavalactone nanoemulsion for canned and bottled beverages — mean particle size ~20 nm, 30 mg/mL kavalactone load, and 4–5x higher absorption than conventional kava powder. No haze, no sediment, no gritty mouthfeel.
 - Trusted by leading kava seltzer and shot brands.
 
@@ -78,6 +78,7 @@ Our founder works directly with every client, bringing insights from top Kratom 
 | Relative absorption | 4–5x conventional kava powder | Baseline |
 | Appearance in beverage | Crystal clear | Cloudy, muddy, gritty |
 | Separation / settling | Stays clear, stays suspended — no settling, no ringing | Separates, rings the bottle |
+| Shelf stability | 12+ months | Poor |
 | Dose consistency | Uniform and precise | Inconsistent |
 | Taste | Minimal kava-characteristic taste; no bitter blocker needed | Strongly bitter |
 | Process requirement | Meter in and stir — no high-shear step | Pre-mix and high-shear typically required |
@@ -92,7 +93,7 @@ Our founder works directly with every client, bringing insights from top Kratom 
 - Testing covers potency, purity, heavy metals and microbial contamination.
 - Direct access to Josh Detzel, the founder, on every account.
 - First in the world to nano-emulsify reishi mushrooms — the Reishi Nanoemulsion is a Cannasol first.
-- The first company to nano-emulsify kava, over four to five years ago; the years since have gone into scaling the process and bringing the cost down.
+- Cannasol Technologies was the first company to nano-emulsify kava, and has since scaled the process and brought the cost down.
 - Kava extract is imported directly from the South Pacific — grown in Vanuatu, CO2 extracted through New Zealand — then nanoemulsified in-house.
 - Brez (drinkbrez.com) was Cannasol's first major client. Cannasol has produced the active ingredients for every Brez can ever shipped, helped create the brand, hand-canned roughly the first 10,000 cans, and was involved in formulating the beverage alongside a close partner company.
 
@@ -212,7 +213,7 @@ A: Nano Kava is a nanoemulsified form of Kava extract with a mean particle size 
 
 **Q: What makes Cannasol's ~20 nm particle size special?**
 
-A: Packaging kavalactones at about 20 nanometers multiplies their surface area, so the body absorbs far more of what you put in — 4–5x conventional kava powder — and you can formulate at roughly a quarter of a conventional dose. It also means crystal-clear formulations with no cloudiness, and an emulsion that stays clear and stays suspended. We achieve this through our partnership with QSonica, the #1 ultrasonic liquid processing equipment manufacturer. Cannasol was the first company to nano-emulsify kava, over four to five years ago.
+A: Packaging kavalactones at about 20 nanometers multiplies their surface area, so the body absorbs far more of what you put in — 4–5x conventional kava powder — and you can formulate at roughly a quarter of a conventional dose. It also means crystal-clear formulations with no cloudiness, and an emulsion that stays clear and stays suspended. We achieve this through our partnership with QSonica, the #1 ultrasonic liquid processing equipment manufacturer. Cannasol was the first company to nano-emulsify kava, and has since scaled the process and brought the cost down.
 
 **Q: How does nano Kava compare to traditional Kava extract?**
 
@@ -252,7 +253,7 @@ A: The nanoemulsion dissolves completely into the beverage with minimal kava-cha
 
 **Q: How stable is nano Kava in beverages?**
 
-A: It stays clear and stays suspended — no settling, no sediment and no "ring around the bottle." The NanoOptimizer™ system prevents particle re-aggregation. Every formulation is different, so validate stability in your own base; that is exactly what the free sample is for.
+A: Nano Kava carries 12+ months of shelf stability when stored properly, and it stays clear and stays suspended the whole time — no settling, no sediment and no "ring around the bottle." The NanoOptimizer™ system prevents particle re-aggregation. Every formulation is different, so validate stability in your own base; that is exactly what the free sample is for.
 
 ### Ordering & Partnership
 
@@ -324,7 +325,7 @@ _Technical background for formulation conversations. These are process and compo
 - "Noble" cultivars are the traditionally consumed varieties. "Tudei" (two-day) and wild varieties are outside that tradition and are excluded from quality supply chains. Cannasol uses noble varieties only.
 - Kavalactones are strongly lipophilic and poorly water-soluble. That single property is the root formulation problem: traditional extracts disperse badly in water-based beverages, which drives cloudiness, sedimentation and inconsistent dosing.
 - Extraction routes include water, ethanol, acetone-free hydroalcoholic systems and supercritical CO2. The route affects the kavalactone profile and the residual plant matrix.
-- Kava carries a distinctive bitter, earthy, astringent profile and a characteristic mouthfeel. Bitterness management is a normal part of beverage development with this ingredient.
+- Kava carries a distinctive bitter, earthy, astringent profile and a characteristic mouthfeel. Bitterness management is a normal part of beverage development with conventional kava extracts; the nanoemulsion carries only minimal kava-characteristic taste.
 - Regulatory status for kava differs substantially between markets and has changed over time. Market authorisation and labelling are the brand's responsibility and require their own regulatory counsel.
 
 ### Functional mushrooms — formulation background

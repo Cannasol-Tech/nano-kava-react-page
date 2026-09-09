@@ -30,7 +30,7 @@ export const faqCategories = [
       {
         question: "What makes Cannasol's ~20 nm particle size special?",
         answer:
-          'Packaging kavalactones at about 20 nanometers multiplies their surface area, so the body absorbs far more of what you put in — 4–5x conventional kava powder — and you can formulate at roughly a quarter of a conventional dose. It also means crystal-clear formulations with no cloudiness, and an emulsion that stays clear and stays suspended. We achieve this through our partnership with QSonica, the #1 ultrasonic liquid processing equipment manufacturer. Cannasol was the first company to nano-emulsify kava, over four to five years ago.',
+          'Packaging kavalactones at about 20 nanometers multiplies their surface area, so the body absorbs far more of what you put in — 4–5x conventional kava powder — and you can formulate at roughly a quarter of a conventional dose. It also means crystal-clear formulations with no cloudiness, and an emulsion that stays clear and stays suspended. We achieve this through our partnership with QSonica, the #1 ultrasonic liquid processing equipment manufacturer. Cannasol was the first company to nano-emulsify kava, and has since scaled the process and brought the cost down.',
       },
       {
         question: 'How does nano Kava compare to traditional Kava extract?',
@@ -87,7 +87,7 @@ export const faqCategories = [
       {
         question: 'How stable is nano Kava in beverages?',
         answer:
-          'It stays clear and stays suspended — no settling, no sediment and no "ring around the bottle." The NanoOptimizer™ system prevents particle re-aggregation. Every formulation is different, so validate stability in your own base; that is exactly what the free sample is for.',
+          'Nano Kava carries 12+ months of shelf stability when stored properly, and it stays clear and stays suspended the whole time — no settling, no sediment and no "ring around the bottle." The NanoOptimizer™ system prevents particle re-aggregation. Every formulation is different, so validate stability in your own base; that is exactly what the free sample is for.',
       },
     ],
   },

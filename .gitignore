@@ -42,3 +42,4 @@ bula-*.png
 
 # Raw phone photos of the ingredient brief stay local; the JPEG conversions are committed
 *.heic
+.superpowers/

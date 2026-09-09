@@ -25,6 +25,7 @@ export const specComparison = [
   { spec: 'Relative absorption', nano: '4–5x conventional kava powder', traditional: 'Baseline' },
   { spec: 'Appearance in beverage', nano: 'Crystal clear', traditional: 'Cloudy, muddy, gritty' },
   { spec: 'Separation / settling', nano: 'Stays clear, stays suspended — no settling, no ringing', traditional: 'Separates, rings the bottle' },
+  { spec: 'Shelf stability', nano: '12+ months', traditional: 'Poor' },
   { spec: 'Dose consistency', nano: 'Uniform and precise', traditional: 'Inconsistent' },
   { spec: 'Taste', nano: 'Minimal kava-characteristic taste; no bitter blocker needed', traditional: 'Strongly bitter' },
   { spec: 'Process requirement', nano: 'Meter in and stir — no high-shear step', traditional: 'Pre-mix and high-shear typically required' },
@@ -55,7 +56,7 @@ export const differentiators = [
   'Testing covers potency, purity, heavy metals and microbial contamination.',
   'Direct access to Josh Detzel, the founder, on every account.',
   'First in the world to nano-emulsify reishi mushrooms — the Reishi Nanoemulsion is a Cannasol first.',
-  'The first company to nano-emulsify kava, over four to five years ago; the years since have gone into scaling the process and bringing the cost down.',
+  'Cannasol Technologies was the first company to nano-emulsify kava, and has since scaled the process and brought the cost down.',
   'Kava extract is imported directly from the South Pacific — grown in Vanuatu, CO2 extracted through New Zealand — then nanoemulsified in-house.',
   "Brez (drinkbrez.com) was Cannasol's first major client. Cannasol has produced the active ingredients for every Brez can ever shipped, helped create the brand, hand-canned roughly the first 10,000 cans, and was involved in formulating the beverage alongside a close partner company.",
 ];
@@ -96,7 +97,7 @@ export const mushroomLine = {
 export const positioning = {
   badge: 'The first kava nanoemulsion — ~20 nm and 100% water-dispersible',
   claim:
-    'Cannasol Technologies was the first company to nano-emulsify kava, over four to five years ago, and has spent that time scaling the process and bringing the cost down.',
+    'Cannasol Technologies was the first company to nano-emulsify kava, and has since scaled the process and brought the cost down.',
   summary:
     'Nano Kava is a crystal-clear, 100% water-dispersible kavalactone nanoemulsion for canned and bottled beverages — mean particle size ~20 nm, 30 mg/mL kavalactone load, and 4–5x higher absorption than conventional kava powder. No haze, no sediment, no gritty mouthfeel.',
   trust: 'Trusted by leading kava seltzer and shot brands.',

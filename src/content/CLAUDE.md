@@ -41,11 +41,12 @@ was too thin to survive any edit; content was added rather than the floor ignore
 If you remove anything from these modules, re-measure. The byte count the build script prints
 is only an estimate (chars/4); the authoritative number comes from `ai.models.countTokens`.
 
-*2026-09-09: the knowledge base is now **30,222 characters (~7,556 estimated tokens)**, up from
-24,798 after the ingredient brief was folded in. `functions/lib/CLAUDE.md § Prompt caching is
-implicit` measures the real prefix at ~10k tokens with 2.5x headroom over the 4,096 floor, so the
-floor is no longer the live risk it was when the section above was written — the live cost is that
-the prefix is resent every turn.*
+*2026-09-09: the knowledge base is now **30,395 characters (~7,599 estimated tokens)**, up from
+24,798 after the ingredient brief was folded in, then up again from 30,222 after the A4 shelf-
+stability reversal and the C9 wording fix. `functions/lib/CLAUDE.md § Prompt caching is implicit`
+measures the real prefix at ~10k tokens with 2.5x headroom over the 4,096 floor, so the floor is
+no longer the live risk it was when the section above was written — the live cost is that the
+prefix is resent every turn.*
 
 *2026-08-26: the 4,486 figure above is now a floor, not the current number — the Reishi world-first,
 the Brez client history and the strain names added ~780 characters to the generated file. Margin
@@ -92,17 +93,31 @@ lone outlier, awaiting a decision. The decision arrived: the enjoynano NANO KAVA
 conservative reading and is inside the range. Two claims the brief does not substantiate were
 retired outright rather than restated: **80–90% kavalactone absorption vs 10–15%**, and the
 **~5 minute onset vs 30–45 minutes**. Nothing in `src/content/` may reintroduce either, and
-`persona.js § USING YOUR KNOWLEDGE` no longer lists onset or shelf life as things the knowledge
-base states.
+`persona.js § USING YOUR KNOWLEDGE` does not list onset as something the knowledge base states.
+
+*Corrected 2026-09-09: this previously grouped shelf life with onset as unstated. Shelf life
+(12+ months) is stated — spec A4, see § The brief is the spec SSoT above — only onset is not.*
 
 ## The brief is the spec SSoT, and what else it superseded
 
 *Added 2026-09-09.* Superseded in the same change: `~18 nm` → **`~20 nm`**; "fully water-soluble"
 → **"100% water-dispersible"**; the traditional droplet-size cell "Not nanosized (microns and
-larger)" → **"200–1,000 nm — settles, hazes"**; **"12+ months shelf stability"** → the brief's
-qualitative "stays clear, stays suspended — no settling, no ringing"; and the positioning badge
-"The World's First & Only ~18nm Kava Nanoemulsion" plus the only-manufacturer claim → the
-supportable **first to nano-emulsify kava, over four to five years ago**.
+larger)" → **"200–1,000 nm — settles, hazes"**; and the positioning badge "The World's First &
+Only ~18nm Kava Nanoemulsion" plus the only-manufacturer claim → the supportable **first to
+nano-emulsify kava**.
+
+*Corrected 2026-09-09: this section previously listed "12+ months shelf stability" as superseded
+by the brief's qualitative "stays clear, stays suspended — no settling, no ringing" wording. Stephen
+overruled that retirement (spec A4): `12+ months` is KEPT, in `specComparison`, the FAQ, JSON-LD
+product specs and `public/`, and the qualitative wording is carried in addition, not instead.*
+
+*Corrected 2026-09-09: the multi-year time span previously attached to the first-to-nano-emulsify
+claim is dropped on Stephen's instruction (ruling C9) — `positioning.claim`, the `differentiators`
+entry and the FAQ trailing sentence now all read `Cannasol Technologies was the first company to
+nano-emulsify kava, and has since scaled the process and brought the cost down.`*
+
+*Added 2026-09-09: `company.js` `contactRoutes.faqPage` no longer hard-codes "18 answers" — it
+derives the count from `faqCategories.reduce(...)` in `faq.js`, so the two can no longer drift.*
 
 Kept because the brief is silent, not contradictory: NanoOptimizer™, QSonica, noble-varieties /
 never-tudei, and the Reishi world-first.

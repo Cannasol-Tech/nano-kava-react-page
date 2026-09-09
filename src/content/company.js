@@ -16,6 +16,10 @@
  * ---
  */
 
+import { faqCategories } from './faq.js';
+
+const faqAnswerCount = faqCategories.reduce((count, category) => count + category.faqs.length, 0);
+
 export const company = {
   legalName: 'Cannasol Technologies LLC',
   shortName: 'Cannasol',
@@ -80,7 +84,7 @@ export const contactRoutes = {
   ],
   form: '/contact — name, email, company, phone, one or more inquiry types, and a message.',
   formPromise: 'The contact form emails Josh directly and he replies within 24 hours.',
-  faqPage: '/faq — 18 answers across product & technology, effects & dosing, formulation & applications, ordering & partnership, and quality & compliance.',
+  faqPage: `/faq — ${faqAnswerCount} answers across product & technology, effects & dosing, formulation & applications, ordering & partnership, and quality & compliance.`,
   mushroomsPage:
     "/mushrooms — the Nano Mushroom Emulsion line: Lion's Mane Nanoemulsion, Reishi Nanoemulsion and Cordyceps Nanoemulsion.",
   escalation:
