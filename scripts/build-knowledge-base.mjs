@@ -34,6 +34,12 @@ import {
   solutionPoints,
   perfectFor,
   features,
+  sourcing,
+  dropInProcess,
+  dosing,
+  pricing,
+  labeling,
+  bulkIngredientDisclaimer,
 } from '../src/content/product.js';
 import { company, sampleOffer, equipment, contactRoutes } from '../src/content/company.js';
 import { externalSources } from '../src/content/external.js';
@@ -50,9 +56,15 @@ const identity = bullets([
   `Consumer-facing brand and site: ${company.brand} at ${company.site}.`,
   `Corporate site: ${company.corporateSite} (shop: ${company.shop}, resources: ${company.resources}).`,
   `Location: ${company.location}. Hours: ${company.hours}.`,
-  `Phone: ${company.phone}.`,
+  `Phone: ${company.phone} (office). ${company.founder.name} direct: ${company.founder.directPhone}.`,
   `Founder: ${company.founder.name}, ${company.founder.title} — ${company.founder.email}. ${company.responseTime}`,
 ]);
+
+const doseTable = [
+  '| Kavalactone per serving | Emulsion per serving | Servings per liter | Ingredient cost per serving |',
+  '| --- | --- | --- | --- |',
+  ...dosing.rows.map((r) => `| ${r.kavalactone} | ${r.emulsion} | ${r.servingsPerLiter} | ${r.costPerServing} |`),
+].join('\n');
 
 const specs = [
   '| Specification | Nano Kava | Traditional kava extract |',
@@ -81,10 +93,19 @@ const doc = [
   section('Ideal customer profiles', bullets(perfectFor)),
   section('Nano Kava vs. traditional kava extract', specs),
   section('What differentiates Cannasol', bullets(differentiators)),
+  section('Where it comes from', bullets([sourcing.material, ...sourcing.facts])),
+  section('Adding it to a batch', bullets([dropInProcess.summary, dropInProcess.clarity])),
+  section('Dosing and cost per serving', `${dosing.guidance}\n\n${doseTable}`),
+  section('Pricing', bullets([pricing.headline, pricing.tier, pricing.caveat])),
+  section(
+    'Labelling guidance for a brand owner',
+    `_${labeling.intro}_\n\n${bullets(labeling.points)}\n\nExample Supplement Facts panel (illustrative template, not an approved label):\n\n${bullets(labeling.examplePanel)}\n\n${labeling.exampleCaution}`
+  ),
+  section('How Nano Kava is sold', bulkIngredientDisclaimer),
   section('Applications', bullets(applications)),
   section('How a new customer gets started', bullets(steps.map((s) => `${s.step} ${s.title} — ${s.description}`))),
-  section('Samples and ordering', bullets([sampleOffer.headline, `Price: ${sampleOffer.price}.`, sampleOffer.moq, ...sampleOffer.lineUrls.map(({ name, url }) => `${name} sample request link: ${url}`), `All three mushroom nanoemulsions at once: ${sampleOffer.mushroomUrl}`])),
-  section('Nano Mushroom line', bullets([mushroomLine.summary, ...mushroomLine.products.map((p) => `${p.name} — best for ${p.bestFor}. ${p.points.join('; ')}.`), ...mushroomLine.benefits, mushroomLine.caveat])),
+  section('Samples and ordering', bullets([sampleOffer.headline, `Price: ${sampleOffer.price}.`, sampleOffer.moq, sampleOffer.turnaround, ...sampleOffer.steps, ...sampleOffer.lineUrls.map(({ name, url }) => `${name} sample request link: ${url}`), `All three mushroom nanoemulsions at once: ${sampleOffer.mushroomUrl}`])),
+  section('Nano Mushroom line', bullets([mushroomLine.summary, ...mushroomLine.products.map((p) => `${p.name} — best for ${p.bestFor}. Typical dose ${p.dose}, ingredient cost ${p.costPerServing} per serving. ${p.points.join('; ')}.`), ...mushroomLine.benefits])),
   section('How to reach Cannasol', bullets([contactRoutes.form, contactRoutes.formPromise, `Inquiry types on the form: ${contactRoutes.inquiryTypes.join(', ')}.`, contactRoutes.faqPage, contactRoutes.mushroomsPage, contactRoutes.escalation])),
   section('Equipment business', bullets([equipment.summary, `Processor range: ${equipment.range}, ${equipment.startingPrice}.`, `Categories: ${equipment.categories.join(', ')}.`])),
   section('Frequently asked questions', faq),

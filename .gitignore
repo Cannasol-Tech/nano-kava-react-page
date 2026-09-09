@@ -39,3 +39,6 @@ nano-mushrooms-page/.env*.local
 # Browser-automation test artifacts
 .playwright-mcp/
 bula-*.png
+
+# Raw phone photos of the ingredient brief stay local; the JPEG conversions are committed
+*.heic

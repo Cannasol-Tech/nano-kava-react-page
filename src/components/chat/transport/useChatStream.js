@@ -35,10 +35,10 @@ const SALES_PHONE = '(216) 921-2240';
 // The opening clause is FIXED — the "short for solution" pun is the line Stephen picked and it
 // carries the whole introduction. Only the tail varies. See CLAUDE.md § The greeting is client-owned.
 export const GREETINGS = [
-  "I'm Sol — short for solution, which is more or less what we make. I help beverage brands spec Cannasol's ~18nm nano kava emulsion. What are you formulating?",
-  "I'm Sol — short for solution, which is more or less what we make. I help beverage brands spec Cannasol's ~18nm nano kava emulsion. What are you working on?",
-  "I'm Sol — short for solution, which is more or less what we make. I help beverage brands spec Cannasol's ~18nm nano kava emulsion — seltzers, shots, powders. What are you formulating?",
-  "I'm Sol — short for solution, which is more or less what we make. I help beverage brands spec Cannasol's ~18nm nano kava emulsion. What can I help you build?",
+  "I'm Sol — short for solution, which is more or less what we make. I help beverage brands spec Cannasol's ~20nm nano kava emulsion. What are you formulating?",
+  "I'm Sol — short for solution, which is more or less what we make. I help beverage brands spec Cannasol's ~20nm nano kava emulsion. What are you working on?",
+  "I'm Sol — short for solution, which is more or less what we make. I help beverage brands spec Cannasol's ~20nm nano kava emulsion — seltzers, shots, powders. What are you formulating?",
+  "I'm Sol — short for solution, which is more or less what we make. I help beverage brands spec Cannasol's ~20nm nano kava emulsion. What can I help you build?",
 ];
 
 /** Injectable rand keeps the choice testable; guards a stubbed 1 reading past the end. */
@@ -86,7 +86,7 @@ function decodeFrames(chunk, carry) {
 /** Same shape as QUIZ_NOTES; see engagement/CLAUDE.md § One modal at a time. */
 const EXPLAINER_UNAVAILABLE = {
   text: "The scale visual didn't open.",
-  toModel: '[System note: the scale visual did not open and the visitor cannot see it. Describe ~18nm in words and do not refer to anything on screen.]',
+  toModel: '[System note: the scale visual did not open and the visitor cannot see it. Describe ~20nm in words and do not refer to anything on screen.]',
 };
 
 /**

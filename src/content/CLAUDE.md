@@ -41,6 +41,12 @@ was too thin to survive any edit; content was added rather than the floor ignore
 If you remove anything from these modules, re-measure. The byte count the build script prints
 is only an estimate (chars/4); the authoritative number comes from `ai.models.countTokens`.
 
+*2026-09-09: the knowledge base is now **30,222 characters (~7,556 estimated tokens)**, up from
+24,798 after the ingredient brief was folded in. `functions/lib/CLAUDE.md § Prompt caching is
+implicit` measures the real prefix at ~10k tokens with 2.5x headroom over the 4,096 floor, so the
+floor is no longer the live risk it was when the section above was written — the live cost is that
+the prefix is resent every turn.*
+
 *2026-08-26: the 4,486 figure above is now a floor, not the current number — the Reishi world-first,
 the Brez client history and the strain names added ~780 characters to the generated file. Margin
 over the 4,096 floor only grew, so nothing was re-measured against the live API; do that before
@@ -58,6 +64,13 @@ Sol must offer them without a knowledge-base lookup; if a name changes here, cha
 *Added 2026-08-26. Before this, `mushroomLine.summary` described the line as a single product and
 the persona section was named THE BOX HAS ROOM FOR THREE.*
 
+*Corrected 2026-09-09: `mushroomLine.caveat` read "No numeric specifications (particle size, onset,
+shelf life) are published for the mushroom line." That is now false and the field was deleted — the
+brief publishes a dose range and an ingredient cost per serving for each of the three, plus 50/50
+USA/global sourcing. Bitter Blocker also changed role: it stays a purchasable line, but the kava
+nanoemulsion needs no bitter blocker, so nothing here or in `persona.js` may say a kava buyer will
+hit a taste problem without one.*
+
 ## Client and capability facts live in `differentiators`
 
 `product.js` `differentiators` is the only rendered free-form list for Cannasol track-record
@@ -68,13 +81,47 @@ a new export there would never reach the bot.
 **Brez is a real, named customer.** State the relationship exactly as `differentiators` words it
 and no further: no endorsement, no reference offer, no claims about Brez's own product.
 
-## Known discrepancy: bioavailability 5x vs 10x
+## Bioavailability is 4–5x — RESOLVED 2026-09-09
 
-`KavaLandingPage.jsx` renders `5x` in its hero stat card. Every other statement on the site —
-the spec table, the body copy below the hero, the meta description, the FAQ and all schema.org
-— says `10x`. `specComparison` here records **~10x**, so the chatbot and the spec table agree
-and the hero card is the lone outlier. Flagged to Stephen 2026-08-25; awaiting a decision on
-whether the hero card is a typo or a deliberately conservative number.
+*This section previously read "Known discrepancy: bioavailability 5x vs 10x" and said
+`specComparison` recorded **~10x**, with the `5x` in the `KavaLandingPage.jsx` hero card as the
+lone outlier, awaiting a decision. The decision arrived: the enjoynano NANO KAVA INGREDIENT BRIEF
+(2 pages, 2026-09) states **4–5x higher absorption vs. conventional powder**, and it supersedes.*
+
+`specComparison` now records **4–5x conventional kava powder**. The hero card's `5x` was the
+conservative reading and is inside the range. Two claims the brief does not substantiate were
+retired outright rather than restated: **80–90% kavalactone absorption vs 10–15%**, and the
+**~5 minute onset vs 30–45 minutes**. Nothing in `src/content/` may reintroduce either, and
+`persona.js § USING YOUR KNOWLEDGE` no longer lists onset or shelf life as things the knowledge
+base states.
+
+## The brief is the spec SSoT, and what else it superseded
+
+*Added 2026-09-09.* Superseded in the same change: `~18 nm` → **`~20 nm`**; "fully water-soluble"
+→ **"100% water-dispersible"**; the traditional droplet-size cell "Not nanosized (microns and
+larger)" → **"200–1,000 nm — settles, hazes"**; **"12+ months shelf stability"** → the brief's
+qualitative "stays clear, stays suspended — no settling, no ringing"; and the positioning badge
+"The World's First & Only ~18nm Kava Nanoemulsion" plus the only-manufacturer claim → the
+supportable **first to nano-emulsify kava, over four to five years ago**.
+
+Kept because the brief is silent, not contradictory: NanoOptimizer™, QSonica, noble-varieties /
+never-tudei, and the Reishi world-first.
+
+Added: sourcing (Vanuatu, CO2 through New Zealand, nanoemulsified in-house, root & rhizome, 5:1,
+COA + particle-size report per lot), the drop-in process, the dosing table, `$250/L` at the 1,000 L
+tier, labelling guidance, and the bulk-ingredient disclaimer. These live in `product.js` as
+`sourcing`, `dropInProcess`, `dosing`, `pricing`, `labeling` and `bulkIngredientDisclaimer`, and
+each had to be added to `build-knowledge-base.mjs` by name — a new export is invisible to Sol until
+it is.
+
+## Labelling guidance is B2B, not consumer advice
+
+*Added 2026-09-09.* `labeling` carries a 21 CFR 101.36 panel template and the abridged CRN caution
+wording. It is what a brand owner prints on their own label, and it is framed that way throughout —
+never as advice about consuming kava. `exampleCaution` quotes label copy including the FDA liver
+warning; that is a labelling requirement to reproduce, not a health discussion Sol may open. The
+persona's "never discuss drug interactions, liver safety, pregnancy" rule is unchanged and still
+binds.
 
 ## Why the domain knowledge avoids efficacy
 
@@ -86,15 +133,22 @@ hot-fill, pH — and deliberately no health effect. Everything in this directory
 `functions/knowledge-base.md` and handed to the model as fact it may repeat. Kava is an
 ingestible: a therapeutic sentence written here is one Sol will say to a formulator as
 Cannasol's position, and the no-health-claims rule in `functions/lib/persona.js` cannot retract
-what the knowledge base asserts. Bioavailability and onset are pharmacokinetics and stay; "helps
-with anxiety" is efficacy and does not.
+what the knowledge base asserts. Bioavailability and absorption are pharmacokinetics and stay;
+"helps with anxiety" is efficacy and does not.
+
+*Corrected 2026-09-09: the last sentence read "Bioavailability and onset are pharmacokinetics and
+stay". Onset is no longer claimed anywhere — the brief makes no onset claim — so it is not an
+example of something that stays.*
 
 ## External sources are snapshots, not live fetches
 
 `external.js` holds captured facts from `cannasoltechnologies.com` (note: `cannasolusa.com`
-301-redirects there). The corporate site publishes no numeric specs, so enjoynano.com is
-authoritative for particle size, onset, absorption and shelf life. Re-capture by hand when the
+301-redirects there). The corporate site publishes no numeric specs. Re-capture by hand when the
 corporate site changes materially.
+
+*Corrected 2026-09-09: this previously said "enjoynano.com is authoritative for particle size,
+onset, absorption and shelf life". The NANO KAVA INGREDIENT BRIEF is now the SSoT for every spec,
+and it publishes no onset or shelf-life figure at all.*
 
 ## One sample link per line
 

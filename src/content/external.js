@@ -33,7 +33,7 @@ export const externalSources = [
   {
     url: 'https://cannasoltechnologies.com/nano-kava/',
     captured: '2026-08-25',
-    notes: 'Corporate nano kava page. Makes no numeric claims — enjoynano.com is authoritative for specs.',
+    notes: "Corporate nano kava page. Makes no numeric claims — the 2026-09 NANO KAVA INGREDIENT BRIEF, rendered through src/content/, is authoritative for every spec.",
     facts: [
       'Describes nanoemulsification as breaking oil-based substances into tiny droplets suspended in water, creating almost transparent mixtures with increased surface area.',
       'Claimed benefits: enhanced bioavailability from increased surface area; improved palatability that eliminates the gritty texture and muddy appearance of traditional kava; ease of production for beverage formulations; precise dosing from uniform kavalactone distribution.',
