@@ -116,7 +116,7 @@ function SentConfirmation({ theme, name }) {
       </span>
       <p className={`mt-2 text-sm font-semibold ${theme.text}`}>Sent</p>
       <p className={`text-xs ${theme.textSecondary}`}>
-        {name ? `Thanks, ${name.trim().split(' ')[0]} — ` : ''}you&apos;ll hear back within one business day.
+        {name ? `Thanks, ${name.trim().split(' ')[0]} — ` : ''}you&apos;ll hear back within 24 hours.
       </p>
     </div>
   );
