@@ -84,7 +84,12 @@ describe('useChatStream frames', () => {
     await waitFor(() => expect(onQuiz).toHaveBeenCalledTimes(1));
   });
 
-  it('tells the visitor and the model when the picker refused to open', async () => {
+  /**
+   * The refusal note moved to utils/quiz.js on 2026-09-08: only the module holding the session
+   * flags knows whether the picker was unavailable or simply already answered. The transport
+   * hands the frame over and invents nothing.
+   */
+  it('leaves the refusal note to whoever owns the picker', async () => {
     vi.stubGlobal('fetch', vi.fn(async () => mockSse([
       { type: 'sample_quiz' },
       { type: 'text', delta: 'Tap through those three and I will fill the rest in.' },
@@ -95,9 +100,7 @@ describe('useChatStream frames', () => {
     await act(async () => { result.current.send("I'm building a kava seltzer"); });
 
     await waitFor(() => expect(result.current.isStreaming).toBe(false));
-    const note = result.current.messages.find((m) => m.role === 'system');
-    expect(note.text).toMatch(/picker didn't open/i);
-    expect(note.toModel).toMatch(/do not mention it/i);
+    expect(result.current.messages.find((m) => m.role === 'system')).toBeUndefined();
   });
 
   it('stays silent when the picker did open', async () => {

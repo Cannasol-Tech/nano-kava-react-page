@@ -55,3 +55,26 @@ describe('validateChatRequest sessionId', () => {
     expect(validateChatRequest({ messages: Array.from({ length: 40 }, () => ({ role: 'user', text: 'x' })) }).ok).toBe(false);
   });
 });
+
+/**
+ * The 2026-09-08 report: a visitor answered the picker, and Sol called the tool again to raise
+ * questions they had just answered. The client knows they answered; a tool that cannot work is
+ * withheld rather than offered and refused. See functions/lib/CLAUDE.md § The picker is offered once.
+ */
+describe('withholding the picker once it has been answered', () => {
+  it('carries the client flag through, defaulting to offering the tool', () => {
+    expect(validateChatRequest(body({ quizAnswered: true })).quizAnswered).toBe(true);
+    expect(validateChatRequest(body({ quizAnswered: 'yes' })).quizAnswered).toBe(false);
+    expect(validateChatRequest(body()).quizAnswered).toBe(false);
+  });
+
+  it('drops open_sample_quiz from the tools the model is offered', async () => {
+    const { toolsFor } = await import('../lib/chat.js');
+    const names = (tools) => tools[0].functionDeclarations.map((d) => d.name);
+
+    expect(names(toolsFor({ quizAnswered: false }))).toContain('open_sample_quiz');
+    expect(names(toolsFor({ quizAnswered: true }))).not.toContain('open_sample_quiz');
+    // Every other tool survives; the visitor still wants a sample card.
+    expect(names(toolsFor({ quizAnswered: true }))).toContain('send_lead_to_josh');
+  });
+});

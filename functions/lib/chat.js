@@ -342,6 +342,16 @@ function setParticleColor(args, onEvent) {
   };
 }
 
+/**
+ * The picker is offered once. A visitor who has answered it cannot be shown it again, so the
+ * model must not be able to ask: it announced questions that never appeared otherwise.
+ * See CLAUDE.md § The picker is offered once.
+ */
+function toolsFor({ quizAnswered = false } = {}) {
+  if (!quizAnswered) return TOOLS;
+  return [{ functionDeclarations: TOOLS[0].functionDeclarations.filter((d) => d.name !== QUIZ_TOOL) }];
+}
+
 /** Runs a model-requested tool call and returns the functionResponse payload. */
 function runToolCall(call, onEvent) {
   if (call.name === LEAD_TOOL) return proposeLead(call.args || {}, onEvent);
@@ -356,7 +366,7 @@ function runToolCall(call, onEvent) {
 }
 
 /** Streams one assistant turn, resolving any tool calls, emitting text/tool/done events. */
-async function streamChat({ apiKey, messages, onEvent }) {
+async function streamChat({ apiKey, messages, quizAnswered = false, onEvent }) {
   const ai = new GoogleGenAI({ apiKey });
   const contents = messages.map(({ role, text }) => ({ role, parts: [{ text }] }));
   // Appended, never merged into systemInstruction: that prefix must stay byte-identical or
@@ -364,7 +374,7 @@ async function streamChat({ apiKey, messages, onEvent }) {
   if (contents.length > 0) contents.push({ role: 'user', parts: [{ text: businessHoursContext() }] });
   const config = {
     systemInstruction: systemInstruction(),
-    tools: TOOLS,
+    tools: toolsFor({ quizAnswered }),
     toolConfig: { functionCallingConfig: { mode: FunctionCallingConfigMode.AUTO } },
     safetySettings: SAFETY_SETTINGS,
     thinkingConfig: { thinkingBudget: THINKING_BUDGET },
@@ -452,6 +462,7 @@ function validateChatRequest(body) {
     messages: messages.map(({ role, text }) => ({ role, text })),
     sessionId: isValidSessionId(body.sessionId) ? body.sessionId : null,
     page: String(body.page ?? '').slice(0, MAX_PAGE_CHARS),
+    quizAnswered: body.quizAnswered === true,
   };
 }
 
@@ -491,6 +502,7 @@ module.exports = {
   COLOR_TOOL,
   runToolCall,
   streamChat,
+  toolsFor,
   validateChatRequest,
   rateLimit,
 };

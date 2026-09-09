@@ -27,7 +27,6 @@ import { trackCTAClick, trackEvent, trackSampleRequest } from '../../../utils/gt
 import { openExplainer } from '../../../utils/explainer';
 import { startRainbow } from '../../../utils/nanoRainbow';
 import { openQuiz, subscribeQuizNotice } from '../../../utils/quiz';
-import { QUIZ_NOTES } from '../engagement/sampleQuiz';
 import { matchSecretPhrase } from './secretPhrases';
 import { useChatStream } from '../transport/useChatStream';
 import LeadCard from '../lead/LeadCard';
@@ -73,6 +72,7 @@ function Transcript({ messages, isStreaming, theme, dotColor, onFollowUp }) {
         if (message.role === 'lead')
           return <LeadCard key={message.id} fields={message.fields} onFollowUp={onFollowUp} />;
         if (message.role === 'system') {
+          if (!message.text) return null;
           return (
             <p key={message.id} className="text-center py-1">
               <span className={`sol-note inline-block rounded-full px-2.5 py-1 text-xs ${theme.accentText}`}>
@@ -139,9 +139,7 @@ export default function ChatPanel({
   // ../engagement/CLAUDE.md § One modal at a time.
   useEffect(() => subscribeQuizNotice(appendNote), [appendNote]);
 
-  const openQuizFromChip = useCallback(() => {
-    if (!openQuiz({ force: true })) appendNote(QUIZ_NOTES.unavailable);
-  }, [appendNote]);
+  const openQuizFromChip = useCallback(() => { openQuiz({ force: true }); }, []);
 
   useEffect(() => {
     if (greetedRef.current) return;
@@ -164,11 +162,12 @@ export default function ChatPanel({
   // A suggestion chip floating over the lead card obscured it and read as part of the form.
   const hasLeadCard = messages.some((m) => m.role === 'lead');
 
+  // Keyed on the completion id, not its text: identical answers are still a second turn.
   // Marked sent only once send() has taken it, or a quiz finished mid-stream vanished for good.
   const quizSentRef = useRef(null);
   useEffect(() => {
-    if (!quizMessage || quizSentRef.current === quizMessage) return;
-    if (send(quizMessage)) quizSentRef.current = quizMessage;
+    if (!quizMessage || quizSentRef.current === quizMessage.id) return;
+    if (send(quizMessage.text)) quizSentRef.current = quizMessage.id;
   }, [quizMessage, send]);
 
   useEffect(() => {

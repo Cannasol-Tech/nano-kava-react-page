@@ -22,8 +22,8 @@
 
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { chatSessionId } from './chatSession';
-import { QUIZ_NOTES } from '../engagement/sampleQuiz';
 import { applyPalette, resetPalette } from '../../../utils/particlePalette';
+import { hasAnsweredQuiz } from '../../../utils/quiz';
 
 const CHAT_URL = import.meta.env.DEV
   ? '/api/chat'
@@ -172,7 +172,8 @@ export function useChatStream({ onTool, onExplain, onQuiz } = {}) {
       else if (event.type === 'nano_explainer') {
         if (explainRef.current?.() === false) appendNote(EXPLAINER_UNAVAILABLE);
       } else if (event.type === 'sample_quiz') {
-        if (quizRef.current?.() === false) appendNote(QUIZ_NOTES.unavailable);
+        // A refusal explains itself over the notice channel — see utils/quiz.js § openQuiz.
+        quizRef.current?.();
       }
       // The server resolved the colour; the client only applies numbers it was handed.
       else if (event.type === 'particle_color') {
@@ -218,6 +219,7 @@ export function useChatStream({ onTool, onExplain, onQuiz } = {}) {
             messages: history,
             sessionId: chatSessionId(),
             page: typeof window !== 'undefined' ? window.location.pathname : '',
+            quizAnswered: hasAnsweredQuiz(),
           }),
           signal: controller.signal,
         });

@@ -245,8 +245,9 @@ export default function ChatWidget() {
   }, []);
 
   // The quiz finishes outside the widget; opening here keeps one owner of panel state.
+  // The whole result rides through, id included: two identical runs must stay two turns.
   useEffect(() => subscribeQuizComplete((result) => {
-    setQuizMessage(result.message);
+    setQuizMessage({ id: result.id, text: result.message });
     setNudge(null);
     open('sample-quiz');
   }), [open]);

@@ -18,7 +18,7 @@
 
 import { createSignal, modalSlot } from './signal';
 import {
-  canOpenQuiz, QUIZ_UNINVITED_KEY, CONVERTED_KEY, QUIZ_NOTES,
+  canOpenQuiz, QUIZ_UNINVITED_KEY, QUIZ_ANSWERED_KEY, CONVERTED_KEY, QUIZ_NOTES,
 } from '../components/chat/engagement/sampleQuiz';
 
 const SLOT = 'sample-quiz';
@@ -38,6 +38,9 @@ const writeFlag = (key) => {
 
 export const subscribeQuiz = openSignal.subscribe;
 
+/** The server withholds the tool on this, so the model cannot announce a picker that is spent. */
+export const hasAnsweredQuiz = () => readFlag(QUIZ_ANSWERED_KEY);
+
 /** Things Sol has to be told about the picker; ChatPanel folds these into the transcript. */
 export const subscribeQuizNotice = noticeSignal.subscribe;
 
@@ -52,8 +55,12 @@ export function openQuiz({ force = false } = {}) {
   const allowed = force || canOpenQuiz({
     uninvitedShown: readFlag(QUIZ_UNINVITED_KEY),
     converted: readFlag(CONVERTED_KEY),
+    answered: readFlag(QUIZ_ANSWERED_KEY),
   });
-  if (!allowed || !modalSlot.claim(SLOT)) return false;
+  if (!allowed || !modalSlot.claim(SLOT)) {
+    noticeSignal.emit(readFlag(QUIZ_ANSWERED_KEY) ? QUIZ_NOTES.answered : QUIZ_NOTES.unavailable);
+    return false;
+  }
   // Only an uninvited open spends the session's one interruption.
   if (!force) writeFlag(QUIZ_UNINVITED_KEY);
   openSignal.emit(true);
@@ -68,4 +75,15 @@ export function closeQuiz({ dismissed = true } = {}) {
 }
 
 export const subscribeQuizComplete = doneSignal.subscribe;
-export const completeQuiz = (result) => doneSignal.emit(result);
+
+let completionSequence = 0;
+
+/**
+ * Every completion carries its own id. Keyed on the composed text instead, a second run with
+ * the same three answers deduplicated against the first and reached Sol as nothing at all —
+ * the failure a visitor reported on 2026-09-08. See CLAUDE.md § The three-tap intent quiz.
+ */
+export function completeQuiz(result) {
+  writeFlag(QUIZ_ANSWERED_KEY);
+  doneSignal.emit({ ...result, id: (completionSequence += 1) });
+}

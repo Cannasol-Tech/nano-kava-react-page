@@ -84,10 +84,18 @@ describe('canOpenQuiz', () => {
 });
 
 describe('QUIZ_NOTES', () => {
-  it('tells the model as well as the visitor, or Sol keeps describing a picker', () => {
+  it('always tells the model, or Sol keeps describing a picker that is not there', () => {
     Object.values(QUIZ_NOTES).forEach((note) => {
-      expect(note.text.length).toBeGreaterThan(3);
-      expect(note.toModel).toMatch(/format, volume and timeline/);
+      expect(note.toModel.length).toBeGreaterThan(3);
     });
+  });
+
+  // Only a picker that failed the visitor is worth a line in their transcript. Being told the
+  // questions they just answered were not asked again is noise that reads as an error.
+  it('says nothing to a visitor who already answered', () => {
+    expect(QUIZ_NOTES.unavailable.text).toMatch(/didn't open/i);
+    expect(QUIZ_NOTES.dismissed.text).toMatch(/closed/i);
+    expect(QUIZ_NOTES.answered.text).toBeNull();
+    expect(QUIZ_NOTES.answered.toModel).toMatch(/already answered/i);
   });
 });

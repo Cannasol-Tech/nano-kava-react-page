@@ -133,6 +133,7 @@ exports.chat = onRequest(
       await streamChat({
         apiKey: googleAiApiKey.value(),
         messages: validation.messages,
+        quizAnswered: validation.quizAnswered,
         onEvent: recorder.emit,
       });
     } catch (error) {

@@ -86,14 +86,12 @@ const normalize = (fields) =>
 
 const isFilled = (value) => Boolean(value && value.trim());
 
-const buildMessage = (interest, summary, note) =>
-  [interest, note && `--- Anything else ---\n${note}`, `--- Conversation summary ---\n${summary}`]
-    .filter(Boolean)
-    .join('\n\n');
+const buildMessage = (interest, summary) =>
+  [interest, `--- Conversation summary ---\n${summary}`].filter(Boolean).join('\n\n');
 
 /** Sol's own turn, so the beat before the email reads as him and not as form chrome. */
 const followUpLine = (name) =>
-  `${name ? `Got it, ${name.trim().split(' ')[0]}. ` : 'Got it. '}Anything else Josh should know before I pass this on? Add it on the card, then hit Confirm & send.`;
+  `${name ? `Got it, ${name.trim().split(' ')[0]}. ` : 'Got it. '}Anything else I should pass on? Just tell me here and I'll add it — otherwise hit Confirm & send.`;
 
 function SentConfirmation({ theme, name }) {
   return (
@@ -115,7 +113,7 @@ function SentConfirmation({ theme, name }) {
         </span>
         <Check className="sr-only w-4 h-4" />
       </span>
-      <p className={`mt-2 text-sm font-semibold ${theme.text}`}>Sent to Josh</p>
+      <p className={`mt-2 text-sm font-semibold ${theme.text}`}>Sent</p>
       <p className={`text-xs ${theme.textSecondary}`}>
         {name ? `Thanks, ${name.trim().split(' ')[0]} — ` : ''}you&apos;ll hear back within one business day.
       </p>
@@ -130,7 +128,6 @@ export default function LeadCard({ fields, onFollowUp }) {
   const [draft, setDraft] = useState(() => normalize(fields));
   const [lines, setLines] = useState(() => new Set(linesFromInterest(fields.interest)));
   const [status, setStatus] = useState('editing');
-  const [note, setNote] = useState('');
   const [showSummary, setShowSummary] = useState(false);
   const abortRef = useRef(null);
 
@@ -184,7 +181,7 @@ export default function LeadCard({ fields, onFollowUp }) {
           ...(isFilled(draft.company) ? { company: draft.company.trim() } : {}),
           inquiryType: INQUIRY_TYPE,
           interest,
-          message: buildMessage(interest, draft.conversation_summary, note.trim()),
+          message: buildMessage(interest, draft.conversation_summary),
           // Marks the stored lead confirmed: a human pressed Send, so it is no longer just
           // Sol's extraction. See functions/lib/CLAUDE.md § The lead record is not the transcript.
           sessionId: chatSessionId(),
@@ -200,12 +197,12 @@ export default function LeadCard({ fields, onFollowUp }) {
       if (failure.name === 'AbortError') return;
       setStatus('failed');
     }
-  }, [canSend, draft, interest, note, status]);
+  }, [canSend, draft, interest, status]);
 
   const hint = useMemo(() => {
     if (status === 'confirming') return 'Nothing has been sent yet — Confirm & send does that.';
-    if (!isFilled(draft.name)) return 'Add your name so Josh knows who to greet.';
-    if (!isFilled(draft.email)) return 'Add an email so Josh can reply.';
+    if (!isFilled(draft.name)) return 'Add your name so we know who to greet.';
+    if (!isFilled(draft.email)) return 'Add an email so we can reply.';
     if (!lines.size) return 'Pick at least one sample to send.';
     return null;
   }, [draft.email, draft.name, lines, status]);
@@ -234,7 +231,7 @@ export default function LeadCard({ fields, onFollowUp }) {
       <span className="sol-lead__sweep" aria-hidden="true" />
 
       <p className={`mb-2.5 text-sm font-semibold ${theme.accentText}`}>
-        {isConfirming ? 'One more thing, then it goes to Josh' : 'Check these details, then send'}
+        {isConfirming ? 'One more look, then it sends' : 'Check these details, then send'}
       </p>
 
       <div className="grid grid-cols-2 gap-2">
@@ -291,23 +288,6 @@ export default function LeadCard({ fields, onFollowUp }) {
           })}
         </div>
       </div>
-
-      {isConfirming ? (
-        <label className="sol-lead__note mt-2.5 block">
-          <span className={labelClass}>
-            Anything else for Josh <span className="normal-case opacity-70">(optional)</span>
-          </span>
-          <textarea
-            rows={2}
-            autoFocus
-            value={note}
-            disabled={isSending}
-            onChange={(event) => setNote(event.target.value)}
-            placeholder="Base, timeline, volume — anything that helps him reply properly."
-            className={`${inputClass} resize-none leading-5`}
-          />
-        </label>
-      ) : null}
 
       <button
         type="button"

@@ -185,22 +185,17 @@ describe('Sol asks before anything is sent', () => {
     fireEvent.click(sendButton());
     expect(onFollowUp).toHaveBeenCalledTimes(1);
     expect(onFollowUp.mock.calls[0][0]).toMatch(/^Got it, Ana\./);
-    expect(onFollowUp.mock.calls[0][0]).toMatch(/anything else josh should know/i);
+    expect(onFollowUp.mock.calls[0][0]).toMatch(/anything else i should pass on/i);
+    expect(onFollowUp.mock.calls[0][0]).toMatch(/tell me here/i);
   });
 
-  it('opens a last-word box and carries it into the email', async () => {
+  it('asks for the last word in the chat rather than in a box on the card', () => {
     renderCard();
     fireEvent.click(sendButton());
-    fireEvent.change(screen.getByRole('textbox', { name: /anything else for josh/i }), {
-      target: { value: 'Dosing into a citrus base.' },
-    });
-    fireEvent.click(sendButton());
-
-    await waitFor(() => expect(fetchMock).toHaveBeenCalled());
-    expect(JSON.parse(fetchMock.mock.calls[0][1].body).message).toContain('Dosing into a citrus base.');
+    expect(screen.queryByRole('textbox', { name: /anything else/i })).toBeNull();
   });
 
-  it('leaves the last-word box out of the email when it is empty', async () => {
+  it('sends the interest and the summary, and nothing else', async () => {
     renderCard();
     sendNow();
     await waitFor(() => expect(fetchMock).toHaveBeenCalled());
@@ -288,7 +283,7 @@ describe('what gets POSTed', () => {
     renderCard();
     sendNow();
 
-    expect(await screen.findByText(/sent to josh/i)).toBeInTheDocument();
+    expect(await screen.findByText(/^sent$/i)).toBeInTheDocument();
     expect(window.sessionStorage.getItem('sol:converted')).toBe('1');
   });
 });

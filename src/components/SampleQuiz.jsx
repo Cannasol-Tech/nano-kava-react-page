@@ -34,10 +34,12 @@ export default function SampleQuiz() {
   const [chosen, setChosen] = useState(null);
   const panelRef = useRef(null);
   const settlingRef = useRef(false);
+  const closeTimerRef = useRef(null);
 
   const dismiss = useCallback((finished) => {
     setIsClosing(true);
-    window.setTimeout(() => {
+    closeTimerRef.current = window.setTimeout(() => {
+      closeTimerRef.current = null;
       setIsOpen(false);
       setIsClosing(false);
       closeQuiz({ dismissed: !finished });
@@ -46,6 +48,9 @@ export default function SampleQuiz() {
 
   useEffect(() => subscribeQuiz((open) => {
     if (!open) return;
+    // A reply beating the close animation used to be shut again by the previous run's timer.
+    window.clearTimeout(closeTimerRef.current);
+    closeTimerRef.current = null;
     setAnswers({});
     setStepIndex(0);
     setChosen(null);

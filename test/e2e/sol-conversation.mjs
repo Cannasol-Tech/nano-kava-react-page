@@ -21,16 +21,17 @@
 const results = [];
 const BASE = process.env.CHAT_BASE_URL || 'http://localhost:3000';
 
-async function converse(turns) {
+async function converse(turns, { quizAnswered = false } = {}) {
   let lead = null;
   let lastText = '';
+  const tools = [];
   const messages = [];
   for (const turn of turns) {
     messages.push({ role: 'user', text: turn });
     const res = await fetch(`${BASE}/api/chat`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ messages }),
+      body: JSON.stringify({ messages, quizAnswered }),
     });
     if (!res.ok) throw new Error(`HTTP ${res.status} from ${BASE}/api/chat`);
     const reader = res.body.getReader();
@@ -50,12 +51,13 @@ async function converse(turns) {
         const event = JSON.parse(line.slice(6));
         if (event.type === 'text') lastText += event.delta;
         if (event.type === 'lead_proposed') lead = event.fields;
+        if (event.type === 'tool') tools.push(event.name);
         if (event.type === 'error') throw new Error(`stream error: ${event.message}`);
       }
     }
     messages.push({ role: 'model', text: lastText });
   }
-  return { text: lastText, lead, messages };
+  return { text: lastText, lead, tools, messages };
 }
 
 function check(name, passed, detail) {
@@ -133,6 +135,32 @@ async function scenarioGuardrails() {
     injection.text.slice(0, 140));
 }
 
+/**
+ * The session a visitor reported on 2026-09-08. They tapped through the picker, and its answers
+ * arrive as this exact sentence — so re-raising it is asking them what they just told him.
+ */
+async function scenarioAnsweredPickerIsNotReRaised() {
+  console.log('\n[6] Picker answers are recapped, not asked again');
+  const answers = "I'm building a seltzer or RTD, 10k+ units, this quarter.";
+  const { text, tools } = await converse([answers], { quizAnswered: true });
+
+  check('did not ask them to tap through the same three questions',
+    !/three quick questions|tap through|came up over the chat/i.test(text), text.slice(0, 200));
+  check('recapped the format they gave', /seltzer|rtd/i.test(text), text.slice(0, 200));
+  check('moved toward the sample', /sample/i.test(text), text.slice(0, 200));
+  check('could not call the picker tool at all', !tools.includes('open_sample_quiz'), tools.join(', '));
+}
+
+async function scenarioProceedAfterAnswering() {
+  console.log('\n[7] "ok, proceed" after answering does not restart the questions');
+  const { text } = await converse([
+    "I'm building a seltzer or RTD, 10k+ units, this quarter.",
+    'ok, proceed',
+  ], { quizAnswered: true });
+  check('did not claim to have sent questions', !/i have sent|just came up over the chat/i.test(text), text.slice(0, 200));
+  check('carried the conversation forward', /sample|josh|email|spec|seltzer/i.test(text), text.slice(0, 200));
+}
+
 async function main() {
   console.log(`Sol conversation tests -> ${BASE}`);
   try {
@@ -149,6 +177,8 @@ async function main() {
     scenarioSampleAskIsImmediate,
     scenarioSellsTheSample,
     scenarioGuardrails,
+    scenarioAnsweredPickerIsNotReRaised,
+    scenarioProceedAfterAnswering,
   ]) {
     try {
       await scenario();

@@ -83,6 +83,7 @@ export const SELECT_FEEDBACK_MS = 220;
 
 /** Session flags the policy reads. Kept here so the rule and its inputs live together. */
 export const QUIZ_UNINVITED_KEY = 'sol:quiz-uninvited';
+export const QUIZ_ANSWERED_KEY = 'sol:quiz-answered';
 export const CONVERTED_KEY = 'sol:converted';
 
 /**
@@ -99,6 +100,11 @@ export const QUIZ_NOTES = {
     text: 'Sample picker closed.',
     toModel: '[System note: the visitor closed the sample picker without finishing it. Do not raise it or refer to it again — ask about format, volume and timeline in the conversation instead.]',
   },
+  // No `text`: the visitor answered, so a note about it would read as an error they caused.
+  answered: {
+    text: null,
+    toModel: '[System note: the visitor has already answered the three questions and their answers are in this conversation. The picker was not raised again. Do not ask them to tap through anything — recap what they told you and offer the sample.]',
+  },
 };
 
 /**
@@ -109,7 +115,10 @@ export const QUIZ_NOTES = {
  * `uninvitedShown` is deliberately NOT "the quiz has been seen". A visitor who taps the chip
  * bypasses the policy entirely and must not burn the model's one turn — see
  * CLAUDE.md § A chip tap is not an interruption. (Corrected 2026-08-26.)
+ *
+ * `answered` closes the loop a visitor hit on 2026-09-08: they answered, Sol raised it again,
+ * and re-asking three questions they had just answered is the annoyance, not the help.
  */
-export function canOpenQuiz({ uninvitedShown = false, converted = false } = {}) {
-  return !uninvitedShown && !converted;
+export function canOpenQuiz({ uninvitedShown = false, converted = false, answered = false } = {}) {
+  return !uninvitedShown && !converted && !answered;
 }

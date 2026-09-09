@@ -127,7 +127,12 @@ function chatDevServer(mode) {
       }
 
       const recorder = createTranscriptRecorder(send);
-      await streamChat({ apiKey, messages: validation.messages, onEvent: recorder.emit });
+      await streamChat({
+        apiKey,
+        messages: validation.messages,
+        quizAnswered: validation.quizAnswered,
+        onEvent: recorder.emit,
+      });
       logStoreDryRun(validation, recorder.reply(), MAX_TURNS);
     } catch (err) {
       console.error('[chat dev]', err);
