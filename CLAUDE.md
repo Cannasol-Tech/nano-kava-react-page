@@ -147,7 +147,7 @@ Page components render `<Helmet>`, which throws outside a `HelmetProvider`. Use
 - Brand colors: `cannasol-green` `#2ECC71`, `cannasol-teal` `#17A2B8`, `cannasol-dark` `#0f172a` (defined in tailwind.config.js under `theme.extend.colors.cannasol`)
 - Custom Tailwind animations: `float`, `glow`, `pulse-slow` (in tailwind.config.js); additional CSS animations (gradient-shift, shimmer) in `src/index.css`
 - `landingPage.js` at project root is a standalone prototype — not used by the app. The actual mushrooms page is `src/components/MushroomsLandingPage.jsx`
-- `docs/` contains planning docs (`implementation-plan.md`), feature specs, SEO notes, and testing standards — check here for project context
+- `docs/` contains planning docs (`implementation-plan.md`), feature specs, SEO notes, testing standards, and model evaluations (`docs/reports/`) — check here for project context
 
 ## Testing
 

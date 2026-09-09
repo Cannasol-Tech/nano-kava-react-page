@@ -312,6 +312,16 @@ multi-step work.
 model answers normally, so the switch did not quietly re-enable thinking. The measurements above
 were taken on 3.5 and were not repeated; only the zero was re-confirmed.*
 
+**The budget is a hint, and `MAX_OUTPUT_TOKENS = 220` is what makes ignoring it fatal.** Thinking
+tokens count against `maxOutputTokens`, so a model that spends ~210 of them has nothing left for
+the reply: the API returns `candidatesTokenCount: 0`, and the empty-response guard emits
+`SAFETY_FALLBACK`. That looks like a safety block and is not one — nothing errors and nothing
+alerts. Measured over 30 turns each: 3.5 and 3.8 Flash honoured 0 every time; `gemini-3.7-flash`
+ignored it on 3 turns and **all three died**, one of them carrying a lead. `gemini-3.5-flash-lite`
+and `gemini-3.1-pro-preview` reject `thinkingBudget: 0` outright. Raise the ceiling before trying
+any model that is not 3.5 or 3.8. *Added 2026-09-08; evidence in
+`docs/reports/sol-model-bakeoff.html`.*
+
 ## Prompt caching is implicit — do not add explicit caches
 
 The system instruction (persona + knowledge base) is a stable prefix and Gemini's **implicit**
