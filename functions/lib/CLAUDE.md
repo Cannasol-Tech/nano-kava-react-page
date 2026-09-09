@@ -82,6 +82,24 @@ follows once they agree — the deliberate decision recorded in
 `src/components/chat/engagement/sampleQuiz.js`. The tool `description` and the persona both said
 it "fills in a sample request for them"; both were rewritten on 2026-08-26.
 
+## The picker is offered once
+
+*Added 2026-09-08 from a reported session.* `toolsFor({ quizAnswered })` drops
+`open_sample_quiz` from the declarations when the client says the visitor has already tapped
+through it. The client sends `quizAnswered` because it is the only side that knows — the flag
+lives in `sessionStorage`.
+
+Withholding beats refusing. With the tool on offer the model called it for a visitor who had just
+answered all three questions, and said "three quick questions just came up over the chat" in the
+same turn — a sentence the client cannot unsay, because the tool event and the text arrive
+together. Reproduced against the live model on 2026-09-08, then reproduced as absent afterwards.
+The persona carries the matching rule (never claim questions came up without calling the tool in
+that reply), because a model that cannot call it can still describe it.
+
+`systemInstruction` is deliberately **not** varied on this flag: that prefix must stay
+byte-identical or implicit caching stops — see § Prompt caching is implicit — do not add explicit
+caches. Only the tool list changes.
+
 ## Colour resolution is server-side
 
 *Added 2026-08-26 with `set_particle_color`.* `particlePalette.js` decides what a visitor's colour

@@ -76,6 +76,19 @@ the spec table, the body copy below the hero, the meta description, the FAQ and 
 and the hero card is the lone outlier. Flagged to Stephen 2026-08-25; awaiting a decision on
 whether the hero card is a typo or a deliberately conservative number.
 
+## Why the domain knowledge avoids efficacy
+
+*Added 2026-09-08. `formulation.js` has pointed here since it was written; the section did not
+exist, so the pointer resolved to nothing.*
+
+`formulation.js` is colloid science, process constraints and botany — droplet size, ringing,
+hot-fill, pH — and deliberately no health effect. Everything in this directory is rendered into
+`functions/knowledge-base.md` and handed to the model as fact it may repeat. Kava is an
+ingestible: a therapeutic sentence written here is one Sol will say to a formulator as
+Cannasol's position, and the no-health-claims rule in `functions/lib/persona.js` cannot retract
+what the knowledge base asserts. Bioavailability and onset are pharmacokinetics and stay; "helps
+with anxiety" is efficacy and does not.
+
 ## External sources are snapshots, not live fetches
 
 `external.js` holds captured facts from `cannasoltechnologies.com` (note: `cannasolusa.com`

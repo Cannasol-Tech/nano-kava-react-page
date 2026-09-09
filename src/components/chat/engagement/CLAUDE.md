@@ -66,6 +66,21 @@ recaps it, offers the sample in his own words, and the lead card arrives only wh
 Three steps, and every step has an honest escape hatch ("Still deciding", "Not sure yet", "Just
 researching") so nobody has to overstate their intent to get through it.
 
+**Every completion carries an id, and the handoff keys on that — never on the composed text.**
+*Added 2026-09-08 from a reported session.* A visitor answered the picker, Sol raised it again,
+they answered it identically, and the second run reached him as nothing at all: identical answers
+compose an identical string, so `ChatWidget`'s state bailed out and `ChatPanel`'s `quizSentRef`
+saw a message it had already sent. No turn, no reply, no note — from their seat the chat had
+simply stopped working. `completeQuiz` now stamps an incrementing id and `ChatPanel` deduplicates
+on it. Two identical runs are two turns, because the visitor did the work twice.
+
+**A picker they have answered is not raised again.** `completeQuiz` writes `sol:quiz-answered`,
+`canOpenQuiz` reads it, and `functions/lib/chat.js` withholds `open_sample_quiz` from the model
+entirely once the client reports it — see `functions/lib/CLAUDE.md § The picker is offered once`.
+The client guard alone was not enough: with the tool still on offer the model called it, was
+refused, and had already said "three quick questions just came up over the chat" in the same turn.
+A tool that cannot work is not offered.
+
 
 ## The picker confirms before it advances
 
@@ -103,13 +118,27 @@ unclickable, while its tool has already reported `shown`. `utils/signal.js` ther
 `user` turn, because `functions/lib/chat.js` rejects any role but `user`/`model`. A transcript
 line the model never sees does not stop Sol saying "tap through it", which was the whole bug.
 
-Three refusals now speak:
+**`utils/quiz.js` owns the refusal note, not `useChatStream`.** *Corrected 2026-09-08; this
+section previously said the transport appended it on `onQuiz()` returning `false`, and it did.*
+Only the module holding the session flags can tell "the picker is unavailable" from "they already
+answered", and those want opposite things said. Every refusal now goes out on the notice channel
+`closeQuiz` already used, and the transport invents nothing.
 
-| Refused because | Told by |
-|---|---|
-| Policy — already interrupted, or converted | `useChatStream`, on `onQuiz()` returning `false` |
-| Another modal holds the slot | the same path, plus `openQuizFromChip` for the chip |
-| The visitor closed it unfinished | `subscribeQuizNotice`, emitted by `closeQuiz` |
+Four refusals now speak:
+
+| Refused because | Visitor sees | Model is told |
+|---|---|---|
+| Policy — already interrupted, or converted | "The sample picker didn't open." | ask the three in conversation |
+| Another modal holds the slot | the same | the same |
+| They already answered it | **nothing** | they answered; recap, do not re-ask |
+| They closed it unfinished | "Sample picker closed." | do not raise it again |
+
+A note with no `text` renders nothing — `Transcript` skips it. Telling a visitor that questions
+they just answered were not asked again reads as an error they caused.
+
+**A pending close cannot shut a picker that has since reopened.** `dismiss` holds its timeout in a
+ref and the open handler clears it. A reply arriving inside the 240ms close animation used to be
+raised and then killed by the previous run's timer — the picker flashed and vanished.
 
 **The open signals replay.** `createSignal({ replay: true })` hands the last value to a late
 subscriber, because `openQuiz()` can be called before `SampleQuiz` has subscribed — and a lost

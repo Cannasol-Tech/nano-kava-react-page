@@ -55,6 +55,17 @@ ends on a question, and matches no health or dosing vocabulary. That test is the
 kava is an ingestible and the greeting is the single most-read sentence in the widget.
 
 
+## The transport does not invent notes
+
+*Added 2026-09-08.* `useChatStream` forwards a `sample_quiz` frame to `onQuiz` and stops there. It
+used to append `QUIZ_NOTES.unavailable` whenever that returned `false`, which was wrong once a
+refusal could mean "they already answered" — a case whose note the visitor must not see. The note
+is chosen by `utils/quiz.js`, which owns the session flags, and reaches the panel over
+`subscribeQuizNotice`. See `../engagement/CLAUDE.md § One modal at a time`.
+
+The request body also carries `quizAnswered`, read from that same module: the server withholds the
+picker tool on it (`functions/lib/CLAUDE.md § The picker is offered once`).
+
 ## Tool calls are not narrated
 
 A successful tool call gets **no** system line. Its result is already visible — the lead card, the

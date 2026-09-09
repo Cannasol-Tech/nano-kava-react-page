@@ -44,6 +44,7 @@ that module is only imported after a user or timer opens the panel — never dur
 | `sol:proactive-shown` | The pop-in fires (dwell or scroll depth) | Pop-in never fires again this session |
 | `sol:dismissed` | The user closes the panel | Suppresses the pop-in for the rest of the session |
 | `sol:quiz-uninvited` | The picker raises itself *uninvited* | No second uninvited open this session — see `engagement/CLAUDE.md § A chip tap is not an interruption` |
+| `sol:quiz-answered` | The visitor finishes the picker | The model is never offered the tool again, and never raises it — see `engagement/CLAUDE.md § The three-tap intent quiz` |
 | `sol:session-id` | The first turn of a conversation is sent | **`localStorage`, not `sessionStorage`** — keys the stored transcript across tabs and return visits. See `transport/CLAUDE.md § The session id` |
 
 *Corrected 2026-08-26, twice: this paragraph opened "Both are written as `'1'`" and covered two
