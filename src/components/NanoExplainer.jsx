@@ -26,9 +26,8 @@ import { trackCTAClick, trackEvent } from '../utils/gtag';
 const CLOSE_MS = 260;
 
 // Widths are log-scaled \u2014 linear would make ~20 nm invisible against an 80,000 nm hair.
-const STATS = [
-  { value: '4\u20135\u00d7', label: 'bioavailability' },
-];
+// One figure now the savings calculator is gone \u2014 rendered as a single pill, not a grid cell.
+const HEADLINE_STAT = { value: '4\u20135\u00d7', label: 'bioavailability' };
 
 const SCALE = [
   { label: 'Human hair', size: '80,000 nm', pct: 100 },
@@ -128,14 +127,12 @@ export default function NanoExplainer() {
           </div>
         </div>
 
-        <ul className="nano-modal__stats">
-          {STATS.map((stat, i) => (
-            <li key={stat.label} className="nano-modal__stat" style={{ '--stat-index': i }}>
-              <span className="nano-modal__stat-value">{stat.value}</span>
-              <span className="nano-modal__stat-label">{stat.label}</span>
-            </li>
-          ))}
-        </ul>
+        <div className="nano-modal__stats">
+          <p className="nano-modal__stat">
+            <span className="nano-modal__stat-value">{HEADLINE_STAT.value}</span>
+            <span className="nano-modal__stat-label">{HEADLINE_STAT.label}</span>
+          </p>
+        </div>
 
         <p className="nano-modal__note">
           Ultrasonic cavitation shears botanical oils and resins into droplets roughly four thousand times

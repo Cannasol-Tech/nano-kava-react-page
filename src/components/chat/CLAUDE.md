@@ -98,6 +98,29 @@ with `top: 25%`-style percentages against a static `body`, which resolves agains
 containing block (the viewport), not the document; this directory computes a pixel offset
 instead.
 
+### Escalation sentinels wait for layout
+
+*Added 2026-09-09 (Task 8), from a repro: reload the landing page, wait, and the `peek` teaser
+was already up over the hero's own "Request a Sample" button at `scrollY 0`.* The sentinel
+effect used to read `document.documentElement.scrollHeight` synchronously on mount — before
+webfonts and the hero's own content had settled the page to its real height. A short measured
+page plants its 22%-depth sentinel inside the first viewport, so it "intersects" immediately and
+fires the teaser over content nobody has scrolled to yet.
+
+Fixed by measuring one `requestAnimationFrame` past `window`'s `load` event (immediately, via rAF,
+if `document.readyState` is already `'complete'`) instead of on mount. No test exercises this
+effect directly (it needs a real `IntersectionObserver` + `load` timing jsdom does not model), so
+this is verified by browser repro, not a unit test — see `mobileChat.test.jsx` for the sibling
+greeting-bubble fix below, which does have coverage.
+
+**Corrected 2026-09-09 (fix round 1): this alone was not sufficient.** A fresh-load repro at
+360×780 still showed the `peek` teaser over the hero CTA after this landed — timing this precisely
+in a real browser is inherently racy, and a second root cause is plausible (a webfont or layout
+pass settling after the `load` + rAF measurement). Rather than chase the exact remaining cause, a
+render-level gate now backs this fix: § Sol on a phone's `heroCleared` state withholds the teaser
+*bubble* regardless of whether `stage` itself advances early. Keep this fix — it still narrows how
+often the sentinel is wrong — but do not treat it as the whole story on its own.
+
 ## Analytics
 
 Chat leads must stay separable from contact-form leads in GA4, so `LeadCard` calls
@@ -128,6 +151,29 @@ What replaces the auto-open is a **greeting bubble** over the launcher — the s
 component the section prompts use, with `shimmer` set. It carries a deliberately short line
 (`GREETING_BUBBLE`), because on a phone that bubble *is* the introduction. Tapping it opens the
 panel; dismissing it writes `sol:nudge-dismissed` and Sol stays quiet for the session.
+
+**Every bubble that can anchor over the hero waits for the hero to clear — not just the
+greeting.** *Added 2026-09-09 (Task 8, fix round 1), from a repro: at 360×780 both the greeting
+bubble AND the scroll-depth escalation teaser (`launcherEscalation.js`'s `peek` stage) could land
+directly over the hero's "Request a Sample" button on a fresh load with no scrolling — the first
+round only gated the greeting, and the escalation-sentinel timing fix (§ Escalation sentinels wait
+for layout) turned out not to be sufficient on its own.* `ChatWidget` now holds one shared
+`heroCleared` boolean, set by a single effect that checks `window.scrollY` against
+`HERO_CLEAR_SCROLL_PX` (150) on mount and flips true on the first `scroll` past it, whichever
+comes first. Two things read it:
+
+- The greeting: the load-sequence timer sets `greetTimerFired` rather than showing the bubble
+  directly; a small effect on `[greetTimerFired, heroCleared]` shows it only once both are true,
+  whichever finishes last.
+- The escalation teaser: `stage !== 'idle'` alone no longer renders `teaser` — the `teaser`
+  computation now reads `stage !== 'idle' && heroCleared`, a one-line defense-in-depth on top of
+  the sentinel-timing fix, not a replacement for it.
+
+A visitor who never scrolls never sees either bubble — they are already looking at the CTA either
+would have covered, so nothing is lost. `mobileChat.test.jsx`'s `scrollPastHero()` helper
+simulates crossing the gate by overriding `window.scrollY` and firing a `scroll` event; each
+test's `setup()` resets it to `0` first, since jsdom's `Object.defineProperty` override otherwise
+leaks into later tests in the file.
 
 One bubble slot, three possible occupants, in priority order: a contextual **section prompt**, the
 mobile **greeting**, then the generic **scroll teaser**. A section prompt is about what the visitor

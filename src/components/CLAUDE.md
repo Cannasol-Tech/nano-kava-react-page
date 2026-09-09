@@ -135,6 +135,63 @@ Fix: a new `bgCardOpaque` token in `theme/themes.js` (dark `slate-900/95` → `s
 The two "recommended" dosing rows keep their existing `bgHighlight` emerald tint; layered over the
 now near-opaque container it reads as a clear highlight instead of near-invisible.
 
+**Corrected 2026-09-09: that inline pair is now the `textIntro` token** (Task 8's mobile pass —
+see § Section intro legibility below), because the same "stronger than textSecondary" need showed
+up in half a dozen more places. The pricing card and the "How it goes into your batch" card
+(previously `bgCardAlt`, now also `bgCardOpaque` to match) both read off `theme.textIntro`.
+
+## Dosing table on mobile
+
+*Added 2026-09-09 (Task 8).* At 390px the four-column table scrolled horizontally and hid the
+one column a buyer actually wants — cost per serving. Below `sm` (640px) `KavaLandingPage.jsx`
+now renders `dosing.rows` as stacked cards instead: kavalactone label and cost right-aligned bold
+on one line, emulsion + servings/L as a quiet second line, same accent bar the table uses for
+"recommended" rows. The table itself is unchanged and still renders from `sm` up
+(`hidden sm:block` / `sm:hidden`) — both are in the DOM at once, so `src/test/ThemeAndRouting.test.jsx`
+asserts `costPerServing` with `getAllByText`, not `getByText`.
+
+## Particle-size vessel comparison
+
+*Added 2026-09-09 (fix round 1, Task 8).* Stephen's screenshot review: three grey circles of
+uneven size, a dotted green line, then two captions — "doesn't look great," fix or remove; the
+brief carries this diagram, so it stays, redesigned. The old version showed size only, and
+abstractly. The new one is two vessel cross-sections (`viewBox 0 0 100 150` inline SVG, no new
+dependency, no animation): **left**, "Conventional kava emulsion" — a hazy fill, five large grey
+droplets settled in the bottom third, one stroke-only ring near the top standing in for the
+floating film a hazy emulsion leaves at the surface; **right**, "Nano Kava" — no fill, just the
+vessel outline, 36 tiny emerald dots scattered evenly through the whole height. Haze *and*
+settling *and* clarity *and* suspension, in one glance, rather than a number.
+
+**The nano vessel's scatter is a seeded hash, not `Math.random()`.** `scatterPoints()` in
+`KavaLandingPage.jsx` takes a fixed seed, so the 36 points are identical on every render and every
+screenshot — a decorative visual that reshuffled itself on each reload would read as a bug during
+review, not as texture.
+
+**Both size strings are sourced, never retyped.** `particleSizeNano` reads `specComparison`'s
+`Mean particle size` row's `nano` cell (`~20 nm`) directly; `particleSizeTraditional` splits the
+`traditional` cell (`'200–1,000 nm — settles, hazes'`) on `' — '` and keeps only the value half —
+the short captions ("settles, hazes" / "stays clear, stays suspended") are local presentational
+strings, not spec-table content, so they are not sourced the same way.
+
+**The light-theme haze is grey-blue, not white.** A white haze on the light theme's near-white
+`bgCardOpaque` card would vanish; `vesselHaze` uses `rgba(100, 116, 139, 0.16)` (a muted slate)
+in both themes rather than a literal white/grey pair, so it never depends on which theme's card
+tint it happens to sit on. `vesselStroke` and `settledDroplet` likewise stay theme-aware muted
+slate tones — the card moved to `bgCardOpaque` (from `bgCardAlt`) for the same reason the dosing
+panel did, see § Dosing panel legibility.
+
+## Section intro legibility
+
+*Added 2026-09-09 (Task 8).* A section intro sitting bare on the page background — no card, no
+`bgSecondary` wash — goes unreadable wherever the fixed NanoScene canvas puts a lit sphere behind
+it, in both themes. Fixed once, not per-section: a `textIntro` token (`slate-200` dark /
+`slate-700` light — the same pair the hero subhead and pricing tier already used inline) raises
+the text itself, and a `bgScrim` token (`slate-950/45` dark / `white/55` light — flat, no
+`backdrop-filter`, per the paint budget) backs the ones with nothing else behind them: the specs,
+process and dosing section intros. Sections already inside a card (`bgCard`, the Features intro)
+or behind a `bgSecondary` wash (Partnership) only picked up `textIntro`, not the scrim — a second
+translucent layer there would have been decoration, not legibility.
+
 ## The nano explainer
 
 `NanoExplainer.jsx` is the visual Sol raises when someone asks how small ~20nm is (~18nm before
@@ -185,6 +242,20 @@ from the mushrooms page.
 
 **Whatever replaces the content keeps the sample CTA.** The modal exists to convert attention into
 a sample request; a version that only educates has lost the plot.
+
+### The nano explainer's single stat
+
+*Added 2026-09-09 (Task 8).* `STATS` held one entry once the retired savings calculator's figures
+left it (§ The savings calculator is retired), and the old `.nano-modal__stats` — a `flex` row of
+equal-width cells — stretched that one entry into a lonely full-width strip. `NanoExplainer.jsx`
+now renders a single `HEADLINE_STAT` as one centered pill (`inline-flex`, rounded-full, its own
+emerald border) instead of mapping an array; `index.css`'s `.nano-modal__stat` sizes to its
+content rather than `flex: 1`. Bring back a second stat by reverting to the array + `.map`, not by
+re-widening this rule — a two-item row wants the flex layout back.
+
+The fill is still `rgba(148, 163, 184, 0.055)` — Stephen, 2026-08-26, asked for this tile more
+transparent so it reads as sitting on the modal's glass, not in a box; the pill reshape kept that
+fill and only added the rounded-full border.
 
 
 ## Load sequence

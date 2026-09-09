@@ -286,7 +286,8 @@ describe('Page Content Rendering', () => {
       expect(screen.getByRole('heading', { name: /dosing & cost per serving/i })).toBeInTheDocument();
       dosing.rows.forEach((row) => {
         expect(screen.getByRole('rowheader', { name: row.kavalactone })).toBeInTheDocument();
-        expect(screen.getByText(row.costPerServing)).toBeInTheDocument();
+        // Appears twice — the CSS-only mobile card list and the sm+ table both render it.
+        expect(screen.getAllByText(row.costPerServing).length).toBeGreaterThan(0);
       });
       expect(screen.getByText('$250')).toBeInTheDocument();
       expect(screen.getByText(/no minimum to get started/i)).toBeInTheDocument();
@@ -300,6 +301,18 @@ describe('Page Content Rendering', () => {
         expect(screen.getByRole('rowheader', { name: row.spec })).toBeInTheDocument();
       });
       expect(screen.getByText('12+ months')).toBeInTheDocument();
+    });
+
+    it('renders the particle-size vessel comparison with sizes sourced from the spec table', () => {
+      renderWithRouter(<KavaLandingPage />);
+
+      const meanSize = specComparison.find((row) => row.spec === 'Mean particle size');
+      const traditionalSize = meanSize.traditional.split(' — ')[0];
+
+      expect(screen.getByText('Conventional kava emulsion')).toBeInTheDocument();
+      expect(screen.getAllByText('Nano Kava').length).toBeGreaterThan(0);
+      expect(screen.getByText(`${traditionalSize} · settles, hazes`)).toBeInTheDocument();
+      expect(screen.getByText(`${meanSize.nano} · stays clear, stays suspended`)).toBeInTheDocument();
     });
 
     it('carries the bulk-ingredient disclaimer in the footer', () => {

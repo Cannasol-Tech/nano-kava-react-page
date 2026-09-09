@@ -135,7 +135,7 @@ function ContactForm({ theme, initialInquiry, initialProduct }) {
     } catch (error) {
       console.error('Form submission error:', error);
       setStatus('error');
-      toast.error('Failed to send message. Please try again or call us at (216) 921-2240.', {
+      toast.error(`Failed to send message. Please try again or call us at ${company.phone}.`, {
         duration: 6000,
       });
     }
@@ -171,8 +171,8 @@ function ContactForm({ theme, initialInquiry, initialProduct }) {
         <h3 className={`text-2xl font-bold mb-4 ${theme.text}`}>Message Sent!</h3>
         <p className={`${theme.textSecondary} mb-8`}>
           Thanks for reaching out! Josh will get back to you within 24 hours. In the meantime, feel free to call us at{' '}
-          <a href="tel:+12169212240" onClick={() => trackPhoneClick()} className={theme.accentText}>
-            (216) 921-2240
+          <a href={company.phoneHref} onClick={() => trackPhoneClick()} className={theme.accentText}>
+            {company.phone}
           </a>
         </p>
         <button
@@ -436,18 +436,18 @@ export default function ContactPage() {
       >
         <div className="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
           <div className="flex items-center gap-4">
-            <Link 
+            <Link
               to="/"
-              className={`flex items-center gap-2 ${theme.textSecondary} hover:${theme.text} transition-colors`}
+              className={`flex items-center gap-2 py-3 ${theme.textSecondary} hover:${theme.text} transition-colors`}
             >
               <ArrowLeft className="w-5 h-5" />
               <span className="hidden sm:inline">Back to Home</span>
             </Link>
             <div className="hidden sm:block w-px h-6 bg-slate-700" />
-            <Link to="/" className="flex items-center gap-3">
-              <img 
-                src={theme.logo} 
-                alt="Cannasol Technologies Logo" 
+            <Link to="/" className="flex items-center gap-3 p-1">
+              <img
+                src={theme.logo}
+                alt="Cannasol Technologies Logo"
                 className="h-10 w-auto"
               />
             </Link>
@@ -525,10 +525,10 @@ export default function ContactPage() {
               icon={Mail}
               title="Email Us"
               theme={theme}
-              href="mailto:josh.detzel@cannasolusa.com"
+              href={`mailto:${company.founder.email}`}
               onClick={() => trackEmailClick()}
             >
-              <p className="font-medium break-all">josh.detzel@cannasolusa.com</p>
+              <p className="font-medium break-all">{company.founder.email}</p>
             </ContactInfoCard>
 
             <ContactInfoCard 
@@ -560,25 +560,25 @@ export default function ContactPage() {
             <div className={`${theme.bgCard} rounded-xl border ${theme.borderCard} p-4`}>
               <h3 className={`font-semibold ${theme.text} text-sm mb-3`}>Quick Links</h3>
               <div className="space-y-2 text-sm">
-                <Link 
-                  to="/faq" 
-                  className={`block ${theme.textSecondary} hover:${theme.accentText} transition-colors`}
+                <Link
+                  to="/faq"
+                  className={`block py-3 ${theme.textSecondary} hover:${theme.accentText} transition-colors`}
                 >
                   → FAQ
                 </Link>
-                <a 
-                  href="https://cannasoltechnologies.com/shop/" 
+                <a
+                  href={company.shop}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className={`block ${theme.textSecondary} hover:${theme.accentText} transition-colors`}
+                  className={`block py-3 ${theme.textSecondary} hover:${theme.accentText} transition-colors`}
                 >
                   → Shop
                 </a>
-                <a 
-                  href="https://cannasoltechnologies.com/resources/" 
+                <a
+                  href={company.resources}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className={`block ${theme.textSecondary} hover:${theme.accentText} transition-colors`}
+                  className={`block py-3 ${theme.textSecondary} hover:${theme.accentText} transition-colors`}
                 >
                   → Resources
                 </a>

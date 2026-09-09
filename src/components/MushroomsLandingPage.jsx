@@ -8,6 +8,7 @@ import { trackPhoneConversion } from '../utils/gtag';
 import { ArrowLeft, Leaf, Sparkles, Sun, Moon, ArrowRight, Beaker, Droplets, ShieldCheck, Dumbbell, Phone, Menu, X } from 'lucide-react';
 import { useInView } from '../hooks/useInView';
 import { mushroomLine } from '../content/product';
+import { company } from '../content/company';
 
 import themesConfig from '../theme/themes';
 
@@ -66,7 +67,7 @@ function MushroomsLandingPage() {
       >
         <div className="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
           <div className="flex items-center gap-3 interactive-btn hover-scale-xs">
-            <Link to="/" className="flex items-center gap-3">
+            <Link to="/" className="flex items-center gap-3 p-1">
               <img src={theme.logo} alt="Cannasol Technologies Logo" className="h-10 w-auto" />
               <div className="hidden sm:block">
                 <span className={`font-semibold text-lg ${theme.text}`}>Cannasol</span>
@@ -86,9 +87,10 @@ function MushroomsLandingPage() {
               const linkProps = item.to ? { to: item.to } : { href: item.href };
               return (
                 <div key={item.label} className="relative group">
+                  {/* min-h-[44px] on the link itself, not the wrapper — a tap only ever hits the anchor's own box. */}
                   <Tag
                     {...linkProps}
-                    className={`${theme.textSecondary} group-hover:text-emerald-400 transition-colors duration-300 font-medium py-1`}
+                    className={`${theme.textSecondary} group-hover:text-emerald-400 transition-colors duration-300 font-medium min-h-[44px] flex items-center`}
                   >
                     {item.label}
                   </Tag>
@@ -177,12 +179,12 @@ function MushroomsLandingPage() {
                 Contact Sales
               </Link>
               <a
-                href="tel:+12169212240"
+                href={company.phoneHref}
                 onClick={() => trackPhoneConversion()}
-                className="flex items-center justify-center gap-2 text-emerald-400 py-2"
+                className="flex items-center justify-center gap-2 text-emerald-400 py-3.5"
               >
                 <Phone className="w-4 h-4" />
-                <span className="font-medium">Call: (216) 921-2240</span>
+                <span className="font-medium">Call: {company.phone}</span>
               </a>
             </div>
           </div>
@@ -294,7 +296,7 @@ function MushroomsLandingPage() {
                     </div>
 
                     <div className="mt-6">
-                      <Link to="/contact" className={`${theme.accentText} font-semibold inline-flex items-center gap-2 hover:opacity-90 transition-opacity`}>
+                      <Link to="/contact" className={`${theme.accentText} font-semibold inline-flex items-center gap-2 py-2.5 hover:opacity-90 transition-opacity`}>
                         Talk formulation
                         <ArrowRight className="w-4 h-4" />
                       </Link>
@@ -371,11 +373,11 @@ function MushroomsLandingPage() {
                 </Link>
 
                 <a
-                  href="tel:+12169212240"
+                  href={company.phoneHref}
                   onClick={() => trackPhoneConversion()}
                   className={`btn-shine inline-flex items-center justify-center gap-2 px-7 py-3 ${theme.bgButton} border ${theme.borderCard} rounded-xl ${theme.text} hover:opacity-90 transition-opacity`}
                 >
-                  Call: (216) 921-2240
+                  Call: {company.phone}
                 </a>
               </div>
             </div>
@@ -394,9 +396,9 @@ function MushroomsLandingPage() {
           </div>
 
           <div className={`flex gap-6 text-sm ${theme.textMuted}`}>
-            <Link to="/" className={`hover:${theme.text} transition-colors`}>Nano Kava</Link>
-            <Link to="/faq" className={`hover:${theme.text} transition-colors`}>FAQ</Link>
-            <Link to="/contact" className={`hover:${theme.text} transition-colors`}>Contact</Link>
+            <Link to="/" className={`py-3 hover:${theme.text} transition-colors`}>Nano Kava</Link>
+            <Link to="/faq" className={`py-3 hover:${theme.text} transition-colors`}>FAQ</Link>
+            <Link to="/contact" className={`py-3 hover:${theme.text} transition-colors`}>Contact</Link>
           </div>
         </div>
       </footer>

@@ -22,6 +22,7 @@ import {
 import themesConfig from '../theme/themes';
 import { useInView } from '../hooks/useInView';
 import { faqCategories } from '../content/faq.js';
+import { company } from '../content/company.js';
 
 // Theme configuration - matches KavaLandingPage
 const themes = themesConfig;
@@ -166,18 +167,18 @@ export default function FAQPage() {
       >
         <div className="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
           <div className="flex items-center gap-4">
-            <Link 
+            <Link
               to="/"
-              className={`flex items-center gap-2 ${theme.textSecondary} hover:${theme.text} transition-colors`}
+              className={`flex items-center gap-2 py-3 ${theme.textSecondary} hover:${theme.text} transition-colors`}
             >
               <ArrowLeft className="w-5 h-5" />
               <span className="hidden sm:inline">Back to Home</span>
             </Link>
             <div className="hidden sm:block w-px h-6 bg-slate-700" />
-            <Link to="/" className="flex items-center gap-3">
-              <img 
-                src={theme.logo} 
-                alt="Cannasol Technologies Logo" 
+            <Link to="/" className="flex items-center gap-3 p-1">
+              <img
+                src={theme.logo}
+                alt="Cannasol Technologies Logo"
                 className="h-10 w-auto"
               />
             </Link>
@@ -252,11 +253,11 @@ export default function FAQPage() {
               Contact Us
             </Link>
             <a
-              href="tel:+12169212240"
+              href={company.phoneHref}
               onClick={() => trackPhoneConversion()}
               className={`btn-shine inline-flex items-center justify-center gap-2 px-8 py-4 ${theme.bgCard} ${theme.text} font-semibold rounded-full text-lg border ${theme.borderCard}`}
             >
-              Call: (216) 921-2240
+              Call: {company.phone}
             </a>
           </div>
         </div>

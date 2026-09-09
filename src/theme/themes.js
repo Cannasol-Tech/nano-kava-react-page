@@ -8,6 +8,8 @@ const themes = {
     bgCardStats: 'bg-gradient-to-br from-slate-800/95 to-slate-900/95',
     // Near-opaque panel over the fixed canvas — see components/CLAUDE.md § Dosing panel legibility.
     bgCardOpaque: 'bg-gradient-to-br from-slate-900/95 to-slate-950/95',
+    // Flat, non-blurred backing for text sitting bare over the canvas — never backdrop-filter.
+    bgScrim: 'bg-slate-950/45',
     bgNav: 'bg-slate-950/95',
     bgHero: 'bg-gradient-to-b from-slate-950 via-slate-900 to-slate-950',
     bgInput: 'bg-slate-800/60',
@@ -22,6 +24,8 @@ const themes = {
 
     text: 'text-white',
     textSecondary: 'text-slate-400',
+    // Section intros over the fixed canvas — see components/CLAUDE.md § Section intro legibility.
+    textIntro: 'text-slate-200',
     textMuted: 'text-slate-500',
     textError: 'text-red-400',
     errorDot: 'bg-red-400',
@@ -67,6 +71,7 @@ const themes = {
     bgCardAlt: 'bg-white/75',
     bgCardStats: 'bg-white/80',
     bgCardOpaque: 'bg-white/95',
+    bgScrim: 'bg-white/55',
     bgNav: 'bg-white/98',
     bgHero: 'bg-gradient-to-b from-white via-slate-50 to-white',
     bgInput: 'bg-slate-100',
@@ -81,6 +86,7 @@ const themes = {
 
     text: 'text-slate-900',
     textSecondary: 'text-slate-600',
+    textIntro: 'text-slate-700',
     textMuted: 'text-slate-500',
     textError: 'text-red-600',
     errorDot: 'bg-red-500',

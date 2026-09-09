@@ -75,6 +75,30 @@ const FEATURE_ICONS = { Beaker, Sparkles, Zap, Target, Shield, HeartHandshake };
 const specValue = (name) => specComparison.find((row) => row.spec === name)?.nano ?? '';
 const specTraditional = (name) => specComparison.find((row) => row.spec === name)?.traditional ?? '';
 
+// Sourced, never retyped — see CLAUDE.md § Particle-size vessel comparison.
+const particleSizeNano = specValue('Mean particle size');
+const particleSizeTraditional = specTraditional('Mean particle size').split(' — ')[0];
+
+// A seeded hash, not Math.random() — see CLAUDE.md § Particle-size vessel comparison.
+function scatterPoints(count, seed) {
+  const points = [];
+  for (let i = 0; i < count; i++) {
+    const h1 = Math.abs(Math.sin((i + seed) * 12.9898) * 43758.5453) % 1;
+    const h2 = Math.abs(Math.sin((i + seed) * 78.233) * 12543.123) % 1;
+    points.push({ x: 10 + h1 * 80, y: 10 + h2 * 130 });
+  }
+  return points;
+}
+const NANO_SUSPENSION = scatterPoints(36, 7);
+// Settled in the bottom third; the ring near the top is the floating film. See CLAUDE.md § Particle-size vessel comparison.
+const SETTLED_DROPLETS = [
+  { x: 30, y: 116, r: 9 },
+  { x: 52, y: 128, r: 10 },
+  { x: 70, y: 114, r: 8 },
+  { x: 42, y: 134, r: 7 },
+  { x: 62, y: 136, r: 6 },
+];
+
 // The pricing card leads on the figure, so it is split off the SSoT sentence rather than retyped.
 const priceFigure = pricing.headline.match(/\$[\d,.]+/)?.[0] ?? '';
 const priceDetail = pricing.headline.replace(priceFigure, '').trim();
@@ -137,6 +161,11 @@ export default function KavaLandingPage() {
   const { isDark, setIsDark } = useTheme();
 
   const theme = isDark ? themes.dark : themes.light;
+  // Vessel comparison colors — a light-grey-blue haze in light mode, or it vanishes on a near-white card.
+  const vesselStroke = isDark ? 'rgba(148, 163, 184, 0.45)' : 'rgba(100, 116, 139, 0.4)';
+  const vesselHaze = isDark ? 'rgba(148, 163, 184, 0.16)' : 'rgba(100, 116, 139, 0.16)';
+  const settledDroplet = isDark ? 'rgba(203, 213, 225, 0.65)' : 'rgba(100, 116, 139, 0.55)';
+  const suspendedDot = isDark ? '#34d399' : '#059669';
   const heroRef = useRef(null);
   const heroStyle = useScrollTransform(heroRef);
 
@@ -200,7 +229,8 @@ export default function KavaLandingPage() {
             </div>
           </div>
           
-          <div className="hidden md:flex items-center gap-8 text-sm">
+          {/* lg, not md: 7 links + toggle + CTA don't fit a 768px nav — they overlapped the logo. */}
+          <div className="hidden lg:flex items-center gap-8 text-sm">
             {[
               { href: '#benefits', label: 'Benefits' },
               { href: '#process', label: 'Process' },
@@ -214,9 +244,10 @@ export default function KavaLandingPage() {
               const linkProps = item.to ? { to: item.to } : { href: item.href };
               return (
                 <div key={item.label} className="relative group">
+                  {/* min-h-[44px] on the link itself, not the wrapper — a tap only ever hits the anchor's own box. */}
                   <Tag
                     {...linkProps}
-                    className={`${theme.textSecondary} group-hover:text-emerald-400 transition-colors duration-300 font-medium py-1`}
+                    className={`${theme.textSecondary} group-hover:text-emerald-400 transition-colors duration-300 font-medium min-h-[44px] flex items-center`}
                   >
                     {item.label}
                   </Tag>
@@ -227,7 +258,7 @@ export default function KavaLandingPage() {
                 </div>
               );
             })}
-            
+
             {/* Theme Toggle */}
             <button
               onClick={() => setIsDark(!isDark)}
@@ -246,8 +277,8 @@ export default function KavaLandingPage() {
             </a>
           </div>
           
-          {/* Mobile menu button */}
-          <div className="md:hidden flex items-center gap-2">
+          {/* Mobile menu button — lg matches the links row above; md left the nav with neither the links nor this trigger between 768-1023px. */}
+          <div className="lg:hidden flex items-center gap-2">
             {/* Mobile Theme Toggle */}
             <button
               onClick={() => setIsDark(!isDark)}
@@ -258,7 +289,7 @@ export default function KavaLandingPage() {
             </button>
 
             <button
-              className={`flex items-center justify-center w-10 h-10 rounded-lg ${theme.toggleMenuBg} ${theme.toggleMenuBorder} border interactive-btn active-press-sm`}
+              className={`flex items-center justify-center w-11 h-11 rounded-lg ${theme.toggleMenuBg} ${theme.toggleMenuBorder} border interactive-btn active-press-sm`}
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
               aria-label="Toggle menu"
             >
@@ -273,7 +304,7 @@ export default function KavaLandingPage() {
 
         {/* Mobile menu dropdown — CSS grid avoids layout thrash from height:'auto' */}
         <div
-          className="md:hidden grid transition-[grid-template-rows,opacity] duration-300 ease-[cubic-bezier(0.22,1,0.36,1)]"
+          className="lg:hidden grid transition-[grid-template-rows,opacity] duration-300 ease-[cubic-bezier(0.22,1,0.36,1)]"
           style={{
             gridTemplateRows: mobileMenuOpen ? '1fr' : '0fr',
             opacity: mobileMenuOpen ? 1 : 0,
@@ -315,7 +346,7 @@ export default function KavaLandingPage() {
               <a
                 href={company.phoneHref}
                 onClick={() => trackPhoneClick()}
-                className="flex items-center justify-center gap-2 text-emerald-400 py-2"
+                className="flex items-center justify-center gap-2 text-emerald-400 py-3.5"
               >
                 <Phone className="w-4 h-4" />
                 <span className="font-medium">Call: {company.phone}</span>
@@ -579,45 +610,43 @@ export default function KavaLandingPage() {
       {/* Spec comparison — every row comes from the SSoT, so the table grows with it */}
       <AnimatedSection id="specs" className="relative py-20 md:py-28">
         <div className="max-w-5xl mx-auto px-6">
-          <div className="max-w-2xl mb-10">
+          {/* Bare over the fixed canvas — scrim + raised token, see CLAUDE.md § Section intro legibility. */}
+          <div className={`max-w-2xl mb-10 -mx-4 px-4 py-3 rounded-2xl ${theme.bgScrim}`}>
             <h2 className={`text-3xl md:text-4xl font-bold mb-3 ${theme.text}`}>
               Side by side with a conventional emulsion
             </h2>
-            <p className={`${theme.textSecondary} text-lg`}>
+            <p className={`${theme.textIntro} text-lg`}>
               The specs a formulator checks first, on one screen.
             </p>
           </div>
 
-          {/* Particle-size comparison. Dot sizes are illustrative, not to scale — see the caption. */}
-          <div className={`rounded-2xl border ${theme.borderCard} ${theme.bgCardAlt} p-6 md:p-8 mb-8`}>
-            <div className="grid sm:grid-cols-2 gap-8">
-              <div>
-                <div className="flex items-center gap-3 h-12 mb-3" aria-hidden="true">
-                  {[34, 22, 28].map((size, i) => (
-                    <span
-                      key={i}
-                      className="rounded-full bg-slate-400/50 border border-slate-400/60"
-                      style={{ width: size, height: size }}
-                    />
+          {/* Particle-size vessel comparison — see CLAUDE.md § Particle-size vessel comparison. */}
+          <div className={`rounded-2xl border ${theme.borderCard} ${theme.bgCardOpaque} p-6 md:p-8 mb-8`}>
+            <div className="grid grid-cols-2 gap-6 md:gap-12 max-w-xs sm:max-w-sm md:max-w-lg mx-auto">
+              <div className="flex flex-col items-center text-center">
+                <svg viewBox="0 0 100 150" className="w-full max-w-[110px] md:max-w-[150px]" aria-hidden="true">
+                  <rect x="8" y="8" width="84" height="134" rx="18" fill={vesselHaze} stroke={vesselStroke} strokeWidth="2" />
+                  {SETTLED_DROPLETS.map((d, i) => (
+                    <circle key={i} cx={d.x} cy={d.y} r={d.r} fill={settledDroplet} />
                   ))}
-                </div>
-                <div className={`text-sm font-semibold ${theme.text}`}>Conventional kava emulsion</div>
-                <div className={`text-sm ${theme.textSecondary} mt-1`}>{specTraditional('Mean particle size')}</div>
+                  <circle cx="50" cy="26" r="11" fill="none" stroke={settledDroplet} strokeWidth="2" />
+                </svg>
+                <div className={`mt-3 text-sm font-semibold ${theme.text}`}>Conventional kava emulsion</div>
+                <div className={`text-xs ${theme.textSecondary} mt-1`}>{particleSizeTraditional} &middot; settles, hazes</div>
               </div>
-              <div>
-                <div className="flex items-center gap-2 h-12 mb-3 flex-wrap" aria-hidden="true">
-                  {Array.from({ length: 14 }).map((_, i) => (
-                    <span key={i} className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
+              <div className="flex flex-col items-center text-center">
+                <svg viewBox="0 0 100 150" className="w-full max-w-[110px] md:max-w-[150px]" aria-hidden="true">
+                  <rect x="8" y="8" width="84" height="134" rx="18" fill="none" stroke={vesselStroke} strokeWidth="2" />
+                  {NANO_SUSPENSION.map((d, i) => (
+                    <circle key={i} cx={d.x} cy={d.y} r="2" fill={suspendedDot} />
                   ))}
-                </div>
-                <div className={`text-sm font-semibold ${theme.accentText}`}>Nano Kava</div>
-                <div className={`text-sm ${theme.textSecondary} mt-1`}>
-                  {specValue('Mean particle size')} — {specValue('Separation / settling').toLowerCase()}
-                </div>
+                </svg>
+                <div className={`mt-3 text-sm font-semibold ${theme.accentText}`}>Nano Kava</div>
+                <div className={`text-xs ${theme.textSecondary} mt-1`}>{particleSizeNano} &middot; stays clear, stays suspended</div>
               </div>
             </div>
-            <p className={`${theme.textSecondary} text-xs mt-6`}>
-              Illustrative comparison — relative sizes exaggerated for legibility.
+            <p className={`${theme.textSecondary} text-xs mt-6 text-center`}>
+              Illustrative — relative sizes exaggerated for legibility.
             </p>
           </div>
 
@@ -653,7 +682,7 @@ export default function KavaLandingPage() {
               The Future of
               <span className={`bg-gradient-to-r ${theme.accentGradientAlt} bg-clip-text text-transparent`}> Kava Consumption</span>
             </h2>
-            <p className={`${theme.textSecondary} text-lg max-w-2xl mx-auto`}>
+            <p className={`${theme.textIntro} text-lg max-w-2xl mx-auto`}>
               Nanoemulsification opens formats that were closed to kavalactones — shots, seltzers, flavoured waters — without the haze, the sediment or the grit that used to come with them.
             </p>
           </div>
@@ -695,12 +724,13 @@ export default function KavaLandingPage() {
       {/* Process Section */}
       <AnimatedSection id="process" className="relative py-24 md:py-32">
         <div className="max-w-7xl mx-auto px-6">
-          <div className="text-center mb-16">
+          {/* Bare over the fixed canvas — scrim + raised token, see CLAUDE.md § Section intro legibility. */}
+          <div className={`text-center mb-16 max-w-3xl mx-auto px-6 py-4 rounded-2xl ${theme.bgScrim}`}>
             <h2 className={`text-3xl md:text-5xl font-bold mb-4 ${theme.text}`}>
               From Concept to
               <span className={`bg-gradient-to-r ${theme.accentGradientAlt} bg-clip-text text-transparent`}> Market Leader</span>
             </h2>
-            <p className={`${theme.textSecondary} text-lg max-w-2xl mx-auto`}>
+            <p className={`${theme.textIntro} text-lg max-w-2xl mx-auto`}>
               We work directly with every client because we believe in your success. Here's how we partner together.
             </p>
           </div>
@@ -748,7 +778,7 @@ export default function KavaLandingPage() {
               Powered by the Best
               <span className={`bg-gradient-to-r ${theme.accentGradientAlt} bg-clip-text text-transparent`}> Equipment</span>
             </h2>
-            <p className={`${theme.textSecondary} text-lg max-w-2xl mx-auto`}>
+            <p className={`${theme.textIntro} text-lg max-w-2xl mx-auto`}>
               We partner with QSonica, the #1 name in ultrasonic liquid processing, to deliver unmatched nanoemulsion quality.
             </p>
           </div>
@@ -821,16 +851,42 @@ export default function KavaLandingPage() {
       {/* Replaced the savings calculator, spec A7 — see CLAUDE.md § The savings calculator is retired. */}
       <AnimatedSection id="dosing" className="relative py-24 md:py-32">
         <div className="max-w-5xl mx-auto px-6">
-          <div className="max-w-2xl mb-10">
+          {/* Bare over the fixed canvas — scrim + raised token, see CLAUDE.md § Section intro legibility. */}
+          <div className={`max-w-2xl mb-10 -mx-4 px-4 py-3 rounded-2xl ${theme.bgScrim}`}>
             <h2 className={`text-3xl md:text-5xl font-bold mb-4 ${theme.text}`}>
               Dosing &amp; cost per serving
             </h2>
-            <p className={`${theme.textSecondary} text-lg leading-relaxed`}>{dosing.guidance}</p>
+            <p className={`${theme.textIntro} text-lg leading-relaxed`}>{dosing.guidance}</p>
           </div>
 
           {/* bgCardOpaque, not bgCardSolid — see CLAUDE.md § Dosing panel legibility. */}
           <div className={`rounded-3xl border ${theme.borderCard} ${theme.bgCardOpaque} ${theme.shadowXl} overflow-hidden`}>
-            <div className="overflow-x-auto">
+            {/* Below sm: stacked cards, not the table — see CLAUDE.md § Dosing table on mobile. */}
+            <div className="sm:hidden">
+              <h3 className="sr-only">
+                Kavalactone per serving, emulsion volume, servings per liter and ingredient cost per serving
+              </h3>
+              {dosing.rows.map((row) => {
+                const recommended = /recommended/i.test(row.kavalactone);
+                return (
+                  <div
+                    key={row.kavalactone}
+                    className={`px-5 py-4 border-b ${theme.border} last:border-b-0 border-l-[3px] ${recommended ? `border-emerald-500 ${theme.bgHighlight}` : 'border-transparent'}`}
+                  >
+                    <div className="flex items-baseline justify-between gap-4">
+                      <span className={`text-sm font-semibold ${theme.text}`}>{row.kavalactone}</span>
+                      <span className={`flex-shrink-0 text-base font-bold tabular-nums ${theme.text}`}>{row.costPerServing}</span>
+                    </div>
+                    <p className={`mt-1 text-xs tabular-nums ${theme.textSecondary}`}>
+                      {row.emulsion} emulsion &middot; {row.servingsPerLiter} servings/L
+                    </p>
+                  </div>
+                );
+              })}
+            </div>
+
+            {/* sm and up: the full table. */}
+            <div className="hidden sm:block overflow-x-auto">
               <table className="w-full min-w-[34rem] border-collapse text-left">
                 <caption className="sr-only">
                   Kavalactone per serving, emulsion volume, servings per liter and ingredient cost per serving
@@ -873,7 +929,7 @@ export default function KavaLandingPage() {
               <p className={`text-5xl md:text-6xl font-black leading-none ${theme.text}`}>{priceFigure}</p>
               <p className={`${theme.text} text-lg font-medium mt-3`}>{priceDetail}</p>
               {/* Stronger than textSecondary — see CLAUDE.md § Dosing panel legibility. */}
-              <p className={`${isDark ? 'text-slate-200' : 'text-slate-700'} mt-4 leading-relaxed`}>{pricing.tier}</p>
+              <p className={`${theme.textIntro} mt-4 leading-relaxed`}>{pricing.tier}</p>
               <Link
                 to="/contact?inquiry=pricing&product=nano-kava"
                 onClick={() => trackCTAClick('Request a written quote', 'dosing')}
@@ -884,7 +940,8 @@ export default function KavaLandingPage() {
               </Link>
             </div>
 
-            <div className={`rounded-3xl border ${theme.borderCard} ${theme.bgCardAlt} p-8`}>
+            {/* bgCardOpaque, not bgCardAlt — matches the pricing card; see CLAUDE.md § Dosing panel legibility. */}
+            <div className={`rounded-3xl border ${theme.borderCard} ${theme.bgCardOpaque} p-8`}>
               <h3 className={`text-lg font-semibold mb-3 ${theme.text}`}>How it goes into your batch</h3>
               <p className={`${theme.textSecondary} leading-relaxed`}>{dropInProcess.summary}</p>
               <p className={`${theme.textSecondary} leading-relaxed mt-3`}>{dropInProcess.clarity}</p>
@@ -959,7 +1016,7 @@ export default function KavaLandingPage() {
                   href="https://maps.google.com/?q=Sarasota,+Florida+34234"
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="flex items-center gap-2 hover:text-emerald-400 transition-colors"
+                  className="flex items-center gap-2 py-3 hover:text-emerald-400 transition-colors"
                 >
                   <MapPin className="w-4 h-4 text-emerald-400" />
                   Sarasota, Florida
@@ -988,9 +1045,9 @@ export default function KavaLandingPage() {
               <span className={`${theme.textSecondary} text-sm`}>© 2026 Cannasol Technologies LLC</span>
             </div>
             <div className={`flex gap-6 text-sm ${theme.textSecondary}`}>
-              <a href={company.shop} target="_blank" rel="noopener noreferrer" className={`hover:${theme.text} transition-colors`}>Shop</a>
-              <a href={company.resources} target="_blank" rel="noopener noreferrer" className={`hover:${theme.text} transition-colors`}>Resources</a>
-              <Link to="/contact" className={`hover:${theme.text} transition-colors`}>Contact</Link>
+              <a href={company.shop} target="_blank" rel="noopener noreferrer" className={`py-3 hover:${theme.text} transition-colors`}>Shop</a>
+              <a href={company.resources} target="_blank" rel="noopener noreferrer" className={`py-3 hover:${theme.text} transition-colors`}>Resources</a>
+              <Link to="/contact" className={`py-3 hover:${theme.text} transition-colors`}>Contact</Link>
             </div>
           </div>
           <p className={`${theme.textSecondary} text-xs leading-relaxed mt-8 max-w-4xl`}>

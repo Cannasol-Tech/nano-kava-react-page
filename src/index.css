@@ -716,6 +716,9 @@ html.animations-paused .nano-modal-root *::after {
 .nano-modal__size { text-align: right; font-variant-numeric: tabular-nums; opacity: 0.78; }
 .nano-modal__row--ours .nano-modal__label,
 .nano-modal__row--ours .nano-modal__size { opacity: 1; font-weight: 600; color: #34d399; }
+/* emerald-400 is ~2.1:1 on the light modal's near-white ground — AA needs 4.5:1 for this size. */
+.nano-modal[data-theme='light'] .nano-modal__row--ours .nano-modal__label,
+.nano-modal[data-theme='light'] .nano-modal__row--ours .nano-modal__size { color: #047857; }
 
 .nano-modal__track {
   position: relative;
@@ -783,32 +786,34 @@ html.animations-paused .nano-modal-root *::after {
   opacity: 0.62;
 }
 .nano-modal__clarity-legend-ours { color: #34d399; opacity: 1; font-weight: 600; }
+.nano-modal[data-theme='light'] .nano-modal__clarity-legend-ours { color: #047857; }
 
+/* One figure now — a centered pill, not a lonely flex cell. See components/CLAUDE.md § The nano explainer's single stat. */
 .nano-modal__stats {
   display: flex;
-  gap: 0.75rem;
+  justify-content: center;
   margin-bottom: 1rem;
 }
 .nano-modal__stat {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  padding: 0.5rem 0.4rem;
-  border-radius: 10px;
-  /* Deliberately faint: the figures should read as sitting on the modal's own glass, not in
-     a box on top of it. Stephen, 2026-08-26 — asked for this tile to be more transparent. */
+  display: inline-flex;
+  align-items: baseline;
+  gap: 0.5rem;
+  padding: 0.55rem 1.1rem;
+  border-radius: 9999px;
+  border: 1px solid rgba(52, 211, 153, 0.28);
+  /* Fill stays at Stephen's 0.055 — see components/CLAUDE.md § The nano explainer's single stat. */
   background: rgba(148, 163, 184, 0.055);
   will-change: transform, opacity;
   animation: nano-explainer-stat 620ms var(--nano-ease) both;
-  animation-delay: calc(var(--nano-in) * 0.55 + 2500ms + var(--stat-index) * 160ms);
+  animation-delay: calc(var(--nano-in) * 0.55 + 2500ms);
 }
 @keyframes nano-explainer-stat {
   from { opacity: 0; transform: translate3d(0, 8px, 0) scale(0.96); }
   to   { opacity: 1; transform: translate3d(0, 0, 0) scale(1); }
 }
 .nano-modal__stat-value { font-size: 1.15rem; font-weight: 700; color: #34d399; line-height: 1.1; }
-.nano-modal__stat-label { font-size: 0.64rem; opacity: 0.7; letter-spacing: 0.04em; }
+.nano-modal[data-theme='light'] .nano-modal__stat-value { color: #047857; }
+.nano-modal__stat-label { font-size: 0.72rem; opacity: 0.78; letter-spacing: 0.02em; }
 
 .nano-modal__note {
   font-size: 0.85rem;

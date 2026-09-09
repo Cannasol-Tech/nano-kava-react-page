@@ -42,6 +42,8 @@ const SECTION_IDS = SECTION_PROMPTS.map((prompt) => prompt.section);
 
 // Short on purpose: this is the whole introduction on a phone, read at a glance.
 const GREETING_BUBBLE = "I'm Sol — questions on specs or samples?";
+// Below this the bubble sits on the hero's own CTA — see CLAUDE.md § Sol on a phone.
+const HERO_CLEAR_SCROLL_PX = 150;
 const DWELL_MS = 12_000;
 const SCROLL_TRIGGER_RATIO = 0.4;
 const CLOSE_ANIMATION_MS = 240;
@@ -77,6 +79,9 @@ export default function ChatWidget() {
   const [quizMessage, setQuizMessage] = useState(null);
   const [stage, setStage] = useState('idle');
   const [greetingBubble, setGreetingBubble] = useState(false);
+  const [greetTimerFired, setGreetTimerFired] = useState(false);
+  // Gates every bubble, not just the greeting — see CLAUDE.md § Sol on a phone.
+  const [heroCleared, setHeroCleared] = useState(false);
   const { pathname } = useLocation();
   const everOpenedRef = useRef(false);
   const nudgeStateRef = useRef({ shownIds: [], lastShownAt: null });
@@ -168,19 +173,35 @@ export default function ChatWidget() {
     };
   }, [popIn]);
 
+  // Shared gate for every bubble that can anchor over the hero CTA — see CLAUDE.md § Sol on a phone.
+  useEffect(() => {
+    if (window.__PRERENDER__) return undefined;
+    if (window.scrollY > HERO_CLEAR_SCROLL_PX) { setHeroCleared(true); return undefined; }
+    const onScroll = () => {
+      if (window.scrollY <= HERO_CLEAR_SCROLL_PX) return;
+      setHeroCleared(true);
+      window.removeEventListener('scroll', onScroll);
+    };
+    window.addEventListener('scroll', onScroll, { passive: true });
+    return () => window.removeEventListener('scroll', onScroll);
+  }, []);
+
   // Sol lands, settles, then introduces himself — the last beat of the load sequence.
   useEffect(() => {
     if (!shouldGreet()) return undefined;
     const id = window.setTimeout(() => {
       // A panel that opens itself is most of a phone screen. Offer, do not take.
-      if (isMobileViewport()) {
-        if (!readFlag(DISMISSED_KEY) && !readFlag(NUDGE_OFF_KEY)) setGreetingBubble(true);
-        return;
-      }
+      if (isMobileViewport()) { setGreetTimerFired(true); return; }
       popIn('load-sequence', { once: false });
     }, msUntil(SEQUENCE.greetAtMs));
     return () => window.clearTimeout(id);
   }, [popIn]);
+
+  // Waits on whichever of {timer, scroll} finishes last — see the heroCleared effect above.
+  useEffect(() => {
+    if (!greetTimerFired || !heroCleared) return;
+    if (!readFlag(DISMISSED_KEY) && !readFlag(NUDGE_OFF_KEY)) setGreetingBubble(true);
+  }, [greetTimerFired, heroCleared]);
 
   useEffect(() => {
     if (arrival !== 'pending') return undefined;
@@ -212,34 +233,48 @@ export default function ChatWidget() {
 
   useEffect(() => {
     if (window.__PRERENDER__) return undefined;
+    let sentinels = [];
+    let observer;
+    let cancelled = false;
 
-    const sentinels = ESCALATION_STAGES.map((entry) => {
-      const el = document.createElement('div');
-      el.style.cssText = 'position:absolute;width:1px;height:1px;opacity:0;pointer-events:none';
-      // A pixel offset, not a percentage: a percentage resolves against the viewport here.
-      el.style.top = `${Math.round(document.documentElement.scrollHeight * entry.atRatio)}px`;
-      el.dataset.ratio = String(entry.atRatio);
-      document.body.appendChild(el);
-      return el;
-    });
-
-    const observer = new IntersectionObserver((entries) => {
-      entries.forEach((entry) => {
-        if (!entry.isIntersecting) return;
-        const reached = stageFor(Number(entry.target.dataset.ratio));
-        setStage((current) => nextStage({
-          current,
-          reached,
-          everOpened: everOpenedRef.current,
-          dismissed: readFlag(NUDGE_OFF_KEY) || readFlag(DISMISSED_KEY),
-          converted: readFlag(CONVERTED_KEY),
-        }));
+    // Wait past `load` to measure scrollHeight — see CLAUDE.md § Escalation sentinels wait for layout.
+    const plantSentinels = () => {
+      if (cancelled) return;
+      sentinels = ESCALATION_STAGES.map((entry) => {
+        const el = document.createElement('div');
+        el.style.cssText = 'position:absolute;width:1px;height:1px;opacity:0;pointer-events:none';
+        // A pixel offset, not a percentage: a percentage resolves against the viewport here.
+        el.style.top = `${Math.round(document.documentElement.scrollHeight * entry.atRatio)}px`;
+        el.dataset.ratio = String(entry.atRatio);
+        document.body.appendChild(el);
+        return el;
       });
-    });
-    sentinels.forEach((el) => observer.observe(el));
+
+      observer = new IntersectionObserver((entries) => {
+        entries.forEach((entry) => {
+          if (!entry.isIntersecting) return;
+          const reached = stageFor(Number(entry.target.dataset.ratio));
+          setStage((current) => nextStage({
+            current,
+            reached,
+            everOpened: everOpenedRef.current,
+            dismissed: readFlag(NUDGE_OFF_KEY) || readFlag(DISMISSED_KEY),
+            converted: readFlag(CONVERTED_KEY),
+          }));
+        });
+      });
+      sentinels.forEach((el) => observer.observe(el));
+    };
+
+    if (document.readyState === 'complete') {
+      requestAnimationFrame(plantSentinels);
+    } else {
+      window.addEventListener('load', () => requestAnimationFrame(plantSentinels), { once: true });
+    }
 
     return () => {
-      observer.disconnect();
+      cancelled = true;
+      observer?.disconnect();
       sentinels.forEach((el) => el.remove());
     };
   }, []);
@@ -285,7 +320,7 @@ export default function ChatWidget() {
   const teaser = nudge ? null : (
     greetingBubble
       ? { section: 'greeting', intent: 'greeting', label: GREETING_BUBBLE }
-      : (stage !== 'idle'
+      : (stage !== 'idle' && heroCleared
         ? { section: 'scroll', intent: 'teaser', label: messageForStage('peek') }
         : null)
   );

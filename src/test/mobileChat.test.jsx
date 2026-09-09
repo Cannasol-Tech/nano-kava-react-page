@@ -28,6 +28,8 @@ async function setup({ mobile }) {
   vi.resetModules();
   window.sessionStorage.clear();
   window.__PRERENDER__ = false;
+  // Each test starts scrolled to the top — the greeting-bubble tests move this explicitly.
+  Object.defineProperty(window, 'scrollY', { value: 0, configurable: true });
   window.matchMedia = vi.fn(() => ({ matches: false, addListener() {}, removeListener() {} }));
   vi.doMock('../utils/viewport', () => ({
     MOBILE_QUERY: '(max-width: 767px)',
@@ -59,6 +61,11 @@ function GoTo() {
 
 const launcher = () => screen.getByRole('button', { name: /chat with sol/i });
 const advance = (ms) => act(() => { vi.advanceTimersByTime(ms); });
+/** The greeting bubble waits for scroll clear of the hero CTA — see ChatWidget's HERO_CLEAR_SCROLL_PX. */
+const scrollPastHero = () => act(() => {
+  Object.defineProperty(window, 'scrollY', { value: 300, configurable: true });
+  fireEvent.scroll(window);
+});
 
 describe('Sol on a phone', () => {
   beforeEach(() => vi.useFakeTimers({ toFake: FAKE }));
@@ -73,15 +80,26 @@ describe('Sol on a phone', () => {
   it('introduces itself with a tappable bubble instead', async () => {
     const SEQUENCE = await setup({ mobile: true });
     advance(SEQUENCE.greetAtMs + 500);
+    scrollPastHero();
 
     const bubble = screen.getByRole('button', { name: /i'm sol/i });
     expect(bubble).toBeInTheDocument();
     expect(bubble.textContent.length).toBeLessThan(70);
   }, SLOW);
 
+  it('waits for the visitor to scroll clear of the hero CTA before showing it', async () => {
+    const SEQUENCE = await setup({ mobile: true });
+    advance(SEQUENCE.greetAtMs + 500);
+    expect(screen.queryByRole('button', { name: /i'm sol/i })).toBeNull();
+
+    scrollPastHero();
+    expect(screen.getByRole('button', { name: /i'm sol/i })).toBeInTheDocument();
+  }, SLOW);
+
   it('opens only when the bubble is tapped', async () => {
     const SEQUENCE = await setup({ mobile: true });
     advance(SEQUENCE.greetAtMs + 500);
+    scrollPastHero();
 
     act(() => { fireEvent.click(screen.getByRole('button', { name: /i'm sol/i })); });
     expect(launcher()).toHaveAttribute('aria-expanded', 'true');
@@ -90,6 +108,7 @@ describe('Sol on a phone', () => {
   it('stays quiet once the bubble is waved away', async () => {
     const SEQUENCE = await setup({ mobile: true });
     advance(SEQUENCE.greetAtMs + 500);
+    scrollPastHero();
 
     act(() => { fireEvent.click(screen.getByRole('button', { name: /dismiss sol/i })); });
     advance(60_000);
