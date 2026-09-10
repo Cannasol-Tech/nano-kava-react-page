@@ -221,10 +221,9 @@ export default function KavaLandingPage() {
                   >
                     {item.label}
                   </Tag>
-                  {/* Animated underline */}
-                  <span className="absolute -bottom-0.5 left-0 right-0 h-[2px] bg-gradient-to-r from-emerald-500 to-teal-500 rounded-full origin-left scale-x-0 group-hover:scale-x-100 transition-transform duration-300 ease-out" />
-                  {/* Glow under the line */}
-                  <span className="absolute -bottom-0.5 left-0 right-0 h-[2px] bg-gradient-to-r from-emerald-500 to-teal-500 rounded-full origin-left scale-x-0 group-hover:scale-x-100 transition-transform duration-300 ease-out blur-sm" />
+                  {/* Metallic rim underline — same gradient/glint recipe as the sol-lead pill; see src/index.css § Desktop nav underline shimmer */}
+                  <span className="nav-underline absolute -bottom-0.5 left-0 right-0 h-[2px] rounded-full origin-left scale-x-0 group-hover:scale-x-100 transition-transform duration-300 ease-out" />
+                  <span className="nav-underline-glint absolute -bottom-0.5 left-0 right-0 h-[2px] rounded-full origin-left scale-x-0 group-hover:scale-x-100 transition-transform duration-300 ease-out" />
                 </div>
               );
             })}

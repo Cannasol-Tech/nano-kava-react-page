@@ -3,6 +3,20 @@
 Budget and the CSS-side rules: `../CLAUDE.md § The measured budget`.
 Chat widget: `chat/CLAUDE.md`.
 
+## Desktop nav underline shimmer
+
+*Added 2026-09-09.* The desktop nav's hover underline (`KavaLandingPage.jsx`, `.nav-underline` /
+`.nav-underline-glint`, ~line 225) reuses the sample-form pill's rim gradient and its
+`sol-line-glint` keyframe verbatim (`src/index.css` §§ "Sample-line pills" and "Desktop nav
+underline shimmer", ~line 1201 and ~1226) — do not fork a second keyframe if either changes, edit
+`sol-line-glint` once. The one deliberate difference: the pill glints continuously because a
+selected pill stays visible, but a nav underline is only ever visible on hover, so the animation
+itself (not just the reveal) is gated inside `.group:hover .nav-underline-glint` — running it
+unconditionally on all 7 links would animate off-screen elements per `../CLAUDE.md § will-change
+is not a free performance hint`. Stagger reuses `:nth-child` on the `.group` wrapper, same as the
+pill does on `.sol-lead__line--on`. Mobile menu is untouched — its underline is a separate
+left-border treatment.
+
 ## Sphere shells re-render at 30fps
 
 `drawSphere` rasterises 690 arcs plus five radial gradients per pass across the three shells,

@@ -1223,6 +1223,34 @@ html[data-safari] .animate-gradient-slow {
   .sol-lead__line:hover:not(:disabled) { transform: translateY(-1px); }
 }
 
+/* ── Desktop nav underline shimmer ──
+   Same rim gradient + glint as .sol-lead__line--on above, reusing sol-line-glint by name rather
+   than a second keyframe. Difference from the pill: a pill stays selected and glints forever, a
+   nav underline is only ever visible on hover, so the animation itself is gated inside
+   .group:hover — not just the reveal — per src/components/CLAUDE.md § Desktop nav underline shimmer. */
+.nav-underline {
+  background: linear-gradient(115deg, #34d399, #d7fbef 22%, #22d3ee 46%, #34d399 70%, #a7f3d0 100%);
+  box-shadow: 0 0 6px rgba(52, 211, 153, 0.28);
+}
+.nav-underline-glint {
+  background: linear-gradient(115deg, transparent 34%, #ffffff 50%, transparent 66%);
+  opacity: 0;
+  pointer-events: none;
+}
+.group:hover .nav-underline-glint {
+  animation: sol-line-glint 3.6s ease-in-out infinite;
+  will-change: opacity;
+}
+.group:nth-child(2):hover .nav-underline-glint { animation-delay: 0.32s; }
+.group:nth-child(3):hover .nav-underline-glint { animation-delay: 0.64s; }
+.group:nth-child(4):hover .nav-underline-glint { animation-delay: 0.96s; }
+.group:nth-child(5):hover .nav-underline-glint { animation-delay: 1.28s; }
+.group:nth-child(6):hover .nav-underline-glint { animation-delay: 1.6s; }
+.group:nth-child(7):hover .nav-underline-glint { animation-delay: 1.92s; }
+@media (prefers-reduced-motion: reduce) {
+  .nav-underline-glint { animation: none !important; }
+}
+
 /* ── Sol chat widget ── */
 
 /* Launcher idle pulse — a scaling ring, never the button's own box-shadow */
