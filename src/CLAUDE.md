@@ -66,6 +66,18 @@ The rule now: **hold it only while an animation is pending or running.**
 other direction of the same trap: a held hint isolates a layer and silently breaks
 `backdrop-filter` beneath it.
 
+## btn-shine is transition-driven (2026-09-09)
+
+`.btn-shine` (`index.css`, used on 19 buttons across every page) used to be an `:hover`-triggered
+keyframe animation with `animation-fill-mode: forwards`, which restarted from 0% on every pointer
+entry — a hard flash, and if the pointer flickered near an edge it could re-trigger mid-sweep.
+It is now a plain `transform`/`opacity` transition: the sweep sits off-canvas at rest and glides
+to a resting position on `:hover`, so entering and leaving are both continuous and interruptible
+at any point. A future hover effect added alongside `.btn-shine` should follow the same
+transition-driven pattern, not `animation: ... forwards`. This also fixed a dead box-shadow
+collision: `.hover-glow-intense` (hero CTA only) and `.btn-shine:hover` both set `box-shadow` at
+equal specificity, so only one ever won in source order — `.hover-glow-intense` was deleted.
+
 
 ## Safari gets less motion
 

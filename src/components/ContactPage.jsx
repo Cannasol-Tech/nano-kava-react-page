@@ -493,7 +493,7 @@ export default function ContactPage() {
         <div className="grid lg:grid-cols-3 gap-8">
           {/* Contact Form - Takes 2 columns */}
           <div className="lg:col-span-2 animate-fade-in-up anim-delay-100">
-            <div className={`${isDark ? theme.bgCard : 'bg-white/40'} rounded-3xl border ${theme.borderCard} p-8 md:p-10`}>
+            <div className={`${isDark ? theme.bgCard : theme.bgCardOpaque} rounded-3xl border ${theme.borderCard} p-8 md:p-10`}>
               <h2 className={`text-2xl font-bold mb-6 ${theme.text}`}>Send Us a Message</h2>
               <ContactForm theme={theme} initialInquiry={inquiryParam} initialProduct={productParam} />
             </div>

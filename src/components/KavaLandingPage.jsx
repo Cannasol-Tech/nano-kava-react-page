@@ -442,7 +442,7 @@ export default function KavaLandingPage() {
             <a
               href="#contact"
               onClick={() => trackCTAClick('Request Sample', 'hero')}
-              className={`btn-shine hover-glow-intense animate-gradient group relative inline-flex items-center justify-center gap-2 px-8 py-4 bg-gradient-to-r ${theme.accent} text-slate-900 font-bold rounded-full text-lg overflow-hidden interactive-btn hover-scale-sm active-press-sm`}
+              className={`btn-shine animate-gradient group relative inline-flex items-center justify-center gap-2 px-8 py-4 bg-gradient-to-r ${theme.accent} text-slate-900 font-bold rounded-full text-lg overflow-hidden interactive-btn hover-scale-sm active-press-sm`}
             >
               <span className="relative z-10 flex items-center gap-2">
                 Request a Sample
