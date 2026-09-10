@@ -77,6 +77,10 @@
         "source": "/",
         "headers": [
           {
+            "key": "Cache-Control",
+            "value": "no-cache, no-store, must-revalidate"
+          },
+          {
             "key": "Link",
             "value": "</index.md>; rel=\"alternate\"; type=\"text/markdown\", </llms.txt>; rel=\"describedby\"; type=\"text/markdown\", </feed.xml>; rel=\"alternate\"; type=\"application/atom+xml\""
           }
@@ -85,6 +89,10 @@
       {
         "source": "/faq",
         "headers": [
+          {
+            "key": "Cache-Control",
+            "value": "no-cache, no-store, must-revalidate"
+          },
           {
             "key": "Link",
             "value": "</faq.md>; rel=\"alternate\"; type=\"text/markdown\", </llms.txt>; rel=\"describedby\"; type=\"text/markdown\""
@@ -95,6 +103,10 @@
         "source": "/mushrooms",
         "headers": [
           {
+            "key": "Cache-Control",
+            "value": "no-cache, no-store, must-revalidate"
+          },
+          {
             "key": "Link",
             "value": "</mushrooms.md>; rel=\"alternate\"; type=\"text/markdown\", </llms.txt>; rel=\"describedby\"; type=\"text/markdown\""
           }
@@ -103,6 +115,10 @@
       {
         "source": "/contact",
         "headers": [
+          {
+            "key": "Cache-Control",
+            "value": "no-cache, no-store, must-revalidate"
+          },
           {
             "key": "Link",
             "value": "</contact.md>; rel=\"alternate\"; type=\"text/markdown\", </llms.txt>; rel=\"describedby\"; type=\"text/markdown\""

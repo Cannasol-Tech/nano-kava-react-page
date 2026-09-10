@@ -162,10 +162,10 @@ export default function KavaLandingPage() {
   return (
     <div className={`min-h-screen ${theme.text} overflow-x-hidden transition-colors duration-500`}>
       <Helmet>
-        <title>Nano Kava | Premium Nano-Emulsified Kavalactones — EnjoyNano</title>
+        <title>Nano Kava — the first kava nanoemulsion, ~20 nm and 100% water-dispersible | EnjoyNano</title>
         <meta name="description" content={metaDescription} />
         <link rel="canonical" href="https://enjoynano.com/" />
-        <meta property="og:title" content="Nano Kava | Premium Nano-Emulsified Kavalactones" />
+        <meta property="og:title" content="Nano Kava — the first kava nanoemulsion, ~20 nm and 100% water-dispersible" />
         <meta property="og:description" content={metaDescription} />
         <meta property="og:url" content="https://enjoynano.com/" />
         <link rel="alternate" type="text/markdown" href="https://enjoynano.com/index.md" />
