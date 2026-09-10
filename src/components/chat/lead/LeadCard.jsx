@@ -35,11 +35,14 @@ const SALES_PHONE = '(216) 921-2240';
 const SHORT_FIELDS = [
   { key: 'name', label: 'Name', type: 'text', autoComplete: 'name' },
   { key: 'phone', label: 'Phone (preferred)', type: 'tel', autoComplete: 'tel', inputMode: 'tel' },
-  { key: 'email', label: 'Email', type: 'email', autoComplete: 'email' },
 ];
 
-/** Optional, and full-width under the pair — asking for it must never gate Send. */
-const COMPANY_FIELD = { key: 'company', label: 'Company', type: 'text', autoComplete: 'organization' };
+/** Paired with email on its own row rather than a third full-width row — CLAUDE.md § Lead card.
+ * Company is optional and asking for it must never gate Send. */
+const CONTACT_FIELDS = [
+  { key: 'email', label: 'Email', type: 'email', autoComplete: 'email' },
+  { key: 'company', label: 'Company', type: 'text', autoComplete: 'organization', hint: 'optional' },
+];
 
 /**
  * Every line ships in the same box, so the card offers all of them — CLAUDE.md § Cross-selling
@@ -80,7 +83,7 @@ const BURST_DOTS = Array.from({ length: 8 }, (_, index) => {
 });
 
 const normalize = (fields) =>
-  [...SHORT_FIELDS, COMPANY_FIELD].reduce(
+  [...SHORT_FIELDS, ...CONTACT_FIELDS].reduce(
     (draft, field) => ({ ...draft, [field.key]: fields[field.key] ?? '' }),
     { conversation_summary: fields.conversation_summary ?? '' }
   );
@@ -257,20 +260,25 @@ export default function LeadCard({ fields, onFollowUp, messageId }) {
         ))}
       </div>
 
-      <label className="mt-1.5 block">
-        <span className={labelClass}>
-          {COMPANY_FIELD.label} <span className="normal-case opacity-70">(optional)</span>
-        </span>
-        <input
-          type={COMPANY_FIELD.type}
-          autoComplete={COMPANY_FIELD.autoComplete}
-          value={draft.company}
-          disabled={isSending}
-          onChange={(event) => editField(COMPANY_FIELD.key, event.target.value)}
-          placeholder="Brand or company"
-          className={inputClass}
-        />
-      </label>
+      <div className="grid grid-cols-2 gap-1.5 mt-1.5">
+        {CONTACT_FIELDS.map((field) => (
+          <label key={field.key} className="block">
+            <span className={labelClass}>
+              {field.label}
+              {field.hint && <span className="normal-case opacity-70"> ({field.hint})</span>}
+            </span>
+            <input
+              type={field.type}
+              autoComplete={field.autoComplete}
+              value={draft[field.key]}
+              disabled={isSending}
+              onChange={(event) => editField(field.key, event.target.value)}
+              placeholder={field.key === 'company' ? 'Brand or company' : field.label}
+              className={inputClass}
+            />
+          </label>
+        ))}
+      </div>
 
       <div className="sol-lead__lines mt-1.5">
         <p className={`text-[11px] leading-4 ${theme.textMuted}`}>
