@@ -1,5 +1,5 @@
 ---
-title: "Nano Kava — Premium Nano-Emulsified Kavalactones"
+title: "Nano Kava — the first kava nanoemulsion, ~20 nm and 100% water-dispersible"
 url: https://enjoynano.com/
 company: Cannasol Technologies
 location: Sarasota, Florida, USA

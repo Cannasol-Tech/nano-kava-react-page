@@ -418,7 +418,7 @@ export default function KavaLandingPage() {
                   Nano Kava
                 </span>
               </span>
-              <span className="sr-only"> — Premium Nano-Emulsified Kavalactones</span>
+              <span className="sr-only"> — the first kava nanoemulsion, ~20 nm and 100% water-dispersible</span>
             </h1>
 
             {/* The brief's own hero line carries the page; the sentence under it comes from the SSoT. */}

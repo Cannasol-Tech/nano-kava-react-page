@@ -503,7 +503,7 @@ export const homeSchema = graph(
     '@type': 'WebPage',
     '@id': ID.home,
     url: `${SITE}/`,
-    name: 'Nano Kava | Premium Nano-Emulsified Kavalactones',
+    name: 'Nano Kava — the first kava nanoemulsion, ~20 nm and 100% water-dispersible',
     description: `Nano-emulsified kava with ~20 nm particle size, 100% water-dispersible, 4–5x higher absorption than conventional kava powder, crystal-clear kavalactones. ${positioning.badge}.`,
     isPartOf: { '@id': ID.website },
     inLanguage: 'en-US',
