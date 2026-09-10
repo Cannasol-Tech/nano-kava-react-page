@@ -103,14 +103,13 @@ describe('the form the visitor sees', () => {
     });
   });
 
-  it('keeps the conversation summary behind its collapsible control', () => {
+  it('has no visitor-facing editor for the conversation summary', () => {
+    // Cut 2026-09-09 to make room for the sample form on a short viewport — see
+    // CLAUDE.md § Sizing and scroll. The summary itself still rides in the POSTed message
+    // unedited; see 'leads the message with the interest and follows it with the summary' below.
     renderCard();
-    const toggle = screen.getByRole('button', { name: /edit conversation summary/i });
+    expect(screen.queryByRole('button', { name: /conversation summary/i })).not.toBeInTheDocument();
     expect(screen.queryByRole('textbox', { name: /conversation summary/i })).not.toBeInTheDocument();
-
-    fireEvent.click(toggle);
-    expect(screen.getByRole('textbox', { name: /conversation summary/i }))
-      .toHaveValue('Seltzer brand, 40k cans a month.');
   });
 });
 

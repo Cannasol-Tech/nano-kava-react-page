@@ -29,6 +29,12 @@ if (typeof globalThis.ResizeObserver === 'undefined') {
 // Mock window.scrollTo
 window.scrollTo = () => {};
 
+// jsdom does not implement scrollIntoView at all (undefined, not a no-op) — ChatPanel calls it
+// on a freshly mounted lead card, so any test rendering one throws without this.
+if (typeof Element.prototype.scrollIntoView !== 'function') {
+  Element.prototype.scrollIntoView = () => {};
+}
+
 // Mock matchMedia
 window.matchMedia = () => ({
   matches: false,

@@ -63,6 +63,18 @@ existing inbox and template rather than a second delivery path. `inquiryType` is
 `'Request Samples, Sol Chat'`, which is what makes them identifiable on the receiving end.
 Cancel collapses the card to a one-line note and leaves the conversation running.
 
+## The conversation summary is no longer editable
+
+*Removed 2026-09-09, at Stephen's request, to make room for the sample form on a short viewport —
+see `../CLAUDE.md § The lead card must fit without scrolling`.* The card no longer renders the
+"Edit conversation summary" toggle or its `<textarea>`; `showSummary` state is gone. **The summary
+itself still ships unedited** — `draft.conversation_summary` stays in `normalize()`'s draft shape
+and `buildMessage(interest, draft.conversation_summary)` still composes it into the POSTed
+`message` exactly as before. Only the visitor-facing editor is gone; nothing about what Josh
+receives changed. Removing the toggle also emptied two CSS selectors in `src/index.css`
+(`.sol-lead textarea` and `.sol-lead button[aria-expanded]`), since the summary textarea was the
+only `<textarea>` the card ever rendered — both were deleted rather than left dead.
+
 ## Sol asks before it sends
 
 *Added 2026-08-26, at Stephen's request: "Have Sol follow up with the user after the form is

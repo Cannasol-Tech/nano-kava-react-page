@@ -70,7 +70,9 @@ function Transcript({ messages, isStreaming, theme, dotColor, onFollowUp }) {
     <>
       {messages.map((message, index) => {
         if (message.role === 'lead')
-          return <LeadCard key={message.id} fields={message.fields} onFollowUp={onFollowUp} />;
+          return (
+            <LeadCard key={message.id} messageId={message.id} fields={message.fields} onFollowUp={onFollowUp} />
+          );
         if (message.role === 'system') {
           if (!message.text) return null;
           return (
@@ -170,8 +172,53 @@ export default function ChatPanel({
     if (send(quizMessage.text)) quizSentRef.current = quizMessage.id;
   }, [quizMessage, send]);
 
+  // A bottom-anchored scroll can leave the card's TOP cut off on a short viewport, so a freshly
+  // mounted lead card gets its own scroll target instead — see CLAUDE.md § Sizing and scroll.
+  const lastLeadIdRef = useRef(null);
+  const [activeLeadId, setActiveLeadId] = useState(null);
+  const scrollLeadCardIntoView = useCallback((id, { instant } = {}) => {
+    const scroller = scrollerRef.current;
+    const card = scroller?.querySelector(`[data-message-id="${id}"]`);
+    if (!scroller || !card) return;
+    // A corrective (instant) rescroll must not fight a visitor already editing the card, or
+    // re-run once it is already fully in view.
+    if (instant) {
+      if (card.contains(document.activeElement)) return;
+      const cr = card.getBoundingClientRect();
+      const sr = scroller.getBoundingClientRect();
+      if (cr.top >= sr.top - 1 && cr.bottom <= sr.bottom + 1) return;
+    }
+    const reduceMotion = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
+    card.scrollIntoView({ block: 'start', behavior: instant || reduceMotion ? 'auto' : 'smooth' });
+  }, []);
+
+  useEffect(() => {
+    const last = messages[messages.length - 1];
+    if (last?.role !== 'lead' || last.id === lastLeadIdRef.current) return;
+    lastLeadIdRef.current = last.id;
+    setActiveLeadId(last.id);
+    scrollLeadCardIntoView(last.id);
+  }, [messages, scrollLeadCardIntoView]);
+
+  // Sol can keep streaming a trailing sentence after proposing the lead, which grows the bubble
+  // above the card and pushes it back down. A short-lived MutationObserver corrects for that
+  // drift wherever it comes from, rather than guessing which stream event marks "settled".
+  useEffect(() => {
+    if (!activeLeadId) return undefined;
+    const scroller = scrollerRef.current;
+    if (!scroller) return undefined;
+    const observer = new MutationObserver(() => scrollLeadCardIntoView(activeLeadId, { instant: true }));
+    observer.observe(scroller, { childList: true, subtree: true, characterData: true });
+    const stopId = setTimeout(() => observer.disconnect(), 2500);
+    return () => {
+      observer.disconnect();
+      clearTimeout(stopId);
+    };
+  }, [activeLeadId, scrollLeadCardIntoView]);
+
   useEffect(() => {
     if (!isNearBottomRef.current) return;
+    if (messages[messages.length - 1]?.role === 'lead') return;
     const scroller = scrollerRef.current;
     if (scroller) scroller.scrollTop = scroller.scrollHeight;
   }, [messages]);

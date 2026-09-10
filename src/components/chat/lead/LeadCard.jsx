@@ -122,14 +122,13 @@ function SentConfirmation({ theme, name }) {
   );
 }
 
-export default function LeadCard({ fields, onFollowUp }) {
+export default function LeadCard({ fields, onFollowUp, messageId }) {
   const { isDark } = useTheme();
   const theme = isDark ? themesConfig.dark : themesConfig.light;
 
   const [draft, setDraft] = useState(() => normalize(fields));
   const [lines, setLines] = useState(() => new Set(linesFromInterest(fields.interest)));
   const [status, setStatus] = useState('editing');
-  const [showSummary, setShowSummary] = useState(false);
   const abortRef = useRef(null);
 
   useEffect(() => {
@@ -224,22 +223,23 @@ export default function LeadCard({ fields, onFollowUp }) {
 
   const isSending = status === 'sending';
   const isConfirming = status === 'confirming';
-  const inputClass = `sol-lead__input w-full rounded-lg border px-2.5 py-2 text-sm focus:outline-none focus:ring-2 ${theme.bgInput} ${theme.borderInput} ${theme.text} ${theme.placeholder} ${theme.focusRing}`;
+  const inputClass = `sol-lead__input w-full rounded-lg border px-2.5 py-1.5 text-sm focus:outline-none focus:ring-2 ${theme.bgInput} ${theme.borderInput} ${theme.text} ${theme.placeholder} ${theme.focusRing}`;
   const labelClass = `block mb-1 text-[11px] font-semibold uppercase tracking-wide ${theme.textMuted}`;
 
   return (
     <div
       role="group"
       aria-label="Confirm your details before sending"
-      className={`sol-lead ${isSending ? 'sol-lead--sending' : ''} relative overflow-hidden rounded-2xl border px-3.5 py-3.5`}
+      data-message-id={messageId}
+      className={`sol-lead ${isSending ? 'sol-lead--sending' : ''} relative overflow-hidden rounded-2xl border px-3.5 py-3`}
     >
       <span className="sol-lead__sweep" aria-hidden="true" />
 
-      <p className={`mb-2.5 text-sm font-semibold ${theme.accentText}`}>
+      <p className={`mb-2 text-sm font-semibold ${theme.accentText}`}>
         {isConfirming ? 'One more look, then it sends' : 'Check these details, then send'}
       </p>
 
-      <div className="grid grid-cols-2 gap-2">
+      <div className="grid grid-cols-2 gap-1.5">
         {SHORT_FIELDS.map((field) => (
           <label key={field.key} className="block">
             <span className={labelClass}>{field.label}</span>
@@ -257,7 +257,7 @@ export default function LeadCard({ fields, onFollowUp }) {
         ))}
       </div>
 
-      <label className="mt-2 block">
+      <label className="mt-1.5 block">
         <span className={labelClass}>
           {COMPANY_FIELD.label} <span className="normal-case opacity-70">(optional)</span>
         </span>
@@ -272,11 +272,11 @@ export default function LeadCard({ fields, onFollowUp }) {
         />
       </label>
 
-      <div className="sol-lead__lines mt-2">
+      <div className="sol-lead__lines mt-1.5">
         <p className={`text-[11px] leading-4 ${theme.textMuted}`}>
           They all ship in the same box — tap every sample you want.
         </p>
-        <div className="mt-1.5 flex flex-wrap gap-1.5">
+        <div className="mt-1 flex flex-wrap gap-1">
           {SAMPLE_LINES.map(({ key, label }) => {
             const on = lines.has(key);
             return (
@@ -295,37 +295,15 @@ export default function LeadCard({ fields, onFollowUp }) {
         </div>
       </div>
 
-      <button
-        type="button"
-        onClick={() => setShowSummary((open) => !open)}
-        aria-expanded={showSummary}
-        className={`mt-2 text-[11px] underline underline-offset-2 ${theme.textSecondary}`}
-      >
-        {showSummary ? 'Hide conversation summary' : 'Edit conversation summary'}
-      </button>
-
-      {showSummary ? (
-        <label className="mt-1 block">
-          <span className="sr-only">Conversation summary</span>
-          <textarea
-            rows={4}
-            value={draft.conversation_summary}
-            disabled={isSending}
-            onChange={(event) => editField('conversation_summary', event.target.value)}
-            className={`${inputClass} resize-none leading-4`}
-          />
-        </label>
-      ) : null}
-
       {status === 'failed' ? (
         <p className={`mt-2 text-xs ${theme.textError}`} role="alert">
           That didn&apos;t go through. Try again, or call us at {SALES_PHONE}.
         </p>
       ) : null}
 
-      {hint && status !== 'failed' ? <p className={`mt-2 text-[11px] ${theme.textMuted}`}>{hint}</p> : null}
+      {hint && status !== 'failed' ? <p className={`mt-1.5 text-[11px] ${theme.textMuted}`}>{hint}</p> : null}
 
-      <div className="mt-3 flex items-center gap-2">
+      <div className="mt-2.5 flex items-center gap-2">
         <button
           type="button"
           onClick={isConfirming ? submit : confirm}

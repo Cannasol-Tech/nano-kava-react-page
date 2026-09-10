@@ -210,9 +210,12 @@ Both live in `src/index.css` under `@media (max-width: 767px)`, which matches `M
 `src/utils/viewport.js` — **change one and you must change the other**, or JS and CSS will disagree
 about what a phone is.
 
-- The sheet is `min(58dvh, 520px)`, with a `vh` line written **first** as the fallback. On iOS
-  Safari `100vh` is the URL-bar-*hidden* height, so a `vh`-sized bottom sheet is clipped until the
-  bar retracts; `dvh` tracks the visible viewport.
+- The sheet is `calc(100dvh - 6rem)`, with a `vh` line written **first** as the fallback. *Corrected
+  2026-09-09: this bullet said `min(58dvh, 520px)`, which has not been the mobile formula since the
+  near-full-bleed rework below — the stale line was even copied into a bug-fix brief as if it were
+  current. The `calc(100dvh - 6rem)` value a few paragraphs down (§ On the size) was always the
+  real one.* On iOS Safari `100vh` is the URL-bar-*hidden* height, so a `vh`-sized bottom sheet is
+  clipped until the bar retracts; `dvh` tracks the visible viewport.
 - Scroll chaining had **two** causes. The chrome accepted the pan, so `touch-action: none` is set
   on `.sol-bar` / `.sol-meniscus` / `.sol-edge-light` — deliberately **not** on the panel root,
   which would intersect with the transcript's `pan-y` and risks breaking its scrolling on WebKit.
@@ -241,3 +244,47 @@ width, because a conversation needs a transcript, a composer and room for the ke
 between the two at ~90% height. The complaint was really about a panel that opened *itself*; that
 is fixed separately above. `calc(100dvh - 6rem)` is the one number to change if it still reads
 too large.
+
+### The lead card must fit without scrolling
+
+*Added 2026-09-09, from a visitor complaint: "If the window were slightly taller, it could
+accommodate the whole sample request form."* Two separate bugs stacked to cause this, and both
+are fixed rather than just papered over with a taller panel:
+
+1. **The desktop panel was too short.** `.sol-panel` height went from `min(560px, calc(100vh -
+   7rem))` to `min(720px, calc(100vh - 6rem))` — the ceiling from item 5 of the fix ("never let the
+   panel exceed 100vh - 6rem") matches what the mobile sheet already used, so desktop and mobile
+   now share one margin philosophy. The mobile sheet itself needed **no change** — see measurement
+   below.
+2. **The transcript auto-scrolled to the bottom of the conversation, not to the top of the new
+   card.** On a short viewport that left the card's header and first fields scrolled off above the
+   visible area even when the card itself would have fit. `ChatPanel.jsx` now scrolls a freshly
+   mounted `lead_proposed` card into view with `block: 'start'` instead (`scrollLeadCardIntoView`),
+   keyed off `data-message-id` on `LeadCard`'s root, and skips the ordinary bottom-anchor effect
+   for that render so the two don't fight over `scrollTop` in the same commit. Reduced motion gets
+   `behavior: 'auto'`; everyone else gets `'smooth'`.
+
+**Sol can keep streaming a trailing sentence after proposing the lead** — the tool call is not
+always the last token of the turn. That growth lands in the model bubble *above* the card and
+pushes the card back down, after the initial scroll already ran. Chasing this by watching
+`isStreaming` flip false was tried and measured unreliable (a browser repro showed content still
+settling ~300ms after the flag had already gone false). What is in place instead: a
+`MutationObserver` on the transcript, armed for up to 2.5s after a new lead card mounts, that
+re-issues an **instant** (non-smooth) correction on every DOM mutation — skipped if the visitor is
+already editing a field in the card (`card.contains(document.activeElement)`) or if the card is
+already fully in view, so it does not fight a visitor who has started filling the form.
+
+**Measured card heights** (Chrome, `.sol-lead` `getBoundingClientRect().height`, via a real
+streamed `lead_proposed` turn against the dev server): before this story the card ran
+418–442px on desktop and 632–657px on mobile (mobile stacks all three short fields — name,
+phone, email — to one column, and the global 44×44px mobile tap-target rule pads every pill and
+button). Tightening `LeadCard.jsx`'s vertical spacing (`py-3.5`→`py-3`, several `mt-2`→`mt-1.5`,
+input `py-2`→`py-1.5`, pill row `gap-1.5`→`gap-1`) and removing the "Edit conversation summary"
+toggle (`lead/CLAUDE.md § The conversation summary is no longer editable`) brought that to
+**361–386px on desktop and 546px on mobile** — comfortably under the mobile sheet's existing
+~610px transcript client height with no formula change needed there at all.
+
+**Desktop clears the launcher and the viewport bottom at both 1280×720 and 1440×900** — verified
+in the browser: `min(720px, calc(100vh - 6rem))` evaluates to `624px` at 720px-tall viewports
+(the `vh` term is the cap, well above the ~386px card) and `720px` at 900px-tall viewports
+(nowhere near the launcher corner).
