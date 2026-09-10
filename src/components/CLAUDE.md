@@ -17,6 +17,15 @@ is not a free performance hint`. Stagger reuses `:nth-child` on the `.group` wra
 pill does on `.sol-lead__line--on`. Mobile menu is untouched — its underline is a separate
 left-border treatment.
 
+**Corrected 2026-09-09: `.nav-underline` itself now also drifts continuously while hovered**,
+on Stephen's request that the highlighted item "keep shimmering... look like it's moving a little
+bit" — the glint pulse alone wasn't read as the gradient itself moving. This is deliberately NOT
+an animated `background-position`, which `../CLAUDE.md § Hero gradient heading repaint cost`
+forbids for the repaint cost. Instead `.nav-underline` became a clipping window (`overflow:
+hidden`) and the gradient moved onto a `::before` sized 220% wide; only that `::before`'s
+`transform: translateX(...)` animates, which is compositor-only. Same hover-gating and
+reduced-motion rules as the glint, in `src/index.css` right above the glint block.
+
 ## Sphere shells re-render at 30fps
 
 `drawSphere` rasterises 690 arcs plus five radial gradients per pass across the three shells,

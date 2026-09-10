@@ -1191,9 +1191,32 @@ html[data-safari] .animate-gradient-slow {
    than a second keyframe. Difference from the pill: a pill stays selected and glints forever, a
    nav underline is only ever visible on hover, so the animation itself is gated inside
    .group:hover — not just the reveal — per src/components/CLAUDE.md § Desktop nav underline shimmer. */
+/* The rim's own gradient drifts continuously while hovered, so the highlighted item keeps
+   moving rather than sitting on a flat colour. This is NOT an animated background-position —
+   ../CLAUDE.md § Hero gradient heading repaint cost forbids that, it repaints every frame.
+   Instead the gradient lives on an oversized ::before (220% wide) and only its transform
+   animates; .nav-underline itself is the clipping window. Compositor-only, same as everything
+   else this rule animates. */
 .nav-underline {
-  background: linear-gradient(115deg, #34d399, #d7fbef 22%, #22d3ee 46%, #34d399 70%, #a7f3d0 100%);
+  overflow: hidden;
   box-shadow: 0 0 6px rgba(52, 211, 153, 0.28);
+}
+.nav-underline::before {
+  content: '';
+  position: absolute;
+  inset: 0 -60%;
+  background: linear-gradient(115deg, #34d399, #d7fbef 22%, #22d3ee 46%, #34d399 70%, #a7f3d0 100%);
+}
+.group:hover .nav-underline::before {
+  animation: nav-underline-drift 4s ease-in-out infinite;
+  will-change: transform;
+}
+@keyframes nav-underline-drift {
+  0%, 100% { transform: translateX(-10%); }
+  50% { transform: translateX(10%); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .nav-underline::before { animation: none !important; }
 }
 .nav-underline-glint {
   background: linear-gradient(115deg, transparent 34%, #ffffff 50%, transparent 66%);
