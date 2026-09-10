@@ -919,19 +919,19 @@ export default function KavaLandingPage() {
                 </p>
               </div>
 
-              <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-                <Link to="/contact" onClick={() => trackCTAClick('Contact Form', 'cta-section')}>
+              <div className="flex flex-wrap justify-center items-stretch gap-4 mb-8">
+                <Link to="/contact" onClick={() => trackCTAClick('Contact Form', 'cta-section')} className="w-full sm:w-auto">
                   <div
-                    className={`btn-shine flex items-center justify-center gap-3 px-5 py-4 bg-gradient-to-r ${theme.accent} text-slate-900 font-bold rounded-xl interactive-btn hover-scale-xs active-press-sm`}
+                    className={`btn-shine flex items-center justify-center gap-3 px-6 py-4 min-w-[200px] w-full sm:w-auto whitespace-nowrap bg-gradient-to-r ${theme.accent} text-slate-900 font-bold rounded-xl interactive-btn hover-scale-xs active-press-sm`}
                   >
-                    <MessageCircle className="w-5 h-5" />
+                    <MessageCircle className="w-5 h-5 flex-shrink-0" />
                     Contact Form
                   </div>
                 </Link>
                 <a
                   href={company.phoneHref}
                   onClick={() => trackPhoneClick()}
-                  className={`btn-shine flex items-center justify-center gap-3 px-5 py-4 ${theme.bgButton} ${theme.text} font-semibold rounded-xl border ${theme.borderCard} hover:border-emerald-500/50 transition-colors interactive-btn hover-scale-xs active-press-sm`}
+                  className={`btn-shine flex items-center justify-center gap-3 px-6 py-4 min-w-[200px] w-full sm:w-auto whitespace-nowrap ${theme.bgButton} ${theme.text} font-semibold rounded-xl border ${theme.borderCard} hover:border-emerald-500/50 transition-colors interactive-btn hover-scale-xs active-press-sm`}
                 >
                   <Phone className="w-5 h-5 flex-shrink-0" />
                   Call {company.phone}
@@ -939,7 +939,7 @@ export default function KavaLandingPage() {
                 <a
                   href={`mailto:${company.founder.email}`}
                   onClick={() => trackEmailClick()}
-                  className={`btn-shine flex items-center justify-center gap-3 px-5 py-4 ${theme.bgButton} ${theme.text} font-semibold rounded-xl border ${theme.borderCard} hover:border-emerald-500/50 transition-colors interactive-btn hover-scale-xs active-press-sm`}
+                  className={`btn-shine flex items-center justify-center gap-3 px-6 py-4 min-w-[200px] w-full sm:w-auto whitespace-nowrap ${theme.bgButton} ${theme.text} font-semibold rounded-xl border ${theme.borderCard} hover:border-emerald-500/50 transition-colors interactive-btn hover-scale-xs active-press-sm`}
                 >
                   <Mail className="w-5 h-5 flex-shrink-0" />
                   Email Us
