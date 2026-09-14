@@ -149,7 +149,7 @@ export default function KavaLandingPage() {
     return [
       { value: specValue('Mean particle size'), label: 'Mean particle size', icon: Droplets },
       { value: specValue('Kavalactone load'), label: 'Kavalactone load', icon: Beaker },
-      { value: absorption, label: `Higher absorption vs ${vsWhat.join(' ')}`, icon: TrendingUp },
+      { value: absorption, label: `Higher absorption vs ${vsWhat.filter(w => w !== 'vs.').join(' ')}`, icon: TrendingUp },
       { value: dispersibility, label: 'Dispersible, clear in the finished beverage', icon: Sparkles },
     ];
   }, []);

@@ -33,7 +33,7 @@ const SCALE = [
   { label: 'Human hair', size: '80,000 nm', pct: 100 },
   { label: 'Red blood cell', size: '7,000 nm', pct: 74 },
   { label: 'Virus', size: '100 nm', pct: 38 },
-  { label: 'Cannasol droplet', size: '~20 nm', pct: 18, ours: true },
+  { label: 'Cannasol droplet', size: '~20 nm', pct: 5, ours: true },
 ];
 
 export default function NanoExplainer() {

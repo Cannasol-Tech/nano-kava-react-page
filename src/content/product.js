@@ -22,12 +22,12 @@ export const specComparison = [
   { spec: 'Mean particle size', nano: '~20 nm', traditional: '200–1,000 nm — settles, hazes' },
   { spec: 'Water dispersibility', nano: '100% water-dispersible', traditional: 'Hydrophobic, poorly dispersed' },
   { spec: 'Kavalactone load', nano: '30 mg/mL', traditional: 'Varies by extract' },
-  { spec: 'Relative absorption', nano: '4–5x conventional kava powder', traditional: 'Baseline' },
+  { spec: 'Relative absorption', nano: '4–5x vs. conventional kava powder', traditional: 'Baseline' },
   { spec: 'Appearance in beverage', nano: 'Crystal clear', traditional: 'Cloudy, muddy, gritty' },
   { spec: 'Separation / settling', nano: 'Stays clear, stays suspended — no settling, no ringing', traditional: 'Separates, rings the bottle' },
   { spec: 'Shelf stability', nano: '12+ months', traditional: 'Poor' },
   { spec: 'Dose consistency', nano: 'Uniform and precise', traditional: 'Inconsistent' },
-  { spec: 'Taste', nano: 'Minimal kava-characteristic taste', traditional: 'Strongly bitter' },
+  { spec: 'Taste', nano: 'Minimal kava-characteristic taste', traditional: 'Earthy, offputting taste' },
   { spec: 'Process requirement', nano: 'Meter in and stir — no high-shear step', traditional: 'Pre-mix and high-shear typically required' },
 ];
 
