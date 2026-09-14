@@ -75,12 +75,12 @@ Our founder works directly with every client, bringing insights from top Kratom 
 | Mean particle size | ~20 nm | 200–1,000 nm — settles, hazes |
 | Water dispersibility | 100% water-dispersible | Hydrophobic, poorly dispersed |
 | Kavalactone load | 30 mg/mL | Varies by extract |
-| Relative absorption | 4–5x conventional kava powder | Baseline |
+| Relative absorption | 4–5x vs. conventional kava powder | Baseline |
 | Appearance in beverage | Crystal clear | Cloudy, muddy, gritty |
 | Separation / settling | Stays clear, stays suspended — no settling, no ringing | Separates, rings the bottle |
 | Shelf stability | 12+ months | Poor |
 | Dose consistency | Uniform and precise | Inconsistent |
-| Taste | Minimal kava-characteristic taste | Strongly bitter |
+| Taste | Minimal kava-characteristic taste | Earthy, offputting taste |
 | Process requirement | Meter in and stir — no high-shear step | Pre-mix and high-shear typically required |
 
 ## What differentiates Cannasol
@@ -193,7 +193,7 @@ Nano Kava is sold as a bulk ingredient for licensed manufacturers and brand owne
 - /contact — name, email, company, phone, one or more inquiry types, and a message.
 - The contact form emails Josh directly and he replies within 24 hours.
 - Inquiry types on the form: Request Samples, Pricing & Volume Quotes, Formulation Support, Partnership Inquiry, General Question, Other.
-- /faq — 18 answers across product & technology, effects & dosing, formulation & applications, ordering & partnership, and quality & compliance.
+- /faq — 19 answers across product & technology, effects & dosing, formulation & applications, ordering & partnership, and quality & compliance.
 - /mushrooms — the Nano Mushroom Emulsion line: Lion's Mane Nanoemulsion, Reishi Nanoemulsion and Cordyceps Nanoemulsion.
 - A visitor who wants a human can use the contact form, call the office on (216) 921-2240 during business hours, email josh.detzel@cannasolusa.com, or let Sol send their details straight to Josh.
 
@@ -232,6 +232,10 @@ A: The nanoemulsion is roughly 4–5x more bioavailable than conventional kava p
 **Q: What dosage should I use in my products?**
 
 A: Because the nanoemulsion is roughly 4–5x more bioavailable than powder-based kava, conventional kava dosing does not apply. For most social tonics and seltzers we recommend 50–60 mg of kavalactone per serving: 40 mg is a light serving, 50–60 mg is the recommended range, and 75 mg is max strength. At 30 mg/mL that is about 1.33 mL, 1.67–2.00 mL and 2.50 mL of emulsion per serving respectively. We work directly with each client to dial in the dose for their specific product.
+
+**Q: What effects is kava traditionally known for?**
+
+A: Kava has been consumed across Pacific Island cultures for centuries, traditionally served in ceremonial and social settings for its calming and relaxing properties. It has a long history as a community drink — valued for promoting relaxation and social ease. This is traditional and cultural context, not a health claim: we supply the ingredient, and any consumer-facing claims about effects are the brand's to make with their own regulatory guidance.
 
 **Q: Is nano Kava safe?**
 

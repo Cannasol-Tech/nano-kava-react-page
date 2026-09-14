@@ -59,6 +59,11 @@ export const faqCategories = [
           'Because the nanoemulsion is roughly 4–5x more bioavailable than powder-based kava, conventional kava dosing does not apply. For most social tonics and seltzers we recommend 50–60 mg of kavalactone per serving: 40 mg is a light serving, 50–60 mg is the recommended range, and 75 mg is max strength. At 30 mg/mL that is about 1.33 mL, 1.67–2.00 mL and 2.50 mL of emulsion per serving respectively. We work directly with each client to dial in the dose for their specific product.',
       },
       {
+        question: 'What effects is kava traditionally known for?',
+        answer:
+          'Kava has been consumed across Pacific Island cultures for centuries, traditionally served in ceremonial and social settings for its calming and relaxing properties. It has a long history as a community drink — valued for promoting relaxation and social ease. This is traditional and cultural context, not a health claim: we supply the ingredient, and any consumer-facing claims about effects are the brand\'s to make with their own regulatory guidance.',
+      },
+      {
         question: 'Is nano Kava safe?',
         answer:
           'Kava has been consumed for thousands of years in Pacific Island cultures. Our nano Kava is a root and rhizome extract of Piper methysticum, grown in Vanuatu and CO2 extracted through New Zealand, then nanoemulsified in-house — the same kavalactones, in a more bioavailable form. We use only noble Kava varieties and test for purity and potency. As with any supplement, we recommend following standard Kava safety guidelines and consulting with regulatory experts for your specific market.',
