@@ -125,70 +125,10 @@ async function loadLead({ db = chatDb(), sessionId }) {
   }
 }
 
-/**
- * Claims the one team email a conversation is allowed to produce. A double-tapped Send, a
- * retried POST or a second card in the same session all reach here; the first wins and the rest
- * are told the mail is already out. See CLAUDE.md § One lead, one email.
- *
- * A claim is taken BEFORE the send, so two concurrent requests cannot both pass — which means a
- * send that then fails has to give it back. `releaseLeadEmailClaim` is that half, and skipping
- * it would leave a visitor unable to retry a lead nobody ever received.
- */
-async function claimLeadEmail({ db = chatDb(), sessionId, now = new Date() }) {
-  if (!isValidSessionId(sessionId)) return { ok: false, reason: 'invalid-session-id' };
-
-  try {
-    const ref = db.collection(LEADS_COLLECTION).doc(sessionId);
-    let claimed = false;
-
-    await db.runTransaction(async (tx) => {
-      const snapshot = await tx.get(ref);
-      const existing = snapshot.exists ? snapshot.data() : null;
-      if (existing?.teamEmailedAt) return;
-
-      claimed = true;
-      tx.set(ref, {
-        ...(existing || {}),
-        sessionId,
-        teamEmailedAt: now,
-        firstSeenAt: existing?.firstSeenAt ?? now,
-        updatedAt: now,
-      });
-    });
-
-    return { ok: true, claimed };
-  } catch (error) {
-    // A claim we could not take must not block the email — a duplicate beats a silent drop.
-    console.error('[chatLeads] failed to claim the lead email:', error.message);
-    return { ok: false, reason: 'write-failed', claimed: true };
-  }
-}
-
-/** Hands the claim back when the send failed, so the visitor's retry is not swallowed. */
-async function releaseLeadEmailClaim({ db = chatDb(), sessionId, now = new Date() }) {
-  if (!isValidSessionId(sessionId)) return { ok: false, reason: 'invalid-session-id' };
-
-  try {
-    const ref = db.collection(LEADS_COLLECTION).doc(sessionId);
-    await db.runTransaction(async (tx) => {
-      const snapshot = await tx.get(ref);
-      if (!snapshot.exists) return;
-      const existing = snapshot.data();
-      tx.set(ref, { ...existing, teamEmailedAt: null, updatedAt: now });
-    });
-    return { ok: true };
-  } catch (error) {
-    console.error('[chatLeads] failed to release the lead email claim:', error.message);
-    return { ok: false, reason: 'write-failed' };
-  }
-}
-
 module.exports = {
   LEADS_COLLECTION,
   normalizeLead,
   persistLead,
   confirmLead,
   loadLead,
-  claimLeadEmail,
-  releaseLeadEmailClaim,
 };

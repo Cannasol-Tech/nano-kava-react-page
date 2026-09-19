@@ -1,15 +1,17 @@
 # functions/ — Cloud Functions for the Nano Kava site
 
-Four entry points in `index.js`, all thin transports:
+Five entry points in `index.js`, all thin transports:
 
 *Corrected 2026-08-26: this read "Two entry points" and listed `sendChatDigest` below. That
 endpoint was **removed** — see `lib/CLAUDE.md § Conversation digests — RETIRED` — and the
-scheduled `dailyChatReport` replaced it. `solReview` made it four on 2026-09-19.*
+scheduled `dailyChatReport` replaced it. `solReview` and `sendPendingLeads` made it five on
+2026-09-19.*
 
 | Export | Gen | Owns | Core logic |
 |---|---|---|---|
-| `sendContactEmail` | 1st | `/contact` form POSTs, and the one email a chat lead sends | `lib/leads.js`, `lib/leadHandoff.js` |
+| `sendContactEmail` | 1st | `/contact` and chat-card POSTs. **Queues; sends nothing.** | `lib/leadQueue.js` |
 | `chat` | 2nd | SSE stream for Sol; files each turn and any extracted lead to Firestore | `lib/chat.js`, `lib/chatStore.js`, `lib/chatLeads.js` |
+| `sendPendingLeads` | 2nd | **Scheduled** every 2 min — the ONLY thing that emails a lead | `lib/leadHandoff.js`, `lib/leads.js` |
 | `solReview` | 1st | The questionnaire the lead email links to | `lib/solReviews.js`, `lib/reviewForm.js` |
 | `dailyChatReport` | 2nd | **Scheduled** 08:00 America/New_York — the daily review email | `lib/dailyReport.js` |
 
@@ -33,8 +35,9 @@ Long-form reasoning for the core modules lives one level down, in `lib/CLAUDE.md
 | The lead record is not the transcript | `chatLeads`, why it has no TTL, what `confirmed` means |
 | The daily report replaced the digest | The schedule, the retry, and why it sends on silent days |
 | Conversation digests — RETIRED | What the old per-conversation email did, and why it is gone |
-| One lead, one email | The claim, the auto-reply suppression, and what the transcript rides in |
-| The review corpus is permanent | `solReviews`, the token, and the prompt block it renders |
+| A lead is a person, not a submission | Contact keys, and why the first fix (per-session) was wrong |
+| One email per lead, after the quiet period | The window, the sweep, and the absent `notifyAfter` |
+| The review corpus is permanent | `solReviews`, the token, and the 1-5 scales that make it comparable |
 
 The review loop has its own document — `docs/sol-review-loop.md` — because it spans the email,
 two new collections, an HTML form and a deliberately-unbuilt vector search. Read it before
@@ -51,6 +54,13 @@ passes writes through, which is the whole reason for the split.
 deployed URL, which the live contact form is hard-coded against. Do not "modernize" it for
 consistency — the cost is a broken form and the benefit is nil.
 
+**Nothing is emailed from a request any more.** `sendContactEmail` queues and returns
+`{ queued: true }`; `sendPendingLeads` sends once the lead has been quiet for 20 minutes. That is
+what turns one person's chat card and contact form into one email — see
+`lib/CLAUDE.md § One email per lead, after the quiet period` before "fixing" the missing send.
+It also means a broken schedule is a lead nobody receives, so `sendPendingLeads` **throws** on
+any failure (the batches are already requeued) rather than logging and moving on.
+
 **`solReview` is 1st gen for a different reason.** Firebase Hosting rewrites onto a 1st-gen
 function *by name* (`{"source": "/sol-review", "function": "solReview"}`), which is what keeps the
 link in every lead email an `enjoynano.com` URL rather than a `cloudfunctions.net` one. A gen2
@@ -58,13 +68,17 @@ rewrite needs a `run.serviceId` and the service name is not the export name. Sam
 trap: leave it alone.
 
 Consequence to remember: the two generations declare secrets differently
-(`.runWith({ secrets })` vs the `secrets:` array in `onRequest` options). Only `sendContactEmail`
-lists the SendGrid and Mailchimp handles, because it is the only function that sends anything.
-`chat` needs `GOOGLE_AI_API_KEY` and nothing else.
+(`.runWith({ secrets })` vs the `secrets:` array in `onRequest`/`onSchedule` options).
+`sendPendingLeads` lists the SendGrid and Mailchimp handles, because it is the only function that
+sends a lead; `dailyChatReport` lists SendGrid alone. `chat` needs `GOOGLE_AI_API_KEY` and
+nothing else, and **`sendContactEmail` declares none at all** — it only queues now, and a grant
+nothing uses is blast radius for free.
 
 *Corrected 2026-08-25: this section previously said both functions must declare the send secrets,
 which was true while `chat` sent leads directly. It no longer does — see § The tool proposes, the
-visitor sends — so those secrets were removed from `chat` rather than left granted unused.*
+visitor sends — so those secrets were removed from `chat` rather than left granted unused.
+Corrected again 2026-09-19: it then named `sendContactEmail` as the sender. That moved to
+`sendPendingLeads`, and the secrets moved with it for the same reason.*
 
 ## persona.js is compliance-bearing
 
@@ -129,13 +143,19 @@ Consequence: **local testing cannot verify real delivery.** The terminal block s
 would have received; confirming he actually receives it, that the auto-reply lands, and that
 Mailchimp captured the lead all require a deploy.
 
+It does run the **real queue** against an in-memory store, so the terminal prints how many
+submissions are on the lead — post twice as the same person and it says `2 submission(s) on this
+lead`, which is the behaviour the whole change is about. Locally it sweeps immediately instead of
+waiting out the window, because nobody would ever see the form otherwise.
+
 ### `/sol-review` runs locally, against memory
 
-The one thing the dry run does **not** skip is the permanent copy: it archives the conversation
-into an in-memory store (`memoryDb()` in `vite.config.js`) and prints a clickable
-`http://localhost:3000/sol-review?token=…` link. The form, the validation and the stored document
-shape are the ones that ship — only the database is local, and it dies with the dev server.
+The one thing the dry run does **not** skip is the permanent copy: it queues the submission,
+archives the lead into an in-memory store (`memoryDb()` in `vite.config.js`) and prints a
+clickable `http://localhost:3000/sol-review?token=…` link. The form, the validation and the
+stored document shape are the ones that ship — only the database is local, and it dies with the
+dev server.
 
-That covers the half a local click can actually exercise. The other half — that the archive
-survives the 90-day TTL on a real Firestore — is `make test-review-loop` against the deployed
-functions.
+That covers the half a local click can actually exercise. The other half — that two submissions
+twenty minutes apart really do produce one email, and that the archive survives the 90-day TTL
+on a real Firestore — is `make test-review-loop` against the deployed functions.

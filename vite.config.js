@@ -27,12 +27,18 @@ import { createRequire } from 'node:module';
 const CHAT_ROUTE = '/api/chat';
 const LEAD_ROUTE = '/api/sendContactEmail';
 const REVIEW_ROUTE = '/sol-review';
+
 const MAX_BODY_BYTES = 256 * 1024;
 const DRY_RUN = '[sol dev] DRY RUN - no email sent';
 const DRY_RUN_STORE = '[sol dev] DRY RUN - nothing written to Firestore';
 
 // Module scope: chatDevServer's own `require` is function-scoped and out of reach here.
-const { costOf } = createRequire(import.meta.url)('./functions/lib/usageCost.js');
+const moduleRequire = createRequire(import.meta.url);
+const { costOf } = moduleRequire('./functions/lib/usageCost.js');
+
+// Only a label: locally the lead is swept immediately, because waiting out the real window at a
+// dev server would mean nobody ever saw the review form.
+const QUIET_LABEL = `${moduleRequire('./functions/lib/leadQueue.js').QUIET_MINUTES} minutes`;
 
 /**
  * Enough Firestore to run lib/solReviews.js unchanged: `collection().doc()`, `get()` and a
@@ -71,14 +77,6 @@ function logDryRun({ name, email, company, phone, inquiryType, message }) {
   console.log(`${DRY_RUN}   Message:`);
   for (const line of String(message ?? '').split('\n')) console.log(`${DRY_RUN}     ${line}`);
 }
-
-/**
- * The browser posts a lead, not a transcript — the deployed function reads that back out of
- * Firestore and there is no Firestore here. The composed message is the closest local stand-in,
- * and it keeps the review form rendering something rather than an empty conversation.
- */
-const devTranscript = ({ message }) =>
-  (message ? [{ role: 'user', text: String(message) }] : []);
 
 /** DRY RUN, like the lead and digest routes: no local credentials, so nothing is written. */
 function logStoreDryRun({ sessionId, messages, page }, reply, maxTurns, usage) {
@@ -145,21 +143,40 @@ function chatDevServer(mode) {
 
       logDryRun(body);
 
-      // The one thing a dry run should NOT skip: the permanent copy and the review link are the
-      // whole point of the change, and they are the half a local click can actually exercise.
-      const { archiveForReview } = require('./functions/lib/solReviews.js');
-      const archived = await archiveForReview({
+      // The queue and the review archive are the whole point of the change, and they are the
+      // half a local click can exercise — so the dry run runs them for real against memory and
+      // sweeps immediately rather than waiting out the quiet period.
+      const { enqueueSubmission } = require('./functions/lib/leadQueue.js');
+      const { prepareLeadEmail } = require('./functions/lib/leadHandoff.js');
+      const { mergeSubmissions } = require('./functions/lib/leadQueue.js');
+
+      const queued = await enqueueSubmission({
         db: reviewDb,
-        sessionId: body.sessionId,
-        lead: { name, email, company: body.company, phone, interest: body.interest },
-        messages: Array.isArray(body.messages) ? body.messages : devTranscript(body),
-        page: body.page || '/',
-        startedAt: new Date(),
+        submission: {
+          source: body.source || (body.sessionId ? 'chat' : 'form'),
+          name, email, phone, company: body.company, message: body.message,
+          types: String(body.inquiryType || '').split(',').map((t) => t.trim()).filter(Boolean),
+          sessionId: body.sessionId,
+        },
       });
-      if (archived.ok) {
-        console.log(`${DRY_RUN} — review link: http://localhost:3000${REVIEW_ROUTE}?token=${archived.token}`);
-      } else {
-        console.log(`${DRY_RUN} — no review link (${archived.reason})`);
+      if (!queued.ok) {
+        console.log(`${DRY_RUN} — not queued (${queued.reason})`);
+        return sendJson(res, 200, { success: true, message: 'Dry run - no email sent', dryRun: true });
+      }
+
+      const stored = reviewDb.docs.get(`leadNotifications/${queued.contactKey}`);
+      console.log(`${DRY_RUN} — ${stored.pending.length} submission(s) on this lead;`
+        + ` deployed, it would send ${QUIET_LABEL} after the last one`);
+
+      // Locally the transcript comes from the posted message rather than Firestore; there is no
+      // chat store here. Enough to render the review form against.
+      const batch = mergeSubmissions(queued.contactKey, stored.pending);
+      const prepared = await prepareLeadEmail({
+        db: reviewDb,
+        batch: { ...batch, sequence: stored.notifyCount || 0 },
+      });
+      if (prepared.reviewToken) {
+        console.log(`${DRY_RUN} — review link: http://localhost:3000${REVIEW_ROUTE}?token=${prepared.reviewToken}`);
       }
 
       return sendJson(res, 200, { success: true, message: 'Dry run - no email sent', dryRun: true });
@@ -240,31 +257,34 @@ function chatDevServer(mode) {
 
       const resolved = await resolveReviewToken({ db: reviewDb, token });
       if (!resolved.ok) return finish(404, renderProblem('Unknown review link.'));
-      const { sessionId } = resolved;
+      const { reviewId } = resolved;
 
       if (isPost) {
         const answers = Object.fromEntries(form);
         answers.tags = form.getAll('tags');
-        const saved = await saveReview({ db: reviewDb, sessionId, answers });
+        const saved = await saveReview({ db: reviewDb, reviewId, answers });
         if (!saved.ok) {
-          const record = await loadReview({ db: reviewDb, sessionId });
+          const record = await loadReview({ db: reviewDb, reviewId });
           return finish(400, renderForm({
             record: record.ok ? record.review : null,
             token,
             error: 'Nothing was filled in — give it a score at least, and it will save.',
           }));
         }
-        const stored = await loadReview({ db: reviewDb, sessionId });
-        console.log(`[sol dev] review stored in memory for ${sessionId}`);
-        console.log(`[sol dev]   ${JSON.stringify(stored.review?.training?.promptBlock || '')}`);
-        return finish(200, renderSaved({ rating: Number(answers.rating) || null }));
+        const filed = await loadReview({ db: reviewDb, reviewId });
+        console.log(`[sol dev] review stored in memory for ${reviewId}`);
+        console.log(`[sol dev]   ${JSON.stringify(filed.review?.training?.promptBlock || '')}`);
+        return finish(200, renderSaved({
+          rating: Number(answers.overall) || null,
+          average: filed.review?.review?.average || null,
+        }));
       }
 
       if (url.searchParams.get('rating')) {
-        await recordRating({ db: reviewDb, sessionId, rating: url.searchParams.get('rating') });
+        await recordRating({ db: reviewDb, reviewId, rating: url.searchParams.get('rating') });
       }
-      const record = await loadReview({ db: reviewDb, sessionId });
-      if (!record.ok) return finish(404, renderProblem('That conversation is not on file.'));
+      const record = await loadReview({ db: reviewDb, reviewId });
+      if (!record.ok) return finish(404, renderProblem('That lead is not on file.'));
       return finish(200, renderForm({ record: record.review, token }));
     } catch (err) {
       console.error('[sol dev] review route failed:', err);

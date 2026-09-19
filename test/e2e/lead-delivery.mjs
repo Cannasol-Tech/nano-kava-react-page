@@ -9,6 +9,11 @@
  *     reaches a terminal state, and fails on anything but delivered. Sends real mail to the
  *     team — run deliberately, never in CI.
  *
+ *     ⚠️ This run takes ~25 MINUTES, and that is the system working. `sendContactEmail` only
+ *     queues; the scheduled `sendPendingLeads` sends once the lead has been quiet for
+ *     LEAD_QUIET_MINUTES (20 by default). Set that env var on the deployed function to 1 if you
+ *     want a fast run — see functions/lib/CLAUDE.md § One email per lead, after the quiet period.
+ *
  *     It also pins the half that is easiest to get wrong from the outside: a lead submitted with
  *     a TEAM address gets the notification and NOTHING else. That auto-reply-to-self is what made
  *     every test lead arrive twice — see docs/sol-review-loop.md § One lead, one email.
@@ -37,8 +42,12 @@ const TEAM = ['stephen.boyett@cannasolusa.com', 'josh.detzel@cannasolusa.com'];
 const VISITOR = process.env.LEAD_TEST_EMAIL || 'stephen.boyett@cannasolusa.com';
 const VISITOR_IS_TEAM = TEAM.map((a) => a.toLowerCase()).includes(VISITOR.toLowerCase());
 
-const POLL_ATTEMPTS = 20;
-const POLL_INTERVAL_MS = 6000;
+// The quiet window, the sweep interval on top of it, and slack for SendGrid to settle. Read
+// from the env so a deploy running a shorter window does not mean a 25-minute test run.
+const QUIET_MINUTES = Number(process.env.LEAD_QUIET_MINUTES) > 0
+  ? Number(process.env.LEAD_QUIET_MINUTES) : 20;
+const POLL_INTERVAL_MS = 15000;
+const POLL_ATTEMPTS = Math.ceil(((QUIET_MINUTES + 5) * 60 * 1000) / POLL_INTERVAL_MS);
 // SendGrid's activity feed is eventually consistent; these are the states it settles into.
 const TERMINAL = new Set(['delivered', 'not_delivered', 'bounce', 'dropped', 'blocked', 'deferred']);
 
@@ -106,9 +115,13 @@ async function main() {
   check('function returned 200', response.status === 200, `status ${response.status}: ${JSON.stringify(body)}`);
   check('function reported success', body.success === true, JSON.stringify(body));
   check('it was not a dry run', body.dryRun !== true, 'the dev middleware answered — point LEAD_ENDPOINT at the deployed function');
+  // Nothing is emailed from the request path any more; the sweep is what sends.
+  check('the lead was queued rather than sent inline', body.queued === true, JSON.stringify(body));
   if (response.status !== 200) return finish();
 
-  console.log(`\n[2] SendGrid actually delivered it (polling up to ${(POLL_ATTEMPTS * POLL_INTERVAL_MS) / 1000}s)`);
+  console.log(`\n[2] The sweep sends it and SendGrid delivers it`);
+  console.log(`    Waiting out the ${QUIET_MINUTES}-minute quiet window plus the sweep —`
+    + ` up to ${Math.round((POLL_ATTEMPTS * POLL_INTERVAL_MS) / 60000)} minutes. This is not a hang.`);
   const expected = [...new Set([...TEAM, VISITOR])];
   // One notification row per team address, plus the auto-reply when the visitor is not one of us.
   // Counting *recipients* stopped the poll as soon as the team rows landed, and the auto-reply

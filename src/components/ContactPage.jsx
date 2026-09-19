@@ -24,6 +24,7 @@ import {
 import themesConfig from '../theme/themes';
 import { trackFormConversion, trackPhoneClick, trackEmailClick } from '../utils/gtag';
 import { company, sampleOffer } from '../content/company';
+import { chatSessionId } from './chat/transport/chatSession';
 
 // Theme configuration - matches other pages
 const themes = themesConfig;
@@ -101,7 +102,12 @@ function ContactForm({ theme, initialInquiry, initialProduct }) {
         company: formData.company || '',
         phone: formData.phone || '',
         inquiryType: formData.inquiryTypes.map(v => inquiryTypes.find(t => t.value === v)?.label || v).join(', '),
-        message: formData.message
+        message: formData.message,
+        // Not a chat lead, but the SAME browser — and the session id is the join that lets the
+        // backend attach this person's Sol conversation to a form submission, and merge the two
+        // into one email when they do both. See functions/lib/CLAUDE.md § A lead is a person.
+        source: 'form',
+        sessionId: chatSessionId(),
       };
 
       // For production, use your deployed Cloud Function URL

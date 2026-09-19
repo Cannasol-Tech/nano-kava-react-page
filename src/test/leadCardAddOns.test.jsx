@@ -274,7 +274,7 @@ describe('what gets POSTed', () => {
     // sessionId added 2026-08-26: it confirms the stored chatLeads record, marking it a human
     // submission rather than Sol's extraction. See functions/lib/CLAUDE.md § The lead record.
     expect(Object.keys(body).sort())
-      .toEqual(['email', 'inquiryType', 'interest', 'message', 'name', 'sessionId']);
+      .toEqual(['email', 'inquiryType', 'interest', 'message', 'name', 'sessionId', 'source']);
   });
 
   it('sends phone and omits email for a phone-only lead', async () => {
@@ -297,7 +297,7 @@ describe('what gets POSTed', () => {
     expect(body.company).toBe('Acme Beverages');
     expect(body).not.toHaveProperty('phone');
     expect(Object.keys(body).sort())
-      .toEqual(['company', 'email', 'inquiryType', 'interest', 'message', 'name', 'sessionId']);
+      .toEqual(['company', 'email', 'inquiryType', 'interest', 'message', 'name', 'sessionId', 'source']);
   });
 
   it('omits company entirely when Sol never learned one', async () => {

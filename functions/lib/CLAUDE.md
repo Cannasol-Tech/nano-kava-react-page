@@ -4,7 +4,7 @@ All transport-agnostic: nothing here may touch `req`/`res`.
 
 *Corrected 2026-08-26: this table opened "Three modules" and listed three. It had been five since
 `digest.js` and `businessHours.js` landed; `chatStore.js` and `particlePalette.js` make seven.
-The review loop added four more on 2026-09-19.*
+The lead queue and review loop added five more on 2026-09-19.*
 
 | File | Owns |
 |---|---|
@@ -18,7 +18,9 @@ The review loop added four more on 2026-09-19.*
 | `dailyReport.js` | The once-a-day review email — see § The daily report replaced the digest. |
 | `particlePalette.js` | Sol's colour library and resolver — see § Colour resolution is server-side. |
 | `transcript.js` | Rendering a stored conversation as text, HTML and a markdown attachment. |
-| `leadHandoff.js` | The ORDER a chat lead is processed in — see § One lead, one email. |
+| `leadIdentity.js` | Who a lead IS — see § A lead is a person, not a submission. |
+| `leadQueue.js` | The quiet window that makes one lead one email — see § One email per lead. |
+| `leadHandoff.js` | The ORDER a queued lead is processed in, and the sweep itself. |
 | `solReviews.js` | The permanent review corpus — see § The review corpus is permanent. |
 | `reviewForm.js` | The questionnaire's HTML. Nothing else may render it. |
 
@@ -26,61 +28,115 @@ The review loop added four more on 2026-09-19.*
 sends one. See § The tool proposes, the visitor sends.
 
 
-## One lead, one email
+## A lead is a person, not a submission
 
-*Added 2026-09-19. Stephen: "I am getting TWO emails from Sol every time a lead comes through the
-chat bot. We should have ONE email for the lead with the whole conversation attached."*
+*Added 2026-09-19, from two emails Stephen forwarded.* Kelsy Bass used Sol's card at 5:34 and the
+contact form at 5:52 — same email, same phone, company typed `TreeOf12` then `TreeOF12` — and got
+two lead emails eighteen minutes apart.
 
-There were two, and there were two possible reasons, so both were closed:
+**The first fix for this was wrong and is worth recording.** It claimed one email per
+`sessionId`, which identifies a BROWSER. The contact form sent no session id at all, so the claim
+could not see the second submission; and even if it had, a person who chats on their phone and
+fills the form on a laptop is still one lead. Identity has to be the person.
 
-- **The auto-reply was going to us.** `sendLead` sends a team notification *and* a "we received
-  your message" to whatever address the card carried. Correct for a prospect; noise when the
-  address is a team one, which it is every time we test the widget — and which
-  `test/e2e/lead-delivery.mjs` did by default. `isTeamAddress()` now suppresses it. A real
-  visitor still gets theirs, and that e2e script now asserts the *absence* of the second mail
-  rather than its presence.
-- **Nothing bounded the team email to one per conversation.** `claimLeadEmail()` stamps
-  `teamEmailedAt` in a transaction **before** the send, so two submissions racing cannot both
-  pass. A second Send answers `{ success: true, duplicate: true }` and sends nothing.
+`leadIdentity.js` keys on a normalised **email**, falling back to a normalised **phone** (digits
+only, last ten — `(216) 921-2240`, `216-921-2240` and `+1 216 921 2240` are one person, and
+keeping punctuation would make them three). Email wins when both are present: it is the field
+people type consistently, it is what Mailchimp keys on, and a phone typed once with an extension
+would otherwise split the lead.
 
-**The claim has to be given back.** A SendGrid throw means nobody received anything, and the
-visitor tapping Send again must not be told "already sent". `abandonChatLead()` clears the stamp
-on the failure path. Omitting that half turns a transient outage into a permanently unsendable
-lead, silently — which is strictly worse than the duplicate this replaced.
+The key is a **hash**, not the address: `.` is in every email and `/` is legal in a local part,
+and neither survives a Firestore document path.
+
+### Finding the conversation a form submission never carried
+
+The second email had no transcript, and the person it was from had just had a whole conversation
+with Sol. `sessionsForContact()` closes that with two joins, because they catch different people:
+
+- **The session id.** It lives in `localStorage`, one per browser (§ Transcript persistence), and
+  `ContactPage` now sends it alongside `source: 'form'`. One browser's chat and form submission
+  meet even when the details were typed differently in each.
+- **The email and phone on the stored `chatLeads` record.** Catches the same person on another
+  device, where there is no shared storage to join on.
+
+Neither throws. A lead is emailed even when both fail — an email with no transcript beats no
+email.
+
+## One email per lead, after the quiet period
+
+`sendContactEmail` **sends nothing**. It files the submission against the person and returns
+`{ success: true, queued: true }`. The scheduled `sendPendingLeads` is the only thing that sends.
+
+`leadQueue.js` holds `leadNotifications/{contactKey}`. Every submission appends to `pending` and
+pushes `notifyAfter` out to `now + QUIET_MINUTES`; the window is **quiet time, not a fixed
+bucket**, so a person still going gets one email at the end rather than a stream of halves.
+
+**20 minutes, because the observed gap was 18.** A window that does not cover the case it was
+built for solves nothing. The cost is that Josh sees a lead up to ~22 minutes late, against a site
+that promises a reply within 24 hours — so the delay is invisible to the visitor, and it buys
+back an email that is whole. `LEAD_QUIET_MINUTES` overrides it per deploy without a code change;
+set it to 1 before running the e2e scripts unless you want a 25-minute test.
+
+**The wait is also what makes the attached transcript the WHOLE conversation.** Sending on Send
+attaches however much of the chat existed at the moment the visitor pressed it.
+
+### `notifyAfter` is absent, never null
+
+The sweep selects on `where('notifyAfter', '<=', now)`, so the field's **presence** is the queue.
+When a batch is claimed the field is left off the document entirely.
+
+Writing `null` instead would be much worse than useless: Firestore orders null *below* every
+timestamp, so `notifyAfter <= now` matches it, and the sweep would pick up every lead it had ever
+sent, forever. `leadQueue.test.js` pins this directly.
 
 ### The order is the design
 
 `leadHandoff.js` exists so the order is testable rather than buried in `index.js`:
 
-1. **`confirmLead`** — a human pressed Send. That is true whether or not SendGrid was up, and the
-   daily report's SUBMITTED / unconfirmed split depends on it. It used to run *after* the send.
-2. **`claimLeadEmail`** — before the send, because a check made afterwards cannot catch a race.
-3. **`archiveForReview`** — still before the send; see § The review corpus is permanent.
+1. **`sessionsForContact`** — first, because it WIDENS everything after it: a contact-form
+   submission has no conversation of its own and the whole point is that the person's chat is
+   attached anyway.
+2. **`confirmLead`** on each of those sessions — a human pressed Send, which is true whether or
+   not SendGrid was up, and the daily report's SUBMITTED / unconfirmed split reads it.
+3. **`archiveForReview`** — last, and still before the send, because it copies transcripts that
+   are on a 90-day clock into a collection with none.
 4. The send.
 
-Nothing in steps 1–3 throws. A prospect lost to a bookkeeping error is the one outcome none of
-this machinery is worth.
+Nothing in 1–3 throws. A prospect lost to a bookkeeping error is the one outcome none of this
+machinery is worth.
 
-### What rides in the email
+**A failed send goes back on the queue**, in front of anything added since (it is older) and
+re-armed on a 5-minute retry rather than another full window. `sendPendingLeads` then throws, so
+the run is marked failed and visible. Dropping it silently would lose the prospect outright —
+this is the only path a lead has to a human.
 
-`transcript.js` renders the stored conversation inline **and** attaches it as
-`sol-conversation-<sessionId>.md`. Both, not either: the inline copy is the one anyone reads, and
-the attachment is the one that survives the email and pastes into a prompt months later — which
-is why the markdown repeats the lead's name and page instead of assuming the covering email is
-still to hand.
+### What the one email carries
 
-The transcript comes from `chatSessions/{sessionId}` via `loadTranscript()`, never from the
-browser: the client replays only a 20-message window and the stored document is the sole place
-the whole conversation exists. A form lead has no transcript and no token, so it gets neither
-section — the code branches on `transcript?.messages?.length`, not on the inquiry type.
+- **The contact**, merged: the latest non-empty value for each field, and the **union** of every
+  inquiry type across both forms.
+- **Each submission separately**, labelled with its source and time. Collapsing a chat card and a
+  contact form into one blob loses which came from where, and they are two different things the
+  person said.
+- **Every conversation**, inline and as ONE markdown attachment. An attachment per chat is a
+  filing problem, not a help. Capped at the 4 most recent: a person with more than that is a
+  returning visitor, not a lead.
+- **The review CTA**, whose stars score `overall` in one click.
 
-Every line of it is escaped. § Lead email escaping applies with more force here than to the lead
-fields: a transcript is *entirely* visitor-authored.
+The heading and subject say which forms were used — `New Lead (Sol chat + contact form)` is one
+lead that says it did both. Every interpolation is escaped; § Lead email escaping applies with
+more force to a transcript than to a lead field, because a transcript is *entirely*
+visitor-authored.
+
+**No auto-reply goes to a team address.** `isTeamAddress()` suppresses it, so a lead we submit
+ourselves while testing arrives once. A real visitor still gets exactly one confirmation,
+however many times they submitted.
 
 ## The review corpus is permanent
 
-*Added 2026-09-19.* `solReviews/{sessionId}` plus `solReviewTokens/{token}`. The same reasoning
-as § The lead record is not the transcript, one step further:
+*Added 2026-09-19.* `solReviews/{reviewId}` plus `solReviewTokens/{token}`, where `reviewId` is
+`{contactKey}_{n}` — **one review per email sent**, so a person who comes back next month gets a
+second review rather than overwriting the first. Same reasoning as § The lead record is not the
+transcript, one step further:
 
 | | `chatSessions` | `chatLeads` | `solReviews` |
 |---|---|---|---|
@@ -88,37 +144,52 @@ as § The lead record is not the transcript, one step further:
 | Retention | 90-day TTL | None | **None** |
 | Written | every turn | on extraction | once per lead email, once per review |
 
-**The conversation is copied when the EMAIL is sent, not when the review is filed.** That is the
-load-bearing decision. A review filed on day 91 would otherwise have nothing left to attach
-itself to, because the TTL would have taken the transcript. Archiving up front costs one write
-per lead and makes the emailed link good forever.
+**The conversations are copied when the EMAIL is sent, not when the review is filed.** That is
+the load-bearing decision. A review filed on day 91 would otherwise have nothing left to attach
+itself to. Archiving up front costs one write per lead and makes the emailed link good forever.
 
 Do **not** add an `expiresAt` here, and do **not** add a `solReviews` fieldOverride to
-`firestore.indexes.json` — its absence *is* the policy, exactly as for `chatLeads`. A test
-asserts the archived document has no `expiresAt`, because that is the field that would silently
-undo the whole thing.
+`firestore.indexes.json` — its absence *is* the policy. A test asserts the archived document has
+no `expiresAt`, because that is the field that would silently undo the whole thing.
 
-**The token is the credential.** 144 bits from `crypto.randomBytes(18)`, base64url, living in its
-own collection so resolving a link is one read by id — no index, no scan. It only ever appeared
-in an email to two people, and the page reveals nothing its holder was not already sent. The
-endpoint sets `noindex`, `no-store` and `Referrer-Policy: no-referrer` so it cannot leak into a
-referrer or a search index.
+**The token is the credential.** 144 bits from `crypto.randomBytes(18)`, base64url, in its own
+collection so resolving a link is one read by id. It only ever appeared in an email to two
+people, and the page reveals nothing its holder was not already sent. The endpoint sets
+`noindex`, `no-store` and `Referrer-Policy: no-referrer` so it cannot leak into a referrer or a
+search index.
 
-**Answers are allow-listed and enum-checked**, exactly like `normalizeLead` — this form posts
-from the open internet, so an undeclared key (`__proto__` included) must not reach the document.
-The enums are closed on purpose: the corpus is only worth having if it can be filtered and, later,
-clustered, and a field holding whatever the reviewer typed can do neither.
+### Every question is 1-5, and 5 is always good
+
+*Stephen, 2026-09-19: "useful categories of questions with quick answers, 1-5 numbers or
+something, and a section for optional comments on all of them so we can get feedback with better
+context that will always be comparable. Maybe have fields like tone, knowledge."*
+
+`SCALES` is the fixed list — overall, knowledge, tone, listening, compliance, handoff, clarity,
+lead quality — each 1-5 with both ends labelled and its own comment box. Three rules hold the
+comparability the scores exist for:
+
+- **The set is fixed.** Adding a question changes what the corpus means, so it is a deliberate
+  edit, not a convenience. A test pins the list.
+- **Every scale runs the same way.** A page where compliance counts *down* while tone counts
+  *up* is the reliable way to get an average nobody can trust. `compliance: 5` means clean.
+- **Lead quality is excluded from the average.** It grades the prospect, not Sol; a junk lead is
+  not Sol failing. `SOL_SCALES` is the set that averages.
+
+A score at or below `WEAK_AT` (2) becomes an explicit `Avoid:` line in the prompt block, worded
+from the scale rather than from the reviewer, so a repeated complaint reads identically every
+time — a model generalises from one phrasing far better than from twelve paraphrases of it.
+
+Answers are allow-listed exactly like `normalizeLead`: this form posts from the open internet, so
+an undeclared key (`__proto__` included) must not reach the document. A one-click star scores
+`overall` alone and sets `status: 'rated'`, which must not read as a filled-in questionnaire when
+the corpus is filtered.
 
 `compliance` is not a style question. Kava is an ingestible and the no-health-claims rule is the
 one failure mode that costs more than a lost lead — see `../CLAUDE.md § persona.js is
-compliance-bearing`. It gets its own question, its own "quote the line" box, and a `violation`
-becomes an explicit `Avoid:` line in the generated prompt block.
+compliance-bearing`.
 
 **`training.promptBlock` is the deliverable** — markdown that concatenates into LIVEY's system
-instruction with no further shaping. It reads as a worked example rather than a database row,
-because that is the form a model learns from in context, and its `Avoid:` lines are derived
-mechanically from the enums so they read identically every time.
-
+instruction with no further shaping, reading as a worked example rather than a database row.
 `training.embeddingText` is the string a future embedding would be computed over, and
 `embedding` / `embeddingModel` / `embeddedAt` are reserved nulls. **kNN retrieval is investigated,
 not built** — Firestore's native vector search, the 2048-dimension ceiling that forces
