@@ -8,9 +8,15 @@
  *     into Mailchimp. Shared by the contact form function and the chat tool call.
  *     Owns the SendGrid and Mailchimp secret handles both functions must declare.
  *
+ *     A chat lead's team email is the ONLY email that conversation produces: it carries the
+ *     whole transcript inline, the same transcript as a markdown attachment, and the review CTA
+ *     that feeds functions/lib/solReviews.js. See CLAUDE.md § One lead, one email.
+ *
  * @See Also:
  *     functions/index.js
  *     functions/lib/chat.js
+ *     functions/lib/transcript.js
+ *     functions/lib/solReviews.js
  *
  * ---
  * @Copyright © 2026 Cannasol Technologies LLC. All Rights Reserved.
@@ -20,12 +26,25 @@
 const { defineSecret } = require('firebase-functions/params');
 const sgMail = require('@sendgrid/mail');
 const crypto = require('crypto');
+const { transcriptHtml, transcriptText, transcriptAttachment } = require('./transcript');
 
 const sendgridApiKey = defineSecret('SENDGRID_API_KEY');
 const mailchimpApiKey = defineSecret('MAILCHIMP_API_KEY');
 const mailchimpAudienceId = defineSecret('MAILCHIMP_AUDIENCE_ID');
 
 const CHAT_LEAD_TYPE = 'Sol Chat';
+
+const TEAM_RECIPIENTS = ['stephen.boyett@cannasolusa.com', 'josh.detzel@cannasolusa.com'];
+
+// Lowercased once so the auto-reply suppression below is a set lookup, not a scan.
+const TEAM_ADDRESSES = new Set(TEAM_RECIPIENTS.map((a) => a.toLowerCase()));
+
+/** Nobody needs "we received your message" for a lead they submitted themselves while testing. */
+const isTeamAddress = (address) => TEAM_ADDRESSES.has(String(address ?? '').trim().toLowerCase());
+
+// Rewritten in firebase.json to the `solReview` function, so the link in the email is a real
+// enjoynano.com URL rather than a cloudfunctions.net one. Overridable for a staging project.
+const REVIEW_URL_BASE = process.env.SOL_REVIEW_URL || 'https://enjoynano.com/sol-review';
 
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const PHONE_REGEX = /^[+()\-\s0-9]{7,20}$/;
@@ -152,8 +171,62 @@ async function addLeadToMailchimp({ email, name, phone, company, types, message 
   return { ok: true };
 }
 
-/** Emails the lead to the team plus an auto-reply to the visitor; throws only on SendGrid failure. */
-async function sendLead({ name, email, company, phone, types, message }) {
+/** The token is the only credential the review page has, so it travels in the query string. */
+function reviewUrl(token, params = {}) {
+  const query = new URLSearchParams({ token, ...params }).toString();
+  return `${REVIEW_URL_BASE}?${query}`;
+}
+
+/**
+ * The CTA. A rating is one click straight from the inbox — the star links record it and land on
+ * the questionnaire prefilled — because one number on every lead beats a long form on none.
+ * See docs/sol-review-loop.md § Why the stars are links.
+ */
+function reviewCtaHtml(token) {
+  const stars = [1, 2, 3, 4, 5].map((n) => `
+              <a href="${escapeHtml(reviewUrl(token, { rating: String(n) }))}"
+                 style="display:inline-block;width:38px;text-align:center;padding:9px 0;margin-right:6px;border-radius:8px;background:#ffffff;border:1px solid #99f6e4;color:#0f766e;font-weight:700;font-size:15px;text-decoration:none;">${n}</a>`).join('');
+
+  return `
+          <div style="margin:24px 0;padding:18px 20px;background:#f0fdfa;border:1px solid #99f6e4;border-radius:10px;">
+            <p style="margin:0 0 4px;font-size:14px;font-weight:700;color:#0f766e;">How did Sol do on this one?</p>
+            <p style="margin:0 0 12px;font-size:13px;color:#115e59;">
+              Tap a score &mdash; 1 poor, 5 excellent. It saves on the tap and opens the full review,
+              which becomes training material for LIVEY.
+            </p>
+            <div style="margin-bottom:12px;">${stars}</div>
+            <a href="${escapeHtml(reviewUrl(token))}"
+               style="display:inline-block;padding:11px 20px;border-radius:8px;background:#0d9488;color:#ffffff;font-weight:700;font-size:13px;text-decoration:none;">
+              Review this conversation &rarr;
+            </a>
+          </div>`;
+}
+
+const reviewCtaText = (token) =>
+  `\nHow did Sol do? Score it and leave notes — it becomes training material for LIVEY:\n`
+  + `${reviewUrl(token)}\n`;
+
+/** The conversation, inline. The same transcript also rides along as a markdown attachment. */
+function transcriptSectionHtml(transcript) {
+  const count = Array.isArray(transcript?.messages) ? transcript.messages.length : 0;
+  return `
+            <div style="margin:20px 0;">
+              <h3 style="color:#374151;margin:0 0 8px;font-size:15px;">
+                The conversation
+                <span style="font-weight:400;color:#6b7280;font-size:13px;">
+                  &middot; ${count} message${count === 1 ? '' : 's'} &middot; also attached as markdown
+                </span>
+              </h3>
+              ${transcriptHtml(transcript?.messages)}
+            </div>`;
+}
+
+/**
+ * Emails the lead to the team plus, for a visitor who is not one of us, an auto-reply. A chat
+ * lead's `transcript` and `reviewToken` turn the team email into the single email that
+ * conversation produces. Throws only on SendGrid failure.
+ */
+async function sendLead({ name, email, company, phone, types, message, transcript = null, reviewToken = null }) {
   sgMail.setApiKey(sendgridApiKey.value());
 
   const inquiryBadges = types.length > 0
@@ -177,14 +250,25 @@ async function sendLead({ name, email, company, phone, types, message }) {
     ? 'This lead came from a conversation with Sol, the chat concierge on the Cannasol Nano Kava landing page.'
     : 'This email was sent from the Cannasol Nano Kava landing page contact form.';
 
+  // Both are empty for a form lead, which has no conversation and nothing to review.
+  const hasTranscript = Array.isArray(transcript?.messages) && transcript.messages.length > 0;
+  const transcriptSection = hasTranscript ? transcriptSectionHtml(transcript) : '';
+  const transcriptLines = hasTranscript
+    ? `\nThe conversation:\n${transcriptText(transcript.messages)}\n`
+    : '';
+  const ctaSection = reviewToken ? reviewCtaHtml(reviewToken) : '';
+  const ctaLines = reviewToken ? reviewCtaText(reviewToken) : '';
+  const attachments = hasTranscript ? [transcriptAttachment(transcript)] : [];
+
   // Email to your team
   const emailToTeam = {
-    to: ['stephen.boyett@cannasolusa.com', 'josh.detzel@cannasolusa.com'],
+    to: TEAM_RECIPIENTS,
     from: {
       email: 'do-not-reply@enjoynano.com', // Must be verified in SendGrid
       name: 'EnjoyNano - Kava Landing Page'
     },
     ...(email ? { replyTo: email } : {}),
+    ...(attachments.length ? { attachments } : {}),
     subject,
     text: `
 ${heading}
@@ -197,7 +281,7 @@ Inquiry Type: ${types.length > 0 ? types.join(', ') : 'General'}
 
 Message:
 ${message}
-
+${transcriptLines}${ctaLines}
 ---
 ${footerLine}
         `,
@@ -221,7 +305,7 @@ ${footerLine}
 ${escapeHtml(message)}
               </p>
             </div>
-
+${transcriptSection}${ctaSection}
             <hr style="border: none; border-top: 1px solid #e5e7eb; margin: 30px 0;">
 
             <p style="color: #6b7280; font-size: 12px; text-align: center;">
@@ -231,8 +315,9 @@ ${escapeHtml(message)}
         `,
   };
 
-  // Auto-reply confirmation to customer.
-  // Sent from a do-not-reply address, so direct replies to Josh.
+  // Auto-reply confirmation to customer. Sent from a do-not-reply address, so direct replies
+  // to Josh — and skipped entirely when the "customer" is one of us, which is what made a test
+  // lead arrive twice. See CLAUDE.md § One lead, one email.
   const autoReplyToCustomer = {
     to: email,
     from: {
@@ -292,15 +377,19 @@ This is an automated confirmation email. Please do not reply to this message.
 
   // Primary path — its success determines the caller's response.
   const sends = [sgMail.send(emailToTeam)];
-  if (email) sends.push(sgMail.send(autoReplyToCustomer));
+  if (email && !isTeamAddress(email)) sends.push(sgMail.send(autoReplyToCustomer));
   await Promise.all(sends);
-  return { mailchimpOk };
+  return { mailchimpOk, autoReplied: sends.length > 1 };
 }
 
 module.exports = {
   sendgridApiKey,
   mailchimpApiKey,
   mailchimpAudienceId,
+  TEAM_RECIPIENTS,
+  REVIEW_URL_BASE,
+  isTeamAddress,
+  reviewUrl,
   validateLead,
   teamSubject,
   sendLead,

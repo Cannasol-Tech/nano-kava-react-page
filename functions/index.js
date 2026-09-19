@@ -5,14 +5,16 @@
  * @description:
  *     Cloud Function entry points for the Nano Kava site. `sendContactEmail` is
  *     the 1st-gen contact form handler; `chat` is the 2nd-gen SSE endpoint for the
- *     Sol concierge. Both are thin transports — lead capture lives in lib/leads.js
- *     and the streaming chat core in lib/chat.js. `chat` also files each turn to Firestore
- *     through lib/chatStore.js. See CLAUDE.md for why the generations differ.
+ *     Sol concierge; `solReview` serves the questionnaire that lead email links to. All are
+ *     thin transports — lead capture lives in lib/leads.js, the streaming chat core in
+ *     lib/chat.js, and the permanent review corpus in lib/solReviews.js. `chat` also files each
+ *     turn to Firestore through lib/chatStore.js. See CLAUDE.md for why the generations differ.
  *
  * @See Also:
  *     functions/lib/leads.js
  *     functions/lib/chat.js
  *     functions/lib/chatStore.js
+ *     functions/lib/solReviews.js
  *
  * ---
  * @Copyright © 2026 Cannasol Technologies LLC. All Rights Reserved.
@@ -34,8 +36,11 @@ const {
 } = require('./lib/leads');
 const { streamChat, validateChatRequest, rateLimit } = require('./lib/chat');
 const { persistTranscript, createTranscriptRecorder } = require('./lib/chatStore');
-const { persistLead, confirmLead } = require('./lib/chatLeads');
+const { persistLead } = require('./lib/chatLeads');
+const { prepareChatLead, abandonChatLead } = require('./lib/leadHandoff');
 const { collectReport, sendDailyReport } = require('./lib/dailyReport');
+const { resolveReviewToken, loadReview, saveReview, recordRating } = require('./lib/solReviews');
+const { renderForm, renderSaved, renderProblem } = require('./lib/reviewForm');
 
 const googleAiApiKey = defineSecret('GOOGLE_AI_API_KEY');
 
@@ -64,10 +69,25 @@ exports.sendContactEmail = functions
         ? inquiryType.split(',').map(t => t.trim()).filter(Boolean)
         : [];
 
-      const { mailchimpOk } = await sendLead({ name, email, company, phone, types, message });
+      // Only chat leads carry a sessionId; the contact form sends none and skips all of this.
+      const chatLead = sessionId ? await prepareChatLead({ sessionId }) : null;
+      if (chatLead?.alreadyEmailed) {
+        console.info('[lead] already emailed this session; not sending a second time');
+        return res.status(200).json({ success: true, message: 'Already sent', duplicate: true });
+      }
 
-      // Only chat leads carry a sessionId; the contact form sends none and skips this quietly.
-      if (sessionId) await confirmLead({ sessionId });
+      let mailchimpOk = false;
+      try {
+        ({ mailchimpOk } = await sendLead({
+          name, email, company, phone, types, message,
+          transcript: chatLead?.transcript || null,
+          reviewToken: chatLead?.reviewToken || null,
+        }));
+      } catch (sendError) {
+        // Give the claim back, or the visitor's retry would be swallowed as a duplicate.
+        if (sessionId) await abandonChatLead({ sessionId });
+        throw sendError;
+      }
 
       return res.status(200).json({
         success: true,
@@ -160,6 +180,78 @@ exports.chat = onRequest(
     return res.end();
   }
 );
+
+
+/**
+ * The questionnaire the lead email links to. 1st gen on purpose: hosting can rewrite
+ * /sol-review straight onto a 1st-gen function by name, which is what keeps the link in the
+ * email an enjoynano.com URL. It is also why this must not be "modernized" to gen2 — see
+ * CLAUDE.md § Why chat is gen2 and sendContactEmail is not.
+ *
+ * The token IS the credential. It is 144 bits of randomness that only ever appeared in an email
+ * to two people, so there is nothing further to authenticate against — and nothing here reveals
+ * anything a holder of that link was not already sent.
+ */
+exports.solReview = functions.https.onRequest(async (req, res) => {
+  // A private, token-addressed page: never indexed, never cached, and no token in a referrer.
+  // No CORS wrapper either — this is a top-level navigation and a same-origin form post, so an
+  // Access-Control-Allow-Origin header would only widen what a leaked token is worth.
+  res.set('X-Robots-Tag', 'noindex, nofollow');
+  res.set('Cache-Control', 'no-store');
+  res.set('Referrer-Policy', 'no-referrer');
+  res.set('Content-Type', 'text/html; charset=utf-8');
+
+  const problem = (status, message) => res.status(status).send(renderProblem(message));
+
+  if (req.method !== 'GET' && req.method !== 'POST') {
+    return problem(405, 'That method is not supported here.');
+  }
+
+  try {
+    const token = String(req.query?.token || req.body?.token || '');
+    const resolved = await resolveReviewToken({ token });
+    if (!resolved.ok) {
+      return problem(
+        resolved.reason === 'read-failed' ? 500 : 404,
+        'This review link is not one we recognise. It may have been mistyped, or truncated by '
+        + 'an email client — try copying the whole URL out of the message.',
+      );
+    }
+
+    const { sessionId } = resolved;
+
+    if (req.method === 'POST') {
+      const saved = await saveReview({ sessionId, answers: req.body || {} });
+      if (!saved.ok) {
+        const record = await loadReview({ sessionId });
+        return res.status(saved.reason === 'empty-review' ? 400 : 500).send(renderForm({
+          record: record.ok ? record.review : null,
+          token,
+          error: saved.reason === 'empty-review'
+            ? 'Nothing was filled in — give it a score at least, and it will save.'
+            : 'Something went wrong saving that. Try once more.',
+        }));
+      }
+      console.info(`[solReview] review saved for ${sessionId}`);
+      return res.status(200).send(renderSaved({ rating: Number(req.body?.rating) || null }));
+    }
+
+    // A star tapped straight from the inbox. Recorded before the form renders, so one click is
+    // enough even if they never scroll — see docs/sol-review-loop.md § Why the stars are links.
+    if (req.query?.rating) {
+      const rated = await recordRating({ sessionId, rating: req.query.rating });
+      if (rated.ok) console.info(`[solReview] one-click rating for ${sessionId}`);
+    }
+
+    const record = await loadReview({ sessionId });
+    if (!record.ok) return problem(404, 'That conversation is no longer on file.');
+
+    return res.status(200).send(renderForm({ record: record.review, token }));
+  } catch (error) {
+    console.error('[solReview] request failed:', error);
+    return problem(500, 'Something went wrong on our end. Try the link again shortly.');
+  }
+});
 
 
 /**

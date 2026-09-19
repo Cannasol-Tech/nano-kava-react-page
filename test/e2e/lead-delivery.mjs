@@ -9,6 +9,10 @@
  *     reaches a terminal state, and fails on anything but delivered. Sends real mail to the
  *     team — run deliberately, never in CI.
  *
+ *     It also pins the half that is easiest to get wrong from the outside: a lead submitted with
+ *     a TEAM address gets the notification and NOTHING else. That auto-reply-to-self is what made
+ *     every test lead arrive twice — see docs/sol-review-loop.md § One lead, one email.
+ *
  * @See Also:
  *     functions/lib/leads.js
  *     functions/test/leadDelivery.test.js
@@ -27,8 +31,11 @@ const ENDPOINT = process.env.LEAD_ENDPOINT
   || 'https://us-central1-nano-kava-landing-page.cloudfunctions.net/sendContactEmail';
 const PROJECT = process.env.GCP_PROJECT || 'nano-kava-landing-page';
 const TEAM = ['stephen.boyett@cannasolusa.com', 'josh.detzel@cannasolusa.com'];
-// Where the auto-reply goes. Override to keep a real inbox out of it.
+// Where the auto-reply would go. The default is a team address ON PURPOSE: that is the case the
+// suppression exists for, and it keeps a stranger's inbox out of a test run. Set LEAD_TEST_EMAIL
+// to an address outside the team to exercise the auto-reply itself.
 const VISITOR = process.env.LEAD_TEST_EMAIL || 'stephen.boyett@cannasolusa.com';
+const VISITOR_IS_TEAM = TEAM.map((a) => a.toLowerCase()).includes(VISITOR.toLowerCase());
 
 const POLL_ATTEMPTS = 20;
 const POLL_INTERVAL_MS = 6000;
@@ -103,9 +110,10 @@ async function main() {
 
   console.log(`\n[2] SendGrid actually delivered it (polling up to ${(POLL_ATTEMPTS * POLL_INTERVAL_MS) / 1000}s)`);
   const expected = [...new Set([...TEAM, VISITOR])];
-  // One notification row per team address plus the visitor's auto-reply. Counting *recipients*
-  // stopped the poll as soon as the team rows landed, and the auto-reply appears a beat later.
-  const expectedRows = TEAM.length + 1;
+  // One notification row per team address, plus the auto-reply when the visitor is not one of us.
+  // Counting *recipients* stopped the poll as soon as the team rows landed, and the auto-reply
+  // appears a beat later.
+  const expectedRows = TEAM.length + (VISITOR_IS_TEAM ? 0 : 1);
   const isTeamRow = (m) => TEAM.includes(m.to_email) && /Chat Lead|Contact Form/.test(m.subject);
   const isAutoReply = (m) => m.to_email === VISITOR && /We received your message/.test(m.subject);
 
@@ -136,8 +144,18 @@ async function main() {
     teamMail.map((m) => `${m.to_email}: ${m.status}`).join(' | ') || 'none found');
 
   const autoReply = messages.find(isAutoReply);
-  check('the visitor got the auto-reply', Boolean(autoReply) && autoReply.status === 'delivered',
-    autoReply ? autoReply.status : 'no auto-reply row');
+  if (VISITOR_IS_TEAM) {
+    // The whole point of the suppression: one lead, one email. A second row here is the
+    // regression Stephen reported as "TWO emails from Sol every time".
+    check('no auto-reply is sent to a team address', !autoReply,
+      autoReply ? `${autoReply.to_email}: ${autoReply.subject}` : '');
+    check('the team got exactly one message each',
+      teamMail.length === new Set(teamMail.map((m) => m.to_email)).size,
+      teamMail.map((m) => `${m.to_email}: ${m.subject}`).join(' | '));
+  } else {
+    check('the visitor got the auto-reply', Boolean(autoReply) && autoReply.status === 'delivered',
+      autoReply ? autoReply.status : 'no auto-reply row');
+  }
 
   console.log('\n[3] Nothing is silently suppressed');
   for (const recipient of expected) {

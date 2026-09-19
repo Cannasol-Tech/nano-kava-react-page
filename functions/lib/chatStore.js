@@ -132,6 +132,33 @@ async function persistTranscript({
 }
 
 /**
+ * Reads a stored conversation back. The lead email needs the whole thing, and the browser only
+ * ever replays a 20-message window — this document is the only place the full transcript lives.
+ * Never throws: a lead must still be emailed when its transcript cannot be read.
+ */
+async function loadTranscript({ db = chatDb(), sessionId }) {
+  if (!isValidSessionId(sessionId)) return { ok: false, reason: 'invalid-session-id' };
+  try {
+    const snapshot = await db.collection(COLLECTION).doc(sessionId).get();
+    if (!snapshot.exists) return { ok: false, reason: 'not-found' };
+    const data = snapshot.data() || {};
+    return {
+      ok: true,
+      transcript: {
+        sessionId,
+        messages: Array.isArray(data.messages) ? data.messages : [],
+        page: data.page || null,
+        startedAt: data.createdAt || null,
+        usage: data.usage || null,
+      },
+    };
+  } catch (error) {
+    console.error('[chatStore] failed to read transcript:', error.message);
+    return { ok: false, reason: 'read-failed' };
+  }
+}
+
+/**
  * Wraps the SSE sink so the turn's spoken text can be stored without `streamChat` knowing a
  * database exists. Text frames are the only ones that make it into a transcript.
  */
@@ -166,6 +193,7 @@ module.exports = {
   capTurns,
   expiresAtFrom,
   persistTranscript,
+  loadTranscript,
   createTranscriptRecorder,
   chatDb,
 };

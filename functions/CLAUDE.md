@@ -1,15 +1,16 @@
 # functions/ — Cloud Functions for the Nano Kava site
 
-Three entry points in `index.js`, all thin transports:
+Four entry points in `index.js`, all thin transports:
 
 *Corrected 2026-08-26: this read "Two entry points" and listed `sendChatDigest` below. That
 endpoint was **removed** — see `lib/CLAUDE.md § Conversation digests — RETIRED` — and the
-scheduled `dailyChatReport` replaced it.*
+scheduled `dailyChatReport` replaced it. `solReview` made it four on 2026-09-19.*
 
 | Export | Gen | Owns | Core logic |
 |---|---|---|---|
-| `sendContactEmail` | 1st | `/contact` form POSTs, and confirming a chat lead | `lib/leads.js`, `lib/chatLeads.js` |
+| `sendContactEmail` | 1st | `/contact` form POSTs, and the one email a chat lead sends | `lib/leads.js`, `lib/leadHandoff.js` |
 | `chat` | 2nd | SSE stream for Sol; files each turn and any extracted lead to Firestore | `lib/chat.js`, `lib/chatStore.js`, `lib/chatLeads.js` |
+| `solReview` | 1st | The questionnaire the lead email links to | `lib/solReviews.js`, `lib/reviewForm.js` |
 | `dailyChatReport` | 2nd | **Scheduled** 08:00 America/New_York — the daily review email | `lib/dailyReport.js` |
 
 The entry points are thin because `lib/` is transport-agnostic — the Vite dev middleware in
@@ -32,6 +33,12 @@ Long-form reasoning for the core modules lives one level down, in `lib/CLAUDE.md
 | The lead record is not the transcript | `chatLeads`, why it has no TTL, what `confirmed` means |
 | The daily report replaced the digest | The schedule, the retry, and why it sends on silent days |
 | Conversation digests — RETIRED | What the old per-conversation email did, and why it is gone |
+| One lead, one email | The claim, the auto-reply suppression, and what the transcript rides in |
+| The review corpus is permanent | `solReviews`, the token, and the prompt block it renders |
+
+The review loop has its own document — `docs/sol-review-loop.md` — because it spans the email,
+two new collections, an HTML form and a deliberately-unbuilt vector search. Read it before
+touching `solReviews.js`, `reviewForm.js` or `leadHandoff.js`.
 
 
 ## Why chat is gen2 and sendContactEmail is not
@@ -43,6 +50,12 @@ passes writes through, which is the whole reason for the split.
 `sendContactEmail` stays 1st gen: it has no streaming need, and migrating it would change its
 deployed URL, which the live contact form is hard-coded against. Do not "modernize" it for
 consistency — the cost is a broken form and the benefit is nil.
+
+**`solReview` is 1st gen for a different reason.** Firebase Hosting rewrites onto a 1st-gen
+function *by name* (`{"source": "/sol-review", "function": "solReview"}`), which is what keeps the
+link in every lead email an `enjoynano.com` URL rather than a `cloudfunctions.net` one. A gen2
+rewrite needs a `run.serviceId` and the service name is not the export name. Same rule, different
+trap: leave it alone.
 
 Consequence to remember: the two generations declare secrets differently
 (`.runWith({ secrets })` vs the `secrets:` array in `onRequest` options). Only `sendContactEmail`
@@ -115,3 +128,14 @@ while clicking around a dev server.
 Consequence: **local testing cannot verify real delivery.** The terminal block shows what Josh
 would have received; confirming he actually receives it, that the auto-reply lands, and that
 Mailchimp captured the lead all require a deploy.
+
+### `/sol-review` runs locally, against memory
+
+The one thing the dry run does **not** skip is the permanent copy: it archives the conversation
+into an in-memory store (`memoryDb()` in `vite.config.js`) and prints a clickable
+`http://localhost:3000/sol-review?token=…` link. The form, the validation and the stored document
+shape are the ones that ship — only the database is local, and it dies with the dev server.
+
+That covers the half a local click can actually exercise. The other half — that the archive
+survives the 90-day TTL on a real Firestore — is `make test-review-loop` against the deployed
+functions.
