@@ -217,8 +217,8 @@ function reviewCtaHtml(token) {
             <p style="margin:0 0 4px;font-size:14px;font-weight:700;color:#0f766e;">How did Sol do on this one?</p>
             <p style="margin:0 0 12px;font-size:13px;color:#115e59;">
               Tap an overall score &mdash; 1 poor, 5 excellent. It saves on the tap and opens the
-              full review: tone, knowledge, compliance and the rest, each scored 1&ndash;5 with a
-              box for why. It all becomes training material for LIVEY.
+              short review: knowledge, tone and handoff, four taps in all. It becomes training
+              material for LIVEY.
             </p>
             <div style="margin-bottom:12px;">${stars}</div>
             <a href="${escapeHtml(reviewUrl(token))}"
@@ -229,7 +229,7 @@ function reviewCtaHtml(token) {
 }
 
 const reviewCtaText = (token) =>
-  `\nHow did Sol do? Score tone, knowledge, compliance and the rest 1-5 — it becomes training\n`
+  `\nHow did Sol do? Four taps — overall, knowledge, tone, handoff. It becomes training\n`
   + `material for LIVEY:\n${reviewUrl(token)}\n`;
 
 const SOURCE_LABEL = { chat: 'Sol chat card', form: 'Contact form' };

@@ -6,8 +6,8 @@
  *     The permanent half of the feedback loop: that a lead's conversations are copied out from
  *     under the 90-day TTL, that a scored review attaches to that copy, and that what comes out
  *     the other end is a prompt block LIVEY could be handed as-is. Also pins the scoring rules
- *     that make a month of reviews comparable — one direction, a fixed set of questions, and an
- *     average that excludes the question about the prospect rather than Sol.
+ *     that make a month of reviews comparable — a fixed set of four questions, all running the
+ *     same direction, plus the two things that are flags rather than scores.
  *
  * @See Also:
  *     functions/lib/solReviews.js
@@ -23,7 +23,7 @@ import {
   REVIEWS_COLLECTION,
   TOKENS_COLLECTION,
   SCALES,
-  SOL_SCALES,
+  FLAGS,
   normalizeReview,
   hasSubstance,
   verdictFor,
@@ -90,11 +90,13 @@ const archive = (db, overrides = {}) => archiveForReview({
 });
 
 describe('the scoring rules', () => {
-  it('asks the same fixed set of questions every time', () => {
-    // Comparability is the whole point: a question added here changes what the corpus means.
-    expect(SCALES.map((s) => s.key)).toEqual([
-      'overall', 'knowledge', 'tone', 'listening', 'compliance', 'handoff', 'clarity', 'leadQuality',
-    ]);
+  /**
+   * Four, and that is the point. The first cut asked eight with eight comment boxes and Stephen
+   * called it "TOO much"; a question added back here is a deliberate trade against a form
+   * getting finished, not a free improvement.
+   */
+  it('asks the same fixed four questions every time', () => {
+    expect(SCALES.map((s) => s.key)).toEqual(['overall', 'knowledge', 'tone', 'handoff']);
   });
 
   it('runs every scale in the same direction, so 5 is always good', () => {
@@ -102,21 +104,24 @@ describe('the scoring rules', () => {
       expect(scale.low, `${scale.key} has no low label`).toBeTruthy();
       expect(scale.high, `${scale.key} has no high label`).toBeTruthy();
     }
-    // Compliance is the one most likely to get flipped by a well-meaning edit.
-    const compliance = SCALES.find((s) => s.key === 'compliance');
-    expect(compliance.high).toBe('clean');
   });
 
-  it('keeps lead quality out of the average — a junk lead is not Sol failing', () => {
-    expect(SOL_SCALES.map((s) => s.key)).not.toContain('leadQuality');
-
-    const scores = { overall: 4, knowledge: 4, leadQuality: 1 };
-    expect(averageOf(scores)).toBe(4);
+  it('keeps the two yes-or-no questions as flags, not scores', () => {
+    // "Did it make a health claim" scored 3 says nothing anybody can act on.
+    expect(FLAGS.map((f) => f.key)).toEqual(['compliance', 'junkLead']);
+    expect(SCALES.map((s) => s.key)).not.toContain('compliance');
+    expect(SCALES.map((s) => s.key)).not.toContain('leadQuality');
   });
 
   it('averages only the questions that were actually answered', () => {
     expect(averageOf({ overall: 2, knowledge: 4 })).toBe(3);
     expect(averageOf({ overall: null, knowledge: null })).toBeNull();
+  });
+
+  it('keeps a junk lead out of Sol\'s score entirely', () => {
+    const review = normalizeReview({ overall: 4, knowledge: 4, junkLead: '1' });
+    expect(review.flags.junkLead).toBe(true);
+    expect(review.average).toBe(4);
   });
 
   it('reads the verdict off overall, falling back to the average', () => {
@@ -126,21 +131,37 @@ describe('the scoring rules', () => {
     expect(verdictFor({ overall: null, knowledge: 2, tone: 2 })).toBe('bad');
     expect(verdictFor({})).toBeNull();
   });
+
+  it('never calls a compliance-flagged conversation good, however it was scored', () => {
+    // That block is exactly the one a model would copy from.
+    expect(verdictFor({ overall: 5 }, { compliance: true })).toBe('mixed');
+    expect(verdictFor({ overall: 1 }, { compliance: true })).toBe('bad');
+    expect(verdictFor({}, { compliance: true })).toBe('mixed');
+
+    const review = normalizeReview({ overall: 5, compliance: '1' });
+    expect(review.verdict).toBe('mixed');
+  });
 });
 
 describe('normalizeReview', () => {
   it('keeps a score with its comment and drops everything undeclared', () => {
     const review = normalizeReview({
       overall: '2', tone: '1', toneComment: '  Too salesy.  ',
-      tags: ['compliance', 'nonsense'], isAdmin: true, __proto__: { x: 1 },
+      isAdmin: true, __proto__: { x: 1 },
     });
 
     expect(review.scores.overall).toBe(2);
     expect(review.scores.tone).toBe(1);
     expect(review.comments.tone).toBe('Too salesy.');
-    expect(review.tags).toEqual(['compliance']);
     expect(review.isAdmin).toBeUndefined();
     expect(review.x).toBeUndefined();
+  });
+
+  it('reads an unticked checkbox as false rather than unknown', () => {
+    // An unticked box posts nothing at all, which is the only signal there is.
+    const review = normalizeReview({ overall: 4 });
+    expect(review.flags).toEqual({ compliance: false, junkLead: false });
+    expect(normalizeReview({ compliance: 'on' }).flags.compliance).toBe(true);
   });
 
   it('refuses a score off the scale', () => {
@@ -162,15 +183,16 @@ describe('normalizeReview', () => {
 
   it('clips a comment somebody pasted a novel into', () => {
     expect(normalizeReview({ toneComment: 'x'.repeat(99999) }).comments.tone).toHaveLength(4000);
-    expect(normalizeReview({ idealReply: 'x'.repeat(99999) }).idealReply).toHaveLength(4000);
+    expect(normalizeReview({ doDifferently: 'x'.repeat(99999) }).doDifferently).toHaveLength(4000);
   });
 
   it('knows an empty form from a real one', () => {
     expect(hasSubstance(normalizeReview({}))).toBe(false);
     expect(hasSubstance(normalizeReview({ reviewer: 'Stephen' }))).toBe(false);
     expect(hasSubstance(normalizeReview({ overall: 3 }))).toBe(true);
-    // A comment with no score is still feedback.
+    // A comment with no score is still feedback, and so is a flag on its own.
     expect(hasSubstance(normalizeReview({ toneComment: 'too pushy' }))).toBe(true);
+    expect(hasSubstance(normalizeReview({ compliance: '1' }))).toBe(true);
     expect(hasSubstance(normalizeReview({ doDifferently: 'be shorter' }))).toBe(true);
   });
 });
@@ -254,12 +276,9 @@ describe('filing a review', () => {
       db,
       reviewId: REVIEW_ID,
       answers: {
-        overall: 2, knowledge: 4, tone: 2, toneComment: 'Read like a brochure.',
-        listening: 2, compliance: 2, complianceComment: 'Nearly answered the sleep question.',
-        handoff: 3, clarity: 4, leadQuality: 5,
-        tags: ['compliance', 'dosing'],
+        overall: 2, knowledge: 4, tone: 2, toneComment: 'Read like a brochure.', handoff: 1,
+        compliance: '1', complianceNote: 'Nearly answered the sleep question.',
         doDifferently: 'Decline the effects question, then pivot to format.',
-        idealReply: "I can't speak to effects — but for a seltzer, 30 mg/mL goes in clear.",
         reviewer: 'Stephen',
       },
       now: LATER,
@@ -270,7 +289,9 @@ describe('filing a review', () => {
     expect(doc.status).toBe('reviewed');
     expect(doc.reviewedAt).toEqual(LATER);
     expect(doc.review.verdict).toBe('bad');
-    expect(doc.review.average).toBeCloseTo(2.71, 2);
+    expect(doc.review.average).toBeCloseTo(2.25, 2);
+    expect(doc.review.flags.compliance).toBe(true);
+    expect(doc.review.complianceNote).toBe('Nearly answered the sleep question.');
     // Still the archived conversation, not a second copy of it.
     expect(doc.conversations[0].messages).toEqual(MESSAGES);
     expect(doc.training.conversations[0].messages).toEqual(MESSAGES);
@@ -284,10 +305,9 @@ describe('filing a review', () => {
       db,
       reviewId: REVIEW_ID,
       answers: {
-        overall: 2, tone: 1, toneComment: 'Read like a brochure.', compliance: 1, handoff: 2,
-        idealReply: 'Decline the effects question, then ask about format.',
+        overall: 2, tone: 1, toneComment: 'Read like a brochure.', handoff: 2,
+        compliance: '1', complianceNote: 'Said it would help them sleep.',
         doDifferently: 'Stop selling once they ask a health question.',
-        tags: ['compliance'],
       },
       now: LATER,
     });
@@ -296,28 +316,38 @@ describe('filing a review', () => {
     expect(promptBlock).toContain('2/5');
     expect(promptBlock).toContain('/mushrooms');
     expect(promptBlock).toContain('Tone: 1/5 — Read like a brochure.');
-    expect(promptBlock).toContain('Decline the effects question');
+    expect(promptBlock).toContain('Said it would help them sleep.');
     expect(promptBlock).toContain('Stop selling once they ask a health question.');
     expect(promptBlock).toContain('Health claims and personal dosing advice');
-    expect(promptBlock).toContain('Tags: compliance');
     // The transcript has to be IN the block, or the lesson has no situation attached to it.
     expect(promptBlock).toContain('Will it help me sleep?');
+  });
+
+  it('turns a compliance flag into an Avoid line even with no scores at all', () => {
+    const db = fakeDb();
+    return archive(db)
+      .then(() => saveReview({ db, reviewId: REVIEW_ID, answers: { compliance: '1' } }))
+      .then(() => {
+        const { avoid, promptBlock } = stored(db).training;
+        expect(avoid[0]).toContain('Health claims');
+        expect(promptBlock).toContain('Compliance');
+      });
   });
 
   it('turns a low score into an Avoid line, and leaves a good one alone', async () => {
     const db = fakeDb();
     await archive(db);
-    await saveReview({ db, reviewId: REVIEW_ID, answers: { clarity: 1, knowledge: 5 } });
+    await saveReview({ db, reviewId: REVIEW_ID, answers: { tone: 1, knowledge: 5 } });
 
     const { avoid } = stored(db).training;
-    expect(avoid.join(' ')).toContain('needed to be shorter');
+    expect(avoid.join(' ')).toContain('house voice');
     expect(avoid.join(' ')).not.toContain('knowledge base');
   });
 
   it('stores the text a future embedding would be computed over', async () => {
     const db = fakeDb();
     await archive(db);
-    await saveReview({ db, reviewId: REVIEW_ID, answers: { overall: 3, idealReply: 'Ask about format first.' } });
+    await saveReview({ db, reviewId: REVIEW_ID, answers: { overall: 3, doDifferently: 'Ask about format first.' } });
 
     const { embeddingText, embedding, embeddingModel } = stored(db).training;
     expect(embeddingText).toContain('Will it help me sleep?');
@@ -403,7 +433,7 @@ describe('buildTraining without a stored document', () => {
       reviewId: REVIEW_ID,
       contact: null,
       conversations: undefined,
-      review: normalizeReview({ overall: 1, clarity: 1 }),
+      review: normalizeReview({ overall: 1, tone: 1 }),
       recordedAt: NOW,
     });
 

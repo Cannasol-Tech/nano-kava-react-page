@@ -36,19 +36,21 @@ const RESERVED_ID_PATTERN = /^__.*__$/;
 
 const MAX_NOTE_CHARS = 4000;
 const MAX_SHORT_CHARS = 200;
-const MAX_TAGS = 12;
 
 /**
- * Every question is 1-5 and **5 is always good**, compliance included. A scale that flips
- * direction halfway down the page is the reliable way to get a corpus nobody can average.
+ * Four scores, and that is on purpose. The first cut of this form asked eight, each with its own
+ * comment box, and Stephen's verdict was "TOO much — we want it quick but useful". A form nobody
+ * finishes captures nothing, so listening, clarity and lead quality were cut: the overall score
+ * and the free-text box already carry what they were saying, and these four are what a reviewer
+ * can actually tell apart in twenty seconds on a phone.
  *
- * `aboutLead` marks the one question that grades the prospect rather than Sol; it is kept out of
- * the average for the same reason a junk lead is not Sol's fault.
+ * **Every scale is 1-5 and 5 is always good.** A page where one question counts down while the
+ * rest count up is the reliable way to get a corpus nobody can average.
  */
 const SCALES = [
   {
     key: 'overall', label: 'Overall',
-    question: 'Overall, how well did Sol handle this one?',
+    question: 'How well did Sol handle this one?',
     low: 'badly', high: 'excellently',
   },
   {
@@ -61,19 +63,7 @@ const SCALES = [
     key: 'tone', label: 'Tone',
     question: 'Did it sound like us?',
     low: 'off brand', high: 'sounded like us',
-    weakness: 'Drifting off the house voice — read the tone notes above.',
-  },
-  {
-    key: 'listening', label: 'Listening',
-    question: 'Did it answer what was actually asked?',
-    low: 'talked past them', high: 'answered it',
-    weakness: 'Answering the question you wanted rather than the one they asked.',
-  },
-  {
-    key: 'compliance', label: 'Compliance',
-    question: 'Did it stay clear of health claims and personal dosing advice?',
-    low: 'crossed the line', high: 'clean',
-    weakness: 'Health claims and personal dosing advice — kava is an ingestible.',
+    weakness: 'Drifting off the house voice — read the tone note above.',
   },
   {
     key: 'handoff', label: 'Handoff',
@@ -81,30 +71,38 @@ const SCALES = [
     low: 'badly timed', high: 'well judged',
     weakness: 'Raising the sample card at the wrong moment — too eager, or too late.',
   },
-  {
-    key: 'clarity', label: 'Clarity',
-    question: 'Was it easy to follow, and the right length?',
-    low: 'waffly', high: 'crisp',
-    weakness: 'Padding the reply — this one needed to be shorter and plainer.',
-  },
-  {
-    key: 'leadQuality', label: 'Lead quality',
-    question: 'Is this lead worth chasing?',
-    low: 'junk', high: 'real buyer',
-    aboutLead: true,
-  },
 ];
 
 const SCALE_KEYS = SCALES.map((s) => s.key);
-const SOL_SCALES = SCALES.filter((s) => !s.aboutLead);
+// Every scale grades Sol now that lead quality is a flag rather than a score, so all of them
+// average. Kept as its own export because the distinction is one edit away from mattering again.
+const SOL_SCALES = SCALES;
+
+/**
+ * The two things that are not really a 1-5. Compliance is the reason: "did it make a health
+ * claim" is a yes or a no, and scoring it 3 says nothing anybody can act on — kava is an
+ * ingestible and this is the one failure that costs more than a lost lead. A flag is also one
+ * tap instead of five, which is the whole point of the rewrite.
+ */
+const FLAGS = [
+  {
+    key: 'compliance',
+    label: 'Said something it shouldn\u2019t have',
+    hint: 'a health claim, or telling someone what to take',
+    note: true,
+    weakness: 'Health claims and personal dosing advice \u2014 kava is an ingestible.',
+  },
+  {
+    key: 'junkLead',
+    label: 'Not a real lead',
+    hint: 'so it does not count against Sol',
+  },
+];
+
+const FLAG_KEYS = FLAGS.map((f) => f.key);
 
 // A score at or below this is a complaint, and becomes an explicit Avoid line in the prompt.
 const WEAK_AT = 2;
-
-const TAGS = [
-  'pricing', 'particle-size', 'dosing', 'compliance', 'samples', 'moq', 'timeline',
-  'shipping', 'formulation', 'taste', 'competitors', 'off-topic',
-];
 
 const clip = (value, max) => String(value ?? '').trim().slice(0, max);
 
@@ -130,13 +128,18 @@ function averageOf(scores) {
   return Math.round((given.reduce((a, b) => a + b, 0) / given.length) * 100) / 100;
 }
 
-/** Overall when it was answered, otherwise the average of whatever was. */
-function verdictFor(scores) {
+/**
+ * Overall when it was answered, otherwise the average of whatever was.
+ *
+ * A compliance flag caps it at `mixed` however well the reviewer scored the rest. A conversation
+ * that made a health claim must never head a training block as an example of Sol doing well —
+ * that is precisely the block a model would copy from.
+ */
+function verdictFor(scores, flags) {
   const basis = scores.overall ?? averageOf(scores);
-  if (basis === null || basis === undefined) return null;
-  if (basis >= 4) return 'good';
-  if (basis >= 3) return 'mixed';
-  return 'bad';
+  if (basis === null || basis === undefined) return flags?.compliance ? 'mixed' : null;
+  const verdict = basis >= 4 ? 'good' : (basis >= 3 ? 'mixed' : 'bad');
+  return flags?.compliance && verdict === 'good' ? 'mixed' : verdict;
 }
 
 /**
@@ -153,19 +156,21 @@ function normalizeReview(answers) {
     comments[key] = clip(source[`${key}Comment`], MAX_NOTE_CHARS);
   }
 
-  const tags = (Array.isArray(source.tags) ? source.tags : [source.tags])
-    .map((t) => clip(t, 40))
-    .filter((t) => TAGS.includes(t));
+  // An unticked checkbox posts nothing at all, so absence is false rather than unknown.
+  const flags = {};
+  for (const { key } of FLAGS) flags[key] = Boolean(source[key]);
 
   return {
     scores,
     comments,
+    flags,
+    complianceNote: clip(source.complianceNote, MAX_NOTE_CHARS),
     average: averageOf(scores),
-    verdict: verdictFor(scores),
-    idealReply: clip(source.idealReply, MAX_NOTE_CHARS),
+    verdict: verdictFor(scores, flags),
+    // One box, not two. "What should it have said" and "what should it do differently" were
+    // separate fields nobody filled in twice.
     doDifferently: clip(source.doDifferently, MAX_NOTE_CHARS),
     reviewer: clip(source.reviewer, MAX_SHORT_CHARS),
-    tags: [...new Set(tags)].slice(0, MAX_TAGS),
   };
 }
 
@@ -174,7 +179,7 @@ function hasSubstance(review) {
   return Boolean(
     SCALE_KEYS.some((k) => review.scores[k])
     || SCALE_KEYS.some((k) => review.comments[k])
-    || review.idealReply
+    || FLAG_KEYS.some((k) => review.flags[k])
     || review.doDifferently
   );
 }
@@ -187,7 +192,14 @@ function mergeScores(incoming, existing) {
     if (scores[key] === null && existing?.scores?.[key]) scores[key] = existing.scores[key];
     if (!comments[key] && existing?.comments?.[key]) comments[key] = existing.comments[key];
   }
-  return { ...incoming, scores, comments, average: averageOf(scores), verdict: verdictFor(scores) };
+  return {
+    ...incoming,
+    scores,
+    comments,
+    complianceNote: incoming.complianceNote || existing?.complianceNote || '',
+    average: averageOf(scores),
+    verdict: verdictFor(scores, incoming.flags),
+  };
 }
 
 const excerpt = (messages, limit = 8) =>
@@ -213,11 +225,20 @@ function scoreLines(review) {
     });
 }
 
-/** Derived from the scores, so a complaint reads identically however it was phrased. */
+/**
+ * Derived from the scores and the flags, so a complaint reads identically however it was
+ * phrased — a model generalises from one repeated wording far better than from a dozen
+ * paraphrases of the same thing.
+ */
 function avoidFrom(review) {
-  return SCALES
+  const fromScores = SCALES
     .filter((s) => s.weakness && review.scores[s.key] && review.scores[s.key] <= WEAK_AT)
     .map((s) => s.weakness);
+  const fromFlags = FLAGS
+    .filter((f) => f.weakness && review.flags[f.key])
+    .map((f) => f.weakness);
+  // Flags first: a compliance slip outranks a middling score for what Sol has to learn.
+  return [...new Set([...fromFlags, ...fromScores])];
 }
 
 /**
@@ -248,14 +269,15 @@ function renderPromptBlock({ review, context, conversations, scores, avoid, reco
   ];
 
   if (scores.length) lines.push("Reviewer's scores:", ...scores.map((l) => `- ${l}`), '');
-  if (review.doDifferently) {
-    lines.push('Do differently:', `- ${review.doDifferently}`, '');
+  if (review.flags.compliance) {
+    lines.push('⚠️ Compliance: the reviewer flagged this conversation'
+      + `${review.complianceNote ? ` — ${review.complianceNote}` : '.'}`, '');
   }
-  if (review.idealReply) {
-    lines.push('What Sol should have said instead:', `> ${review.idealReply.replace(/\n/g, '\n> ')}`, '');
+  if (review.doDifferently) {
+    lines.push('What it should have said or done instead:',
+      `> ${review.doDifferently.replace(/\n/g, '\n> ')}`, '');
   }
   if (avoid.length) lines.push('Avoid:', ...avoid.map((a) => `- ${a}`), '');
-  if (review.tags.length) lines.push(`Tags: ${review.tags.join(', ')}`);
 
   return lines.join('\n').trim();
 }
@@ -269,11 +291,11 @@ function buildEmbeddingText({ review, context, conversations }) {
   return [
     `Page: ${context.page || 'unknown'}`,
     context.interest ? `Interest: ${context.interest}` : null,
-    review.tags.length ? `Tags: ${review.tags.join(', ')}` : null,
+    review.flags.compliance ? 'Flagged: compliance' : null,
     'Conversation:',
     conversationText(conversations, 14),
     review.doDifferently ? `Correction: ${review.doDifferently}` : null,
-    review.idealReply ? `Ideal reply: ${review.idealReply}` : null,
+    review.complianceNote ? `Compliance note: ${review.complianceNote}` : null,
   ].filter(Boolean).join('\n').slice(0, 8000);
 }
 
@@ -283,7 +305,7 @@ function buildTraining({ reviewId, contact, conversations, review, recordedAt = 
     page: conversations?.[0]?.page || null,
     interest: contact?.types?.join(', ') || null,
     company: contact?.company || null,
-    leadQuality: review.scores.leadQuality,
+    junkLead: review.flags.junkLead,
   };
   const copied = (Array.isArray(conversations) ? conversations : []).map((c) => ({
     sessionId: c.sessionId || null,
@@ -304,9 +326,9 @@ function buildTraining({ reviewId, contact, conversations, review, recordedAt = 
     context,
     conversations: copied,
     avoid,
-    idealReply: review.idealReply || null,
+    flags: review.flags,
+    complianceNote: review.complianceNote || null,
     doDifferently: review.doDifferently || null,
-    tags: review.tags,
     promptBlock: renderPromptBlock({
       review, context, conversations: copied, scores, avoid, recordedAt,
     }),
@@ -466,7 +488,9 @@ async function recordRating({ db = chatDb(), reviewId, rating, now = new Date() 
         reviewId,
         // A tapped star must not read as a filled-in questionnaire when the corpus is filtered.
         status: existing?.status === 'reviewed' ? 'reviewed' : 'rated',
-        review: { ...base, scores, average: averageOf(scores), verdict: verdictFor(scores) },
+        review: {
+          ...base, scores, average: averageOf(scores), verdict: verdictFor(scores, base.flags),
+        },
         ratedAt: existing?.ratedAt ?? now,
         updatedAt: now,
       });
@@ -484,7 +508,8 @@ module.exports = {
   SCALES,
   SCALE_KEYS,
   SOL_SCALES,
-  TAGS,
+  FLAGS,
+  FLAG_KEYS,
   WEAK_AT,
   isValidToken,
   isValidReviewId,

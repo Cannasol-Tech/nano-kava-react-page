@@ -404,10 +404,8 @@ describe('from the emailed link to a training example', () => {
       reviewId,
       answers: {
         overall: '4', knowledge: '5', tone: '3', toneComment: 'A shade brochure-ish.',
-        listening: '4', compliance: '5', handoff: '4', clarity: '4', leadQuality: '5',
-        tags: ['formulation', 'particle-size'],
+        handoff: '4',
         doDifferently: 'Ask the volume before raising the card.',
-        idealReply: 'Clear at 30 mg/mL — what volume are you planning?',
         reviewer: 'Stephen',
       },
     });
@@ -417,7 +415,8 @@ describe('from the emailed link to a training example', () => {
     expect(filed.review.scores.overall).toBe(4);
     expect(filed.review.scores.tone).toBe(3);
     expect(filed.review.comments.tone).toBe('A shade brochure-ish.');
-    expect(filed.review.average).toBeCloseTo(4.14, 2);
+    expect(filed.review.flags.compliance).toBe(false);
+    expect(filed.review.average).toBe(4);
     expect(filed.training.promptBlock).toContain('Does the kava go clear');
     expect(filed.training.promptBlock).toContain('Tone: 3/5 — A shade brochure-ish.');
     expect(filed.training.promptBlock).toContain('Ask the volume before raising the card.');

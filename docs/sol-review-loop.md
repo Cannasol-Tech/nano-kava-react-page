@@ -134,35 +134,56 @@ submitted, which is the same merge working in their favour.
 section for optional comments on all of them so we can get feedback with better context that will
 always be comparable. Maybe have fields like tone, knowledge."*
 
-Eight fixed scales, each 1–5, each with a comment box:
+*And, on seeing the first cut: "that form might be TOO much — we want it quick but useful."* It
+asked eight scored questions with eight comment boxes and ran 5,800px on a phone. It now runs
+1,700px, which is the version that gets finished.
+
+**Four scores**, each 1–5 with both ends labelled and one optional line for why:
 
 | | Question | 1 | 5 |
 |---|---|---|---|
 | **Overall** | How well did Sol handle this one? | badly | excellently |
 | **Knowledge** | Did it get the product facts right? | got things wrong | spot on |
 | **Tone** | Did it sound like us? | off brand | sounded like us |
-| **Listening** | Did it answer what was actually asked? | talked past them | answered it |
-| **Compliance** | Did it stay clear of health claims and personal dosing advice? | crossed the line | clean |
 | **Handoff** | Did it ask for the lead at the right moment? | badly timed | well judged |
-| **Clarity** | Was it easy to follow, and the right length? | waffly | crisp |
-| **Lead quality** | Is this lead worth chasing? | junk | real buyer |
 
-Three rules hold the comparability the scores exist for:
+**Two checkboxes**, because they are not really a 1–5:
 
-- **The set is fixed.** Adding a question changes what the corpus means, so it is a deliberate
-  edit, not a convenience. A test pins the list.
-- **Every scale runs the same way, and 5 is always good.** A page where compliance counts *down*
-  while tone counts *up* is the reliable way to get an average nobody can trust. `compliance: 5`
-  means clean, and a test pins that too, because it is the one most likely to get flipped by a
-  well-meaning edit.
-- **Lead quality is excluded from the average.** It grades the prospect, not Sol. `SOL_SCALES` is
-  the set that averages.
+| | |
+|---|---|
+| **Said something it shouldn't have** | a health claim, or telling someone what to take. Carries its own "quote the line" box. |
+| **Not a real lead** | so it does not count against Sol. |
 
-Both ends of every scale are labelled on the page, so a 2 means the same thing in March as in
-September. The comment box beside each is what makes the number usable — the form says so.
+**One free-text box**: *What should Sol have said or done instead?* — labelled on the page as the
+most useful box there is, because a score says a turn was bad and only that box says what good
+looks like.
 
-`compliance` is not a style question. Kava is an ingestible and the no-health-claims rule is the
-one failure mode that costs more than a lost lead; see
+### What was cut, and why it costs little
+
+- **Listening** and **clarity** were shades of the overall score that no reviewer reliably tells
+  apart under time pressure, and the free-text box says what they were saying with more use to a
+  model.
+- **Tags** were twelve chips nobody would tap. `embeddingText` carries the topic anyway, which is
+  how the corpus was always going to be filtered — see § Vector retrieval.
+- **"Write the reply Sol should have given"** and **"what should it do differently"** were two
+  boxes nobody fills in twice. They are one.
+- **Compliance and lead quality stopped being scales.** "Did it make a health claim" is a yes or
+  a no; scoring it 3 says nothing anybody can act on, and a flag is one tap rather than five.
+
+### The three rules that keep it comparable
+
+- **The set is fixed.** A question added back is a deliberate trade against the form getting
+  finished, not a free improvement. One test pins the list; a second pins the element count, so
+  the page cannot quietly grow back.
+- **Every scale runs the same way, and 5 is always good.** A page where one question counts down
+  while the rest count up is the reliable way to get an average nobody can trust.
+- **A junk lead is a flag, so it never touches Sol's average.** It grades the prospect, not Sol.
+
+### The compliance flag caps the verdict
+
+A flagged conversation is `mixed` at best, however well the rest was scored. That block would
+otherwise head a training example as *good* — and it is precisely the block a model would copy
+from. Kava is an ingestible; see
 `functions/CLAUDE.md § persona.js is compliance-bearing`.
 
 ## Why the stars are links
@@ -214,7 +235,8 @@ solReviews/{contactKey}_{n}
   contact        { name, company, email, phone, types[] }   — merged, at send time
   submissions[]  every submission that went into this email
   conversations[] { sessionId, page, startedAt, messages[] }
-  review         { scores{8}, comments{8}, average, verdict, idealReply, doDifferently, tags[], reviewer }
+  review         { scores{4}, comments{4}, flags{2}, complianceNote, average, verdict,
+                   doDifferently, reviewer }
   training       { … promptBlock, embeddingText, embedding: null … }
 
 solReviewTokens/{token}
@@ -244,7 +266,11 @@ for a phone because that is where these get read.
 
 Every answer is allow-listed and range-checked on the way in, exactly like `normalizeLead` — the
 form posts from the open internet, so an undeclared key (a `__proto__` among them) must not reach
-the document. Comments are clipped at 4000 characters.
+the document. An unticked checkbox posts nothing at all, so absence is read as false rather than
+unknown. Comments are clipped at 4000 characters.
+
+The transcript sits in a closed `<details>` — the reviewer has just read it in the email that
+linked here, and an open one is most of the page's height.
 
 ## The training block
 
@@ -265,30 +291,27 @@ Sol: …
 
 Reviewer's scores:
 - Overall: 2/5
+- Knowledge: 4/5
 - Tone: 1/5 — Read like a brochure.
-- Compliance: 1/5
+- Handoff: 2/5
 
-Do differently:
-- Stop selling once they ask a health question.
+⚠️ Compliance: the reviewer flagged this conversation — said it would help them sleep.
 
-What Sol should have said instead:
+What it should have said or done instead:
 > I can't speak to effects — but for a seltzer, 30 mg/mL goes in clear.
 
 Avoid:
-- Drifting off the house voice — read the tone notes above.
 - Health claims and personal dosing advice — kava is an ingestible.
-
-Tags: compliance, dosing
+- Drifting off the house voice — read the tone note above.
+- Raising the sample card at the wrong moment — too eager, or too late.
 ```
 
 It reads as a worked example rather than a database row, because that is the form a model
 actually learns from in context. The `Avoid:` lines are derived mechanically from any score at or
-below 2, worded from the scale rather than from the reviewer, so a repeated complaint reads
-identically every time — a model generalises from one phrasing far better than from twelve
-paraphrases of it.
-
-**"Write the reply Sol should have given" is the single most valuable field on the form.** A
-score says a turn was bad; only that box says what good looks like. The form labels it as such.
+below 2 **and from any raised flag**, worded from the scale rather than from the reviewer, so a
+repeated complaint reads identically every time — a model generalises from one phrasing far
+better than from twelve paraphrases of it. Flags sort first: a compliance slip outranks a
+middling score for what Sol has to learn.
 
 ## Vector retrieval — investigated, not built
 
@@ -377,8 +400,8 @@ endpoint is a thin wrapper over `saveReview({ reviewId, answers: { doDifferently
 | | |
 |---|---|
 | `functions/test/leadQueue.test.js` | Identity and the window on their own: one person however they typed it, the quiet period pushing forward, and the absent-not-null `notifyAfter`. |
-| `functions/test/solReviews.test.js` | The store: the archive has no TTL, tokens resolve, an existing review is never clobbered, the scales run one way and the average excludes lead quality. |
-| `functions/test/reviewForm.test.js` | That the page offers exactly the scores the store accepts, prefills a revisit, and cannot be injected into. |
+| `functions/test/solReviews.test.js` | The store: the archive has no TTL, tokens resolve, an existing review is never clobbered, the scales run one way, and a compliance flag can never read as good. |
+| `functions/test/reviewForm.test.js` | That the page offers exactly the scores and flags the store accepts, **stays short** (a test counts the inputs), prefills a revisit, and cannot be injected into. |
 | `functions/test/leadReviewLoop.test.js` | **The reported bug.** Kelsy's two submissions, 18 minutes apart, across every module that only meets in production — one email, both messages, the conversation attached, the link resolving. |
 | `make preview` | The real queue and the real form against an in-memory store. Post twice as the same person and the terminal says `2 submission(s) on this lead`, then prints a clickable review link. |
 | `make test-review-loop` | The deployed thing. **~25 minutes** unless `LEAD_QUIET_MINUTES=1` is set on the function. Emails the team — run it deliberately. |

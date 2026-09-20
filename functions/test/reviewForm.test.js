@@ -5,8 +5,8 @@
  * @description:
  *     The questionnaire is one HTML document assembled by string concatenation and served to the
  *     open internet, so the things worth pinning are that a transcript cannot inject markup into
- *     it, that it offers exactly the scores the store will accept, and that reopening the link
- *     shows what was already answered. Everything else about it is styling.
+ *     it, that it offers exactly the scores and flags the store will accept, that it stays SHORT,
+ *     and that reopening the link shows what was already answered.
  *
  * @See Also:
  *     functions/lib/reviewForm.js
@@ -19,7 +19,7 @@
 
 import { describe, it, expect } from 'vitest';
 import { renderForm, renderSaved, renderProblem } from '../lib/reviewForm.js';
-import { SCALES, TAGS, normalizeReview } from '../lib/solReviews.js';
+import { SCALES, FLAGS, normalizeReview } from '../lib/solReviews.js';
 
 const RECORD = {
   contact: {
@@ -78,9 +78,37 @@ describe('the questionnaire', () => {
     }
   });
 
-  it('offers every tag the store will accept', () => {
+  it('offers both flags, and a box to quote the compliance slip', () => {
     const html = renderForm({ record: RECORD, token: TOKEN });
-    for (const tag of TAGS) expect(html).toContain(`name="tags" value="${tag}"`);
+    for (const flag of FLAGS) {
+      expect(html, `${flag.key} is missing`).toContain(`name="${flag.key}" value="1"`);
+      expect(html, `${flag.key} is unlabelled`).toContain(flag.label);
+    }
+    expect(html).toContain('name="complianceNote"');
+  });
+
+  /**
+   * The whole point of the rewrite. Stephen's verdict on the eight-question version was "TOO
+   * much"; this is the ceiling that keeps it honest.
+   */
+  it('stays short — four scores, two flags, one box and a name', () => {
+    const html = renderForm({ record: RECORD, token: TOKEN });
+    const radios = (html.match(/type="radio"/g) || []).length;
+    const textareas = (html.match(/<textarea/g) || []).length;
+    const checkboxes = (html.match(/type="checkbox"/g) || []).length;
+
+    expect(radios).toBe(SCALES.length * 5);
+    expect(radios).toBeLessThanOrEqual(20);
+    expect(checkboxes).toBe(2);
+    expect(textareas).toBe(1);
+  });
+
+  it('collapses the transcript, which they have just read in the email', () => {
+    const html = renderForm({ record: RECORD, token: TOKEN });
+    expect(html).toContain('<details>');
+    expect(html).toContain('Show the conversation (2 messages)');
+    // Closed by default: an open transcript is most of the page's height.
+    expect(html).not.toContain('<details open');
   });
 
   it('carries the token back so the POST knows which lead it is', () => {
@@ -137,17 +165,19 @@ describe('reopening the link', () => {
     const record = {
       ...RECORD,
       review: normalizeReview({
-        overall: 2, tone: 1, toneComment: 'Read like a brochure.', compliance: 5,
-        tags: ['compliance'], idealReply: 'Decline, then pivot.', reviewer: 'Stephen',
+        overall: 2, tone: 1, toneComment: 'Read like a brochure.', handoff: 5,
+        compliance: '1', complianceNote: 'Said it helps you sleep.',
+        doDifferently: 'Decline, then pivot.', reviewer: 'Stephen',
       }),
     };
     const html = renderForm({ record, token: TOKEN });
 
     expect(html).toContain('name="overall" value="2" checked');
     expect(html).toContain('name="tone" value="1" checked');
-    expect(html).toContain('name="compliance" value="5" checked');
+    expect(html).toContain('name="handoff" value="5" checked');
     expect(html).toContain('value="Read like a brochure."');
-    expect(html).toContain('name="tags" value="compliance" checked');
+    expect(html).toContain('name="compliance" value="1" checked');
+    expect(html).toContain('value="Said it helps you sleep."');
     expect(html).toContain('Decline, then pivot.');
     expect(html).toContain('value="Stephen"');
     // Untouched answers stay untouched.

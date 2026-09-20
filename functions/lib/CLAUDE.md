@@ -158,29 +158,48 @@ people, and the page reveals nothing its holder was not already sent. The endpoi
 `noindex`, `no-store` and `Referrer-Policy: no-referrer` so it cannot leak into a referrer or a
 search index.
 
-### Every question is 1-5, and 5 is always good
+### Four questions, two flags, one box
 
 *Stephen, 2026-09-19: "useful categories of questions with quick answers, 1-5 numbers or
 something, and a section for optional comments on all of them so we can get feedback with better
 context that will always be comparable. Maybe have fields like tone, knowledge."*
 
-`SCALES` is the fixed list — overall, knowledge, tone, listening, compliance, handoff, clarity,
-lead quality — each 1-5 with both ends labelled and its own comment box. Three rules hold the
-comparability the scores exist for:
+*Cut back the next day, on seeing it: "that form might be TOO much — we want it quick but useful.
+Don't make it TOO complicated."* The first cut asked eight scored questions with eight comment
+boxes and ran 5,800px on a phone. It is now 1,700px.
 
-- **The set is fixed.** Adding a question changes what the corpus means, so it is a deliberate
-  edit, not a convenience. A test pins the list.
-- **Every scale runs the same way.** A page where compliance counts *down* while tone counts
-  *up* is the reliable way to get an average nobody can trust. `compliance: 5` means clean.
-- **Lead quality is excluded from the average.** It grades the prospect, not Sol; a junk lead is
-  not Sol failing. `SOL_SCALES` is the set that averages.
+`SCALES` is the fixed list — **overall, knowledge, tone, handoff** — each 1-5 with both ends
+labelled and one optional line for why. `FLAGS` is the other two questions, as checkboxes.
 
-A score at or below `WEAK_AT` (2) becomes an explicit `Avoid:` line in the prompt block, worded
-from the scale rather than from the reviewer, so a repeated complaint reads identically every
-time — a model generalises from one phrasing far better than from twelve paraphrases of it.
+What was cut and why it costs little: **listening** and **clarity** were shades of the overall
+score that no reviewer reliably tells apart, and the free-text box says what they were saying
+with more use to a model. **Tags** were twelve chips nobody would tap; the embedding text carries
+the topic anyway, which is how the corpus was always going to be filtered. `idealReply` and
+`doDifferently` were two boxes nobody fills in twice, and are now one.
+
+**Compliance and lead quality are flags, not scales.** "Did it make a health claim" is a yes or a
+no — scoring it 3 says nothing anybody can act on — and a flag is one tap rather than five. The
+compliance flag carries its own "quote the line" box, and **caps the verdict at `mixed` however
+well the rest was scored**: a conversation that made a health claim must never head a training
+block as an example of Sol doing well, because that is precisely the block a model would copy.
+
+Three rules hold the comparability the scores exist for:
+
+- **The set is fixed.** A question added back is a deliberate trade against the form getting
+  finished, not a free improvement. A test pins the list, and a second test pins the element
+  count so the page cannot quietly grow again.
+- **Every scale runs the same way, 5 is good.** A page where one question counts down while the
+  rest count up is the reliable way to get an average nobody can trust.
+- **A junk lead is a flag, so it never touches Sol's average.** It grades the prospect, not Sol.
+
+A score at or below `WEAK_AT` (2), or a raised flag, becomes an explicit `Avoid:` line in the
+prompt block, worded from the scale rather than from the reviewer, so a repeated complaint reads
+identically every time — a model generalises from one phrasing far better than from twelve
+paraphrases of it. Flags sort first: a compliance slip outranks a middling score.
 
 Answers are allow-listed exactly like `normalizeLead`: this form posts from the open internet, so
-an undeclared key (`__proto__` included) must not reach the document. A one-click star scores
+an undeclared key (`__proto__` included) must not reach the document. An unticked checkbox posts
+nothing at all, so absence is read as false rather than unknown. A one-click star scores
 `overall` alone and sets `status: 'rated'`, which must not read as a filled-in questionnaire when
 the corpus is filtered.
 

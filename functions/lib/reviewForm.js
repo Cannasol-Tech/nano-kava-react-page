@@ -4,10 +4,10 @@
  *
  * @description:
  *     The questionnaire the lead email links to, rendered as one self-contained HTML document.
- *     Every question is 1-5 with an optional comment beside it, so a month of reviews can be
- *     averaged and compared rather than read one at a time. Served by a Cloud Function rather
- *     than added to the React app on purpose: it is a private, token-addressed page that must
- *     never be prerendered, listed in routes.js or indexed.
+ *     Four scores, two checkboxes and one box — short enough to finish on a phone between other
+ *     things, which is the only version that ever gets filled in. Served by a Cloud Function
+ *     rather than added to the React app on purpose: it is a private, token-addressed page that
+ *     must never be prerendered, listed in routes.js or indexed.
  *
  * @See Also:
  *     functions/lib/solReviews.js
@@ -18,80 +18,90 @@
  * ---
  */
 
-const { SCALES, TAGS } = require('./solReviews');
+const { SCALES, FLAGS } = require('./solReviews');
 const { escapeHtml, transcriptRowsHtml, toDate } = require('./transcript');
 
 const RATINGS = [1, 2, 3, 4, 5];
-
-const TAG_LABELS = {
-  'particle-size': 'particle size', moq: 'MOQ', 'off-topic': 'off topic',
-};
 
 const STYLE = `
 :root { color-scheme: dark; }
 * { box-sizing: border-box; }
 body {
-  margin: 0; padding: 22px 16px 64px;
+  margin: 0; padding: 22px 16px 56px;
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   background: #0f172a; color: #e2e8f0; line-height: 1.5;
   -webkit-text-size-adjust: 100%;
 }
-main { max-width: 760px; margin: 0 auto; }
+main { max-width: 640px; margin: 0 auto; }
 h1 { font-size: 22px; margin: 0 0 4px; color: #fff; }
-h2 { font-size: 13px; margin: 28px 0 10px; color: #5eead4; text-transform: uppercase; letter-spacing: .08em; }
-.sub { margin: 0 0 22px; color: #94a3b8; font-size: 14px; }
-.card { background: #1e293b; border: 1px solid #334155; border-radius: 12px; padding: 14px; margin-bottom: 14px; }
-.card table { width: 100%; border-collapse: collapse; background: #f8fafc; border-radius: 8px; }
-.meta { font-size: 13px; color: #94a3b8; margin: 0 0 8px; }
-.meta strong { color: #e2e8f0; }
-.sub-block { margin-top: 10px; padding-top: 10px; border-top: 1px solid #334155; }
-.sub-block p { margin: 0 0 4px; }
-.msg { white-space: pre-wrap; font-size: 13px; color: #cbd5e1; margin: 0; }
+h2 { font-size: 12px; margin: 26px 0 10px; color: #5eead4; text-transform: uppercase; letter-spacing: .09em; }
+.sub { margin: 0 0 20px; color: #94a3b8; font-size: 14px; }
 
-.scale { background: #1e293b; border: 1px solid #334155; border-radius: 12px; padding: 13px 14px; margin-bottom: 10px; }
-.scale > p { margin: 0 0 9px; font-size: 15px; font-weight: 600; color: #f1f5f9; }
-.row { display: flex; align-items: center; gap: 8px; }
-.pills { display: flex; gap: 6px; flex: 1; }
+.card { background: #1e293b; border: 1px solid #334155; border-radius: 12px; padding: 13px 14px; }
+.meta { font-size: 13px; color: #94a3b8; margin: 0; }
+.meta strong { color: #e2e8f0; }
+.meta + .meta { margin-top: 5px; }
+details { margin-top: 10px; }
+summary {
+  cursor: pointer; font-size: 13px; color: #5eead4; padding: 6px 0;
+  list-style: none; -webkit-tap-highlight-color: transparent;
+}
+summary::-webkit-details-marker { display: none; }
+summary::before { content: '▸ '; }
+details[open] summary::before { content: '▾ '; }
+details table { width: 100%; border-collapse: collapse; background: #f8fafc; border-radius: 8px; margin-top: 6px; }
+.chat-meta { font-size: 12px; color: #64748b; margin: 8px 0 0; }
+.msg { white-space: pre-wrap; font-size: 13px; color: #cbd5e1; margin: 4px 0 0; }
+.sent { margin-top: 10px; padding-top: 10px; border-top: 1px solid #334155; }
+.sent-head { font-size: 11px; font-weight: 700; color: #5eead4; text-transform: uppercase; letter-spacing: .05em; margin: 0; }
+
+.scale { margin-bottom: 14px; }
+.scale > p { margin: 0 0 7px; font-size: 15px; color: #f1f5f9; }
+.scale > p b { font-weight: 700; }
+.scale > p span { color: #94a3b8; font-size: 14px; }
+.pills { display: flex; gap: 6px; }
 .pills label { flex: 1; }
 .pills input { position: absolute; opacity: 0; width: 0; height: 0; }
 .pills span {
-  display: block; text-align: center; padding: 10px 0; border-radius: 9px; font-size: 15px;
-  font-weight: 600; border: 1px solid #475569; background: #0f172a; color: #cbd5e1;
+  display: block; text-align: center; padding: 11px 0; border-radius: 9px; font-size: 15px;
+  font-weight: 600; border: 1px solid #475569; background: #1e293b; color: #cbd5e1;
   cursor: pointer; transition: background .15s, border-color .15s, color .15s;
 }
 .pills input:focus-visible + span { outline: 2px solid #2ECC71; outline-offset: 2px; }
 .pills input:checked + span { background: #0d9488; border-color: #2ECC71; color: #fff; }
-.ends { display: flex; justify-content: space-between; margin: 6px 2px 0; font-size: 11px; color: #64748b; }
-.note { margin-top: 8px; }
-.note input {
-  width: 100%; padding: 9px 11px; border-radius: 8px; font-size: 14px;
+.ends { display: flex; justify-content: space-between; margin: 5px 2px 0; font-size: 11px; color: #64748b; }
+.why { margin-top: 7px; }
+
+input[type=text] {
+  width: 100%; padding: 10px 12px; border-radius: 9px; font-size: 14px;
   border: 1px solid #3f4d63; background: #0f172a; color: #e2e8f0; font-family: inherit;
 }
-.note input::placeholder { color: #64748b; }
-
-.opts { display: flex; flex-wrap: wrap; gap: 8px; }
-.opts input { position: absolute; opacity: 0; width: 0; height: 0; }
-.opts span {
-  display: inline-block; padding: 7px 13px; border-radius: 999px; font-size: 13px;
-  border: 1px solid #475569; background: #0f172a; color: #cbd5e1; cursor: pointer;
-}
-.opts input:checked + span { background: #0d9488; border-color: #2ECC71; color: #fff; font-weight: 600; }
-.opts input:focus-visible + span { outline: 2px solid #2ECC71; outline-offset: 2px; }
-
+input[type=text]::placeholder { color: #64748b; }
 textarea {
-  width: 100%; min-height: 78px; padding: 10px 12px; border-radius: 9px; resize: vertical;
-  border: 1px solid #475569; background: #0f172a; color: #e2e8f0; font: inherit; font-size: 14px;
-}
-input[type=text] {
-  width: 100%; padding: 10px 12px; border-radius: 9px;
+  width: 100%; min-height: 84px; padding: 10px 12px; border-radius: 9px; resize: vertical;
   border: 1px solid #475569; background: #0f172a; color: #e2e8f0; font: inherit; font-size: 14px;
 }
 textarea:focus, input:focus { outline: 2px solid #2ECC71; outline-offset: 1px; border-color: #2ECC71; }
 .field { margin-bottom: 16px; }
-label.q { display: block; font-size: 14px; font-weight: 600; margin: 0 0 7px; color: #f1f5f9; }
+label.q { display: block; font-size: 15px; font-weight: 600; margin: 0 0 7px; color: #f1f5f9; }
 .hint { font-weight: 400; color: #94a3b8; font-size: 13px; }
+
+.flag { display: block; margin-bottom: 9px; }
+.flag input { position: absolute; opacity: 0; width: 0; height: 0; }
+.flag span {
+  display: block; padding: 12px 14px; border-radius: 10px; font-size: 14px; cursor: pointer;
+  border: 1px solid #475569; background: #1e293b; color: #cbd5e1;
+  transition: background .15s, border-color .15s, color .15s;
+}
+.flag span::before { content: '○ '; opacity: .6; }
+.flag input:checked + span { background: #7f1d1d; border-color: #f87171; color: #fee2e2; }
+.flag input:checked + span::before { content: '● '; opacity: 1; }
+.flag input:focus-visible + span { outline: 2px solid #2ECC71; outline-offset: 2px; }
+.flag em { display: block; font-style: normal; color: #94a3b8; font-size: 12px; margin-top: 2px; }
+.flag input:checked + span em { color: #fecaca; }
+
 button {
-  width: 100%; margin-top: 10px; padding: 15px 26px; border: 0; border-radius: 11px; cursor: pointer;
+  width: 100%; margin-top: 8px; padding: 15px 26px; border: 0; border-radius: 11px; cursor: pointer;
   background: linear-gradient(135deg, #2ECC71, #17A2B8); color: #062d21;
   font-size: 16px; font-weight: 700; font-family: inherit;
 }
@@ -102,8 +112,8 @@ button:hover { filter: brightness(1.07); }
   background: linear-gradient(135deg, #2ECC71, #17A2B8); color: #062d21; font-size: 28px; font-weight: 700;
 }
 .err { border-left: 3px solid #f87171; padding-left: 12px; color: #fca5a5; }
-footer { margin-top: 30px; color: #64748b; font-size: 12px; text-align: center; }
-@media (max-width: 420px) { body { padding: 16px 12px 48px; } .pills span { padding: 11px 0; } }
+footer { margin-top: 28px; color: #64748b; font-size: 12px; text-align: center; }
+@media (max-width: 420px) { body { padding: 16px 12px 44px; } }
 `;
 
 /** Every page this file emits, so the shell is never half-built. */
@@ -123,8 +133,8 @@ function page(title, body) {
 const attr = (value) => escapeHtml(value);
 
 /**
- * One question: 1-5, the ends labelled so a 2 means the same thing in March as in September,
- * and a comment box so the number arrives with its reason attached.
+ * One question: 1-5, both ends labelled so a 2 means the same thing in March as in September,
+ * and one optional line for why. Four of these is the whole scoring section.
  */
 function scaleRow(scale, review) {
   const score = review?.scores?.[scale.key] ?? null;
@@ -136,40 +146,30 @@ function scaleRow(scale, review) {
 
   return `
     <div class="scale">
-      <p>${escapeHtml(scale.label)} <span class="hint">&middot; ${escapeHtml(scale.question)}</span></p>
-      <div class="row"><div class="pills">${pills}</div></div>
+      <p><b>${escapeHtml(scale.label)}</b> <span>${escapeHtml(scale.question)}</span></p>
+      <div class="pills">${pills}</div>
       <div class="ends"><span>1 &mdash; ${escapeHtml(scale.low)}</span><span>${escapeHtml(scale.high)} &mdash; 5</span></div>
-      <div class="note">
+      <div class="why">
         <input type="text" name="${attr(scale.key)}Comment" value="${attr(comment)}"
           placeholder="Why? (optional)" aria-label="${attr(`${scale.label} comment`)}">
       </div>
     </div>`;
 }
 
-function tagGroup(current = []) {
-  const chosen = new Set(current);
-  return `<div class="opts">${TAGS.map((tag) => `
-      <label><input type="checkbox" name="tags" value="${attr(tag)}"${
-        chosen.has(tag) ? ' checked' : ''}><span>${escapeHtml(TAG_LABELS[tag] || tag)}</span></label>`).join('')}</div>`;
-}
+/** A tap, not a score. See solReviews.js § FLAGS for why compliance is not a 1-5. */
+function flagRow(flag, review) {
+  const on = Boolean(review?.flags?.[flag.key]);
+  const note = flag.note ? `
+      <div class="why">
+        <input type="text" name="${attr(flag.key)}Note" value="${attr(review?.complianceNote || '')}"
+          placeholder="Quote the line (optional)" aria-label="Compliance note">
+      </div>` : '';
 
-const textField = (name, label, hint, value) => `
-    <div class="field">
-      <label class="q" for="${attr(name)}">${escapeHtml(label)}${
-        hint ? ` <span class="hint">${escapeHtml(hint)}</span>` : ''}</label>
-      <textarea id="${attr(name)}" name="${attr(name)}" rows="3">${escapeHtml(value || '')}</textarea>
-    </div>`;
-
-/** Who the lead is, so the reviewer grades the handling of a person they can see. */
-function contactSummary(contact) {
-  if (!contact) return '<p class="meta">No contact details were captured.</p>';
-  const rows = ['name', 'company', 'email', 'phone']
-    .filter((k) => contact[k])
-    .map((k) => `<strong>${escapeHtml(k)}:</strong> ${escapeHtml(contact[k])}`)
-    .join(' &middot; ');
-  const types = (contact.types || []).length
-    ? `<br><strong>asked about:</strong> ${escapeHtml(contact.types.join(', '))}` : '';
-  return `<p class="meta">${rows || 'no fields'}${types}</p>`;
+  return `
+    <label class="flag">
+      <input type="checkbox" name="${attr(flag.key)}" value="1"${on ? ' checked' : ''}>
+      <span>${escapeHtml(flag.label)}<em>${escapeHtml(flag.hint)}</em></span>
+    </label>${note}`;
 }
 
 const when = (value) => {
@@ -179,27 +179,41 @@ const when = (value) => {
     : 'unknown';
 };
 
-/** What they sent, in order — a lead can be a chat card and a contact form twenty minutes apart. */
-function submissionsHtml(submissions) {
-  if (!Array.isArray(submissions) || submissions.length === 0) return '';
-  return submissions.map((s) => `
-      <div class="sub-block">
-        <p class="meta"><strong>${s.source === 'chat' ? 'Sol chat card' : 'Contact form'}</strong>
+/** Who the lead is, and what they sent. Short — the email they came from had all of it. */
+function leadCard(record) {
+  const contact = record?.contact;
+  const lines = contact
+    ? [
+      `<p class="meta"><strong>${escapeHtml(contact.name || 'Unnamed')}</strong>`
+        + `${contact.company ? ` &middot; ${escapeHtml(contact.company)}` : ''}`
+        + `${contact.email ? ` &middot; ${escapeHtml(contact.email)}` : ''}</p>`,
+      (contact.types || []).length
+        ? `<p class="meta">Asked about: ${escapeHtml(contact.types.join(', '))}</p>` : '',
+    ].join('')
+    : '<p class="meta">No contact details were captured.</p>';
+
+  const submissions = (record?.submissions || []).map((s) => `
+      <div class="sent">
+        <p class="sent-head">${s.source === 'chat' ? 'Sol chat card' : 'Contact form'}
           &middot; ${escapeHtml(when(s.at))}</p>
         <p class="msg">${escapeHtml(s.message || '(no message)')}</p>
       </div>`).join('');
-}
 
-/** Every conversation this person had, oldest first. */
-function conversationsHtml(conversations) {
-  if (!Array.isArray(conversations) || conversations.length === 0) {
-    return '<p class="meta">No Sol conversation was stored for this lead.</p>';
-  }
-  return conversations.map((c) => `
-      <p class="meta"><strong>${escapeHtml(c.page || 'unknown page')}</strong>
-        &middot; ${escapeHtml(when(c.startedAt))}
-        &middot; ${(c.messages || []).length} messages</p>
-      <table>${transcriptRowsHtml(c.messages)}</table>`).join('');
+  const conversations = record?.conversations || [];
+  const messageCount = conversations.reduce((n, c) => n + (c.messages || []).length, 0);
+
+  // Closed by default: they have just read this conversation in the email that linked here, and
+  // an open transcript is most of the page's height.
+  const transcript = messageCount === 0
+    ? '<p class="chat-meta">No Sol conversation was stored for this lead.</p>'
+    : `<details>
+        <summary>Show the conversation (${messageCount} message${messageCount === 1 ? '' : 's'})</summary>
+        ${conversations.map((c) => `
+          <p class="chat-meta">${escapeHtml(c.page || 'unknown page')} &middot; ${escapeHtml(when(c.startedAt))}</p>
+          <table>${transcriptRowsHtml(c.messages)}</table>`).join('')}
+      </details>`;
+
+  return `<div class="card">${lines}${submissions}${transcript}</div>`;
 }
 
 /** The whole questionnaire, prefilled when this lead has already been rated or reviewed. */
@@ -208,41 +222,32 @@ function renderForm({ record, token, error }) {
 
   return page('Review Sol — Cannasol', `
   <h1>How did Sol do?</h1>
-  <p class="sub">Score what you can, skip what you can&rsquo;t. Every answer is stored permanently
-    and becomes training material for LIVEY &mdash; the comments are what make a score useful,
-    so one line beats none.</p>
+  <p class="sub">Four taps and you&rsquo;re done. Everything is optional, and it all becomes
+    training material for LIVEY.</p>
 
   ${error ? `<p class="err">${escapeHtml(error)}</p>` : ''}
 
   <h2>The lead</h2>
-  <div class="card">
-    ${contactSummary(record?.contact)}
-    ${submissionsHtml(record?.submissions)}
-  </div>
-
-  <h2>The conversation</h2>
-  <div class="card">
-    ${conversationsHtml(record?.conversations)}
-  </div>
+  ${leadCard(record)}
 
   <form method="POST" action="">
     <input type="hidden" name="token" value="${attr(token)}">
 
-    <h2>Scores &mdash; 1 poor, 5 excellent</h2>
+    <h2>Score it &mdash; 1 poor, 5 excellent</h2>
     ${SCALES.map((scale) => scaleRow(scale, review)).join('')}
 
-    <h2>What should it learn?</h2>
-    ${textField('doDifferently', 'What should Sol do differently next time?', '', review?.doDifferently)}
-    ${textField('idealReply', 'Write the reply Sol should have given',
-      'the single most useful box on this page', review?.idealReply)}
+    <h2>Anything go wrong?</h2>
+    ${FLAGS.map((flag) => flagRow(flag, review)).join('')}
 
+    <h2>One more thing</h2>
     <div class="field">
-      <label class="q">What was this about? <span class="hint">tap any that apply</span></label>
-      ${tagGroup(review?.tags)}
+      <label class="q" for="doDifferently">What should Sol have said or done instead?
+        <span class="hint">the most useful box on this page</span></label>
+      <textarea id="doDifferently" name="doDifferently" rows="3">${escapeHtml(review?.doDifferently || '')}</textarea>
     </div>
 
     <div class="field">
-      <label class="q" for="reviewer">Your name</label>
+      <label class="q" for="reviewer">Your name <span class="hint">optional</span></label>
       <input type="text" id="reviewer" name="reviewer" value="${attr(review?.reviewer || '')}"
         autocomplete="name" placeholder="so we know whose call this was">
     </div>
