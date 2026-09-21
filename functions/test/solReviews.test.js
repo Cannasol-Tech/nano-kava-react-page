@@ -318,7 +318,7 @@ describe('filing a review', () => {
     expect(promptBlock).toContain('Tone: 1/5 — Read like a brochure.');
     expect(promptBlock).toContain('Said it would help them sleep.');
     expect(promptBlock).toContain('Stop selling once they ask a health question.');
-    expect(promptBlock).toContain('Health claims and personal dosing advice');
+    expect(promptBlock).toContain('Saying what an ingredient does to a person');
     // The transcript has to be IN the block, or the lesson has no situation attached to it.
     expect(promptBlock).toContain('Will it help me sleep?');
   });
@@ -329,7 +329,9 @@ describe('filing a review', () => {
       .then(() => saveReview({ db, reviewId: REVIEW_ID, answers: { compliance: '1' } }))
       .then(() => {
         const { avoid, promptBlock } = stored(db).training;
-        expect(avoid[0]).toContain('Health claims');
+        expect(avoid[0]).toContain('does to a person');
+        // The category an ingredient sells into is explicitly NOT the thing being warned about.
+        expect(avoid[0]).toContain('category it sells into is fine');
         expect(promptBlock).toContain('Compliance');
       });
   });

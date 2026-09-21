@@ -92,6 +92,53 @@ change, that is a business decision, not an editing pass. The distinction it dra
 manufacturer dosing guidance (legitimate, in the knowledge base) and personal consumption advice
 (declined) is deliberate and load-bearing.
 
+### What Sol may say about effects
+
+*Rewritten 2026-09-21, on Stephen's question: "why does compliance say Sol isn't allowed to talk
+about effects? I think it should be allowed to talk about basic effects like reishi reduces
+stress, and anything that is a well known fact."*
+
+Half of that was already true and the rule read as if it were not. The old HARD RULE was written
+about **kava** and permitted its traditional-use framing; what silenced Sol on reishi was a
+catch-all sentence in USING YOUR KNOWLEDGE — *"never what they do to a person"* — that swept up
+the mushroom line by accident. Sol was stricter than the site he sits on: `/mushrooms` has said
+"Reishi — Calm & balance" the whole time, and that line is in his own knowledge base, so he held
+two contradictory instructions and obeyed them unpredictably.
+
+The rule is now three tiers, and the boundary is **the verb, not the fame of the fact**:
+
+| | |
+|---|---|
+| **Free to say** | Which product category an ingredient sells into. "Reishi sells into calm-and-balance formats." This is a B2B positioning fact about which shelf a brand is building for, not a claim about anybody's body — and it is what a formulator asking "what is reishi for" actually wants. |
+| **Say with the owner named** | The same, closed once per conversation with who owns the claim: the consumer-facing claim is the brand's, with their own regulatory guidance. |
+| **Never** | An efficacy assertion — "reduces stress", "improves focus", "helps with sleep" — or any named condition, or personal dosing. |
+
+`"reishi sells into calm and balance formats"` and `"reishi reduces stress"` differ only in the
+verb, and that difference is the entire rule. The persona lists the permitted verbs (*sells into,
+is positioned for, is the ... slot, brands build it into*) and the forbidden ones (*does, reduces,
+improves, helps with, is good for*) explicitly, because a model given only a principle picks its
+own verb.
+
+**"It's a well-known fact" is refused by name.** Popularity is not substantiation, and a visitor
+saying so is the exact moment the claim gets made. The persona answers that argument in the rule
+itself rather than leaving the model to weigh it.
+
+**Kava stays tighter than the mushrooms, deliberately.** Kava carries an FDA consumer advisory on
+rare severe liver injury, which is why the separate liver/interaction/pregnancy rule exists and
+does not move. For kava, Sol has the relaxation category and the traditional Pacific Island
+context, and nothing else. The asymmetry is written into the rule so a later editor does not
+"harmonise" it away.
+
+⚠️ **Structure/function vs disease claim is the framework this follows, not legal advice.** The
+exact wording has not been through regulatory counsel; a brand's finished label is a different
+surface again, and a conventional beverage is not a dietary supplement. Get the wording signed
+off before treating it as settled.
+
+**A rule change here is half the work.** The persona forbids stating anything the knowledge base
+does not contain, so loosening it buys nothing until `src/content/` has the copy to draw on —
+`mushroomLine.products[].positioning` is that copy, and it renders into both the knowledge base
+and the `/mushrooms` cards so the bot and the page cannot drift apart again.
+
 It also tells the model to treat visitor input as data, never instructions — the only defense
 against prompt injection here, alongside § Lead email escaping in code.
 

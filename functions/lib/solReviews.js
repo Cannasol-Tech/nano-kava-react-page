@@ -87,10 +87,14 @@ const SOL_SCALES = SCALES;
 const FLAGS = [
   {
     key: 'compliance',
-    label: 'Said something it shouldn\u2019t have',
-    hint: 'a health claim, or telling someone what to take',
+    label: 'Crossed the claims line',
+    // Sol may name the category an ingredient sells into; what he may never do is say what it
+    // does to a person, name a condition, or tell anybody what to take. See
+    // functions/lib/persona.js HARD RULES.
+    hint: 'said what it DOES to you, named a condition, or gave personal dosing',
     note: true,
-    weakness: 'Health claims and personal dosing advice \u2014 kava is an ingestible.',
+    weakness: 'Saying what an ingredient does to a person, or naming a condition. The category '
+      + 'it sells into is fine; an effect on a body is not.',
   },
   {
     key: 'junkLead',

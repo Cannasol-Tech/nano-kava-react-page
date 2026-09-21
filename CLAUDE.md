@@ -178,4 +178,4 @@ A floating sales-concierge widget backed by Gemini. Architecture:
 - **Frontend** — `src/components/chat/`, mounted once in `App.jsx` after `<AppRoutes />`.
 - **Local dev** — `vite.config.js` mounts `/api/chat` in the dev server, so `make preview` works with just `GOOGLE_AI_API_KEY` in `.env`. No Firebase emulator needed.
 
-`functions/lib/persona.js` is compliance-bearing — kava is an ingestible, and the no-health-claims / no-personal-dosing rules are not style preferences. Read `functions/CLAUDE.md` before editing it.
+`functions/lib/persona.js` is compliance-bearing — kava is an ingestible, and the no-health-claims / no-personal-dosing rules are not style preferences. Read `functions/CLAUDE.md` before editing it. **Sol may name the product category an ingredient sells into** ("reishi sells into calm-and-balance formats") but never what it does to a person ("reishi reduces stress"); the verb is the whole boundary, and kava is deliberately tighter than the mushrooms. See `functions/CLAUDE.md § What Sol may say about effects`.

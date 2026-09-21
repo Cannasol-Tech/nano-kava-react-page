@@ -253,6 +253,51 @@ describe('compliance rules survive the edit', () => {
   });
 });
 
+/**
+ * *Added 2026-09-21, on Stephen's question: "why does compliance say Sol isn't allowed to talk
+ * about effects? I think it should be allowed to talk about basic effects like reishi reduces
+ * stress."* The answer was that the category an ingredient sells into is a B2B positioning fact
+ * and always was sayable, but "reduces stress" is an efficacy claim and is not. The line between
+ * those two is now the rule, and it is the line these tests hold.
+ */
+describe('the claims line', () => {
+  it('lets Sol name the category an ingredient sells into', () => {
+    expect(PERSONA).toMatch(wrapped('You MAY say which product category an ingredient sells into'));
+    for (const category of ['calm-and-balance', 'focus-and-clarity', 'performance-and-energy']) {
+      expect(PERSONA, `${category} is not named`).toContain(category);
+    }
+  });
+
+  it('gives the allowed verbs AND the forbidden ones, because the verb is the claim', () => {
+    expect(PERSONA).toMatch(wrapped('sells into'));
+    expect(PERSONA).toMatch(wrapped('is positioned for'));
+    // "reishi reduces stress" is the sentence this whole rule exists to prevent.
+    expect(PERSONA).toMatch(wrapped('NEVER "does", "reduces", "improves", "helps with" or "is good for"'));
+  });
+
+  it('refuses the "everyone knows it" argument by name', () => {
+    // Popularity is not substantiation, and a visitor saying so is the moment it gets said.
+    expect(PERSONA).toMatch(wrapped('however well known they tell you the effect is'));
+    expect(PERSONA).toMatch(wrapped('is not a reason to say it'));
+  });
+
+  it('still bans naming a condition as an outcome', () => {
+    expect(PERSONA).toMatch(wrapped('never name a condition'));
+    for (const condition of ['anxiety', 'depression', 'immunity']) {
+      expect(PERSONA, `${condition} is no longer listed`).toContain(condition);
+    }
+  });
+
+  it('keeps kava tighter than the mushrooms, on purpose', () => {
+    expect(PERSONA).toMatch(wrapped('KAVA IS TIGHTER THAN THE MUSHROOMS'));
+    expect(PERSONA).toMatch(wrapped('traditional and cultural context'));
+  });
+
+  it('makes Sol say who owns the consumer-facing claim', () => {
+    expect(PERSONA).toMatch(wrapped("the brand's to make with their own regulatory guidance"));
+  });
+});
+
 describe('buildSystemInstruction', () => {
   it('keeps the knowledge base authoritative and appended after the persona', () => {
     const built = buildSystemInstruction('KB-BODY');

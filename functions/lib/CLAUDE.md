@@ -203,9 +203,11 @@ nothing at all, so absence is read as false rather than unknown. A one-click sta
 `overall` alone and sets `status: 'rated'`, which must not read as a filled-in questionnaire when
 the corpus is filtered.
 
-`compliance` is not a style question. Kava is an ingestible and the no-health-claims rule is the
-one failure mode that costs more than a lost lead — see `../CLAUDE.md § persona.js is
-compliance-bearing`.
+The compliance flag means **the claims line**, which moved on 2026-09-21: Sol may now name the
+category an ingredient sells into, so the flag is for saying what something DOES to a person,
+naming a condition, or personal dosing — not for mentioning calm-and-balance. See
+`../CLAUDE.md § What Sol may say about effects`; a review filed against the old, broader meaning
+will read as a false positive.
 
 **`training.promptBlock` is the deliverable** — markdown that concatenates into LIVEY's system
 instruction with no further shaping, reading as a worked example rather than a database row.

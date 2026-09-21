@@ -70,6 +70,10 @@ export const mushroomLine = {
       bestFor: 'Focus & clarity',
       dose: '25–35 mg per serving',
       costPerServing: '$0.12–$0.17',
+      positioning:
+        'Sells into focus-and-clarity formats — nootropic shots, morning and work-day RTDs, '
+        + 'coffee alternatives and stacked daytime blends. Usually the daytime half of a line '
+        + 'whose evening half is reishi or kava.',
       points: ['Clean, beverage-ready integration', 'Consistent dispersion and dosing', 'Designed for modern functional formats'],
     },
     {
@@ -77,6 +81,10 @@ export const mushroomLine = {
       bestFor: 'Calm & balance',
       dose: '15–25 mg per serving',
       costPerServing: '$0.11–$0.19',
+      positioning:
+        'Sells into calm-and-balance formats — evening and wind-down RTDs, adaptogen blends, '
+        + 'daily-wellness tonics and alcohol alternatives. The most common pairing is with kava '
+        + 'in a relaxation line, or opposite lion\'s mane across a day-and-night pair.',
       points: ['Stable formulation performance', 'Smooth, consistent sensory profile', 'Ideal for daily wellness beverages'],
     },
     {
@@ -84,9 +92,20 @@ export const mushroomLine = {
       bestFor: 'Performance & energy',
       dose: '25–35 mg per serving',
       costPerServing: '$0.14–$0.20',
+      positioning:
+        'Sells into performance-and-energy formats — pre-workout and endurance drinks, '
+        + 'sports and recovery RTDs, and energy products looking for a botanical story '
+        + 'alongside or instead of caffeine.',
       points: ['Efficient delivery in RTDs and shots', 'Uniform distribution across servings', 'Built for scalable production'],
     },
   ],
+  // Category positioning, not effects. These describe which shelf a brand is building for —
+  // a B2B fact — and are deliberately phrased "sells into", never "does". See
+  // functions/lib/persona.js HARD RULES and functions/CLAUDE.md § What Sol may say about effects.
+  categoryNote:
+    'These are the product categories brands build these ingredients into. Cannasol supplies the '
+    + 'ingredient; the consumer-facing claim on a finished product is the brand\'s to make with '
+    + 'their own regulatory guidance.',
   benefits: [
     'Faster absorption pathways — nanoemulsification helps enable faster uptake and a more consistent consumer experience.',
     'Formulation-friendly — designed to integrate smoothly in water-based formulations with consistent dispersion.',
