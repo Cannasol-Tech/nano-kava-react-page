@@ -281,6 +281,8 @@ function MushroomsLandingPage() {
                       </div>
                     </div>
 
+                    <p className={`mt-4 leading-relaxed ${theme.textSecondary}`}>{p.positioning}</p>
+
                     <div className="mt-6 space-y-3">
                       {p.points.map((t) => (
                         <div key={t} className="flex items-start gap-3">

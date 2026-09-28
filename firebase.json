@@ -18,6 +18,10 @@
         "destination": "/llms.txt"
       },
       {
+        "source": "/sol-review",
+        "function": "solReview"
+      },
+      {
         "source": "/faq",
         "destination": "/faq/index.html"
       },
@@ -109,6 +113,23 @@
           {
             "key": "Link",
             "value": "</mushrooms.md>; rel=\"alternate\"; type=\"text/markdown\", </llms.txt>; rel=\"describedby\"; type=\"text/markdown\""
+          }
+        ]
+      },
+      {
+        "source": "/sol-review",
+        "headers": [
+          {
+            "key": "Cache-Control",
+            "value": "no-store"
+          },
+          {
+            "key": "X-Robots-Tag",
+            "value": "noindex, nofollow"
+          },
+          {
+            "key": "Referrer-Policy",
+            "value": "no-referrer"
           }
         ]
       },

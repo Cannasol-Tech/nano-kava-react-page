@@ -6,7 +6,8 @@
  *     firestore.indexes.json IS the retention policy — deploying it is what applies the TTL, and
  *     deploying it with the fieldOverride missing would silently REMOVE a live one. Nothing else
  *     in the suite would notice, so these guard the config file itself, plus the rule that lead
- *     records must never gain a TTL.
+ *     records and the review corpus must never gain a TTL — and that the emailed review link has
+ *     a hosting rewrite behind it.
  *
  * @See Also:
  *     firestore.indexes.json
@@ -23,6 +24,8 @@ import { join } from 'node:path';
 
 import { COLLECTION, RETENTION_DAYS } from '../lib/chatStore.js';
 import { LEADS_COLLECTION } from '../lib/chatLeads.js';
+import { REVIEWS_COLLECTION, TOKENS_COLLECTION } from '../lib/solReviews.js';
+import { QUEUE_COLLECTION } from '../lib/leadQueue.js';
 
 const root = join(import.meta.dirname, '..', '..');
 const indexes = JSON.parse(readFileSync(join(root, 'firestore.indexes.json'), 'utf8'));
@@ -66,6 +69,50 @@ describe('the lead record must never gain a TTL', () => {
   it('is not swept up by some other collection-group override', () => {
     const ttlGroups = (indexes.fieldOverrides || []).filter((f) => f.ttl).map((f) => f.collectionGroup);
     expect(ttlGroups).toEqual([COLLECTION]);
+  });
+});
+
+describe('the review corpus must never gain a TTL', () => {
+  it('has no fieldOverride — a reviewed conversation is training data, not telemetry', () => {
+    expect(overrideFor(REVIEWS_COLLECTION)).toBeUndefined();
+    expect(overrideFor(TOKENS_COLLECTION)).toBeUndefined();
+  });
+
+  it('leaves the lead queue alone too', () => {
+    // A TTL here would delete a lead out from under the sweep before it was ever emailed.
+    expect(overrideFor(QUEUE_COLLECTION)).toBeUndefined();
+  });
+
+  it('would lose the point of the archive if it did', () => {
+    // The copy exists precisely to outlive chatSessions' 90 days. A TTL here re-creates the
+    // problem it was built to solve. See docs/sol-review-loop.md § The permanent copy.
+    const ttlGroups = (indexes.fieldOverrides || []).filter((f) => f.ttl).map((f) => f.collectionGroup);
+    expect(ttlGroups).not.toContain(REVIEWS_COLLECTION);
+  });
+});
+
+describe('the emailed review link has something behind it', () => {
+  const rewrites = firebaseJson.hosting.rewrites || [];
+
+  it('rewrites /sol-review onto the solReview function', () => {
+    const rewrite = rewrites.find((r) => r.source === '/sol-review');
+    expect(rewrite, 'no /sol-review rewrite — every link in every lead email would 404')
+      .toBeDefined();
+    expect(rewrite.function).toBe('solReview');
+  });
+
+  it('is never served as a page route, so it cannot be prerendered or indexed', () => {
+    const rewrite = rewrites.find((r) => r.source === '/sol-review');
+    expect(rewrite.destination).toBeUndefined();
+
+    const headers = (firebaseJson.hosting.headers || [])
+      .find((h) => h.source === '/sol-review');
+    expect(headers).toBeDefined();
+    const byKey = Object.fromEntries(headers.headers.map((h) => [h.key, h.value]));
+    expect(byKey['X-Robots-Tag']).toMatch(/noindex/);
+    expect(byKey['Cache-Control']).toMatch(/no-store/);
+    // The token lives in the query string; a referrer would carry it off-site.
+    expect(byKey['Referrer-Policy']).toBe('no-referrer');
   });
 });
 

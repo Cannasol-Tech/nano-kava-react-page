@@ -105,7 +105,7 @@ const doc = [
   section('Applications', bullets(applications)),
   section('How a new customer gets started', bullets(steps.map((s) => `${s.step} ${s.title} — ${s.description}`))),
   section('Samples and ordering', bullets([sampleOffer.headline, `Price: ${sampleOffer.price}.`, sampleOffer.moq, sampleOffer.turnaround, ...sampleOffer.steps, ...sampleOffer.lineUrls.map(({ name, url }) => `${name} sample request link: ${url}`), `All three mushroom nanoemulsions at once: ${sampleOffer.mushroomUrl}`])),
-  section('Nano Mushroom line', bullets([mushroomLine.summary, ...mushroomLine.products.map((p) => `${p.name} — best for ${p.bestFor}. Typical dose ${p.dose}, ingredient cost ${p.costPerServing} per serving. ${p.points.join('; ')}.`), ...mushroomLine.benefits])),
+  section('Nano Mushroom line', bullets([mushroomLine.summary, mushroomLine.categoryNote, ...mushroomLine.products.map((p) => `${p.name} — best for ${p.bestFor}. ${p.positioning} Typical dose ${p.dose}, ingredient cost ${p.costPerServing} per serving. ${p.points.join('; ')}.`), ...mushroomLine.benefits])),
   section('How to reach Cannasol', bullets([contactRoutes.form, contactRoutes.formPromise, `Inquiry types on the form: ${contactRoutes.inquiryTypes.join(', ')}.`, contactRoutes.faqPage, contactRoutes.mushroomsPage, contactRoutes.escalation])),
   section('Equipment business', bullets([equipment.summary, `Processor range: ${equipment.range}, ${equipment.startingPrice}.`, `Categories: ${equipment.categories.join(', ')}.`])),
   section('Frequently asked questions', faq),

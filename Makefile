@@ -1,7 +1,7 @@
 # Cannasol Nano Kava Landing Page - Makefile
 # ============================================
 
-.PHONY: help install install-functions preview preview-mushrooms preview-chrome preview-chrome-mushrooms dev build clean deploy deploy-all deploy-functions deploy-firestore firestore-status kb seo-assets seo-indexnow claude-code test-lead-delivery test-sol
+.PHONY: help install install-functions verify-release test-review-loop preview preview-mushrooms preview-chrome preview-chrome-mushrooms dev build clean deploy deploy-all deploy-functions deploy-firestore firestore-status kb seo-assets seo-indexnow claude-code test-lead-delivery test-sol
 
 # Default target
 help:
@@ -26,6 +26,7 @@ help:
 	@echo "  make firestore-status - Show the deployed indexes and TTL policy"
 	@echo "  make seo-assets - Regenerate sitemap.xml, feed.xml, feed.json"
 	@echo "  make seo-indexnow - Submit URLs to IndexNow (Bing/Yandex/Seznam/Naver)"
+	@echo "  make verify-release - Check what is ACTUALLY live (read-only, run after deploy)"
 	@echo "  make kb        - Regenerate the Sol chatbot knowledge base"
 	@echo "  make claude-code - Launch Claude Code with permission prompts skipped"
 	@echo ""
@@ -108,7 +109,11 @@ deploy:
 	@echo "Release complete: built, deployed and submitted to IndexNow."
 
 # Everything above plus the backend — use when functions/ or firestore.rules changed.
-deploy-all: deploy deploy-functions deploy-firestore
+#
+# Backend FIRST, hosting last. /sol-review is a hosting rewrite onto the `solReview` function, so
+# shipping hosting ahead of functions would publish a link with nothing behind it — and the
+# IndexNow ping inside `deploy` has to stay the final step either way.
+deploy-all: deploy-functions deploy-firestore deploy
 
 seo-assets:
 	@echo "Regenerating sitemap.xml, feed.xml and feed.json from src/seo/routes.js..."
@@ -154,3 +159,14 @@ test-lead-delivery:
 ## Live conversation checks against the real model. Needs `make dev` running.
 test-sol:
 	node test/e2e/sol-conversation.mjs
+
+## Read-only: is what we built actually live? Sends nothing, emails nobody.
+## Run this after every `make deploy-all` — a release that did not happen looks
+## exactly like one that did, until a lead arrives without its conversation.
+verify-release:
+	node test/e2e/verify-release.mjs
+
+## Sends a real test lead through the DEPLOYED function and prints the review link it emailed,
+## then reads Firestore back to prove the permanent copy landed. Emails the team.
+test-review-loop:
+	node test/e2e/review-loop.mjs

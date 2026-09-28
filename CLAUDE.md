@@ -29,9 +29,13 @@ Cloud Functions have a separate `functions/` directory with its own `package.jso
 
 ```bash
 make deploy         # build -> firebase deploy --only hosting -> IndexNow submission
-make deploy-all     # the above, plus Cloud Functions and Firestore (rules + TTL)
+make deploy-all     # Cloud Functions and Firestore FIRST, then the above
 make firestore-status  # show the deployed Firestore indexes and the transcript TTL
 ```
+
+`deploy-all` runs the backend before hosting, not after: `/sol-review` is a hosting rewrite onto
+the `solReview` function, and publishing hosting first would put a link in front of nothing. The
+IndexNow ping inside `deploy` stays the last step either way.
 
 Do **not** run `firebase deploy` directly. It skips the IndexNow ping, and Bing's index is
 the retrieval layer behind ChatGPT Search and Microsoft Copilot — a release Bing has not
@@ -47,10 +51,12 @@ React route therefore requires adding it to `src/seo/routes.js` **and** to the `
 array, or it will 404 in production.
 Cloud Functions deploy separately for email handling. Project ID: `nano-kava-landing-page`.
 
-Firestore carries stored chat transcripts. `firestore.rules` closes client access entirely — the
-`chat` function writes through the Admin SDK, which bypasses rules. The 90-day retention TTL is
+Firestore carries stored chat transcripts, the prospects Sol extracts, the pending-lead queue and
+the permanent review corpus. `firestore.rules` closes client access entirely — the functions write through the Admin
+SDK, which bypasses rules. The 90-day retention TTL applies to `chatSessions` **only**; it is
 declared as a `ttl: true` fieldOverride in `firestore.indexes.json`, so `make deploy-all` ships
-both. `make deploy-firestore` deploys **rules and indexes together on purpose**: that file *is*
+both. `chatLeads`, `leadNotifications` and `solReviews` have no fieldOverride and that absence *is*
+their retention policy — do not add one. `make deploy-firestore` deploys **rules and indexes together on purpose**: that file *is*
 the TTL policy, so deploying it without the fieldOverride would delete a live one.
 `make firestore-status` shows what is deployed.
 
@@ -166,8 +172,10 @@ A floating sales-concierge widget backed by Gemini. Architecture:
 - **Backend** — `functions/lib/chat.js` (model call, tool, rate limiting) and `functions/lib/persona.js` (system instruction, compliance guardrails). Exposed as the **2nd-gen** `chat` function for SSE streaming; `sendContactEmail` stays 1st-gen. Shared lead delivery lives in `functions/lib/leads.js`.
 - **Transcripts** — `functions/lib/chatStore.js` files every turn to Firestore at `chatSessions/{sessionId}`, capped at **60 messages (30 exchanges)** and deleted **90 days** after the chat started. Both bounds exist to stop unbounded growth: the cap bounds one document, the TTL bounds the collection. The TTL is declared in `firestore.indexes.json` and deployed by `make deploy-firestore`. Read `functions/lib/CLAUDE.md § Transcript persistence` first.
 - **Leads** — `functions/lib/chatLeads.js` stores what Sol extracted at `chatLeads/{sessionId}`, **with no TTL**: a transcript is telemetry and expires, a prospect is a business record and does not. `confirmed` separates a model's extraction from a human pressing Send. See `functions/lib/CLAUDE.md § The lead record is not the transcript`.
+- **One email per lead** — a lead is a PERSON (keyed on a normalised email, else phone), not a form submission and not a browser session. `sendContactEmail` queues and sends nothing; the scheduled `sendPendingLeads` emails once the person has been quiet for 20 minutes, so a chat card at 5:34 and a contact form at 5:52 arrive as one email carrying both, plus every conversation that person had. Read `functions/lib/CLAUDE.md § One email per lead, after the quiet period` before touching `leadQueue.js` or `leadHandoff.js`.
+- **Reviews** — that email links to a questionnaire at `/sol-review` (a hosting rewrite onto the 1st-gen `solReview` function, never a React route). Four fixed 1–5 scales — overall, knowledge, tone, handoff — each with an optional one-line "why", plus two checkboxes (said something it shouldn't have; not a real lead) and one free-text box. Short enough to finish on a phone, and comparable month to month. Filing one attaches the verdict to a permanent copy at `solReviews/{contactKey}_{n}` — **no TTL** — and renders `training.promptBlock`, markdown ready to inject into LIVEY's prompt. Vector/kNN retrieval over that corpus is designed but deliberately not built. Full detail: `docs/sol-review-loop.md`.
 - **Daily report** — the scheduled `dailyChatReport` function emails every conversation from the last 24h to Stephen at **08:00 America/New_York**, read from Firestore and retried on failure. It **replaced** the per-conversation digest beacon, which is retired; `functions/lib/digest.js` and `src/components/chat/transport/chatDigest.js` are now unreferenced.
 - **Frontend** — `src/components/chat/`, mounted once in `App.jsx` after `<AppRoutes />`.
 - **Local dev** — `vite.config.js` mounts `/api/chat` in the dev server, so `make preview` works with just `GOOGLE_AI_API_KEY` in `.env`. No Firebase emulator needed.
 
-`functions/lib/persona.js` is compliance-bearing — kava is an ingestible, and the no-health-claims / no-personal-dosing rules are not style preferences. Read `functions/CLAUDE.md` before editing it.
+`functions/lib/persona.js` is compliance-bearing — kava is an ingestible, and the no-health-claims / no-personal-dosing rules are not style preferences. Read `functions/CLAUDE.md` before editing it. **Sol may name the product category an ingredient sells into** ("reishi sells into calm-and-balance formats") but never what it does to a person ("reishi reduces stress"); the verb is the whole boundary, and kava is deliberately tighter than the mushrooms. See `functions/CLAUDE.md § What Sol may say about effects`.

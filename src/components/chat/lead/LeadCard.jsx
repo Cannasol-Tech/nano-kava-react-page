@@ -185,6 +185,9 @@ export default function LeadCard({ fields, onFollowUp, messageId }) {
           ...(isFilled(draft.email) ? { email: draft.email.trim() } : {}),
           ...(isFilled(draft.company) ? { company: draft.company.trim() } : {}),
           inquiryType: INQUIRY_TYPE,
+          // Names the form this came from. The backend merges a chat card and a contact form
+          // from the same person into one email, and says so in the subject.
+          source: 'chat',
           interest,
           message: buildMessage(interest, draft.conversation_summary),
           // Marks the stored lead confirmed: a human pressed Send, so it is no longer just

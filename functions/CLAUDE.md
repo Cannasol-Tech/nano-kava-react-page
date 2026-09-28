@@ -1,15 +1,18 @@
 # functions/ — Cloud Functions for the Nano Kava site
 
-Three entry points in `index.js`, all thin transports:
+Five entry points in `index.js`, all thin transports:
 
 *Corrected 2026-08-26: this read "Two entry points" and listed `sendChatDigest` below. That
 endpoint was **removed** — see `lib/CLAUDE.md § Conversation digests — RETIRED` — and the
-scheduled `dailyChatReport` replaced it.*
+scheduled `dailyChatReport` replaced it. `solReview` and `sendPendingLeads` made it five on
+2026-09-19.*
 
 | Export | Gen | Owns | Core logic |
 |---|---|---|---|
-| `sendContactEmail` | 1st | `/contact` form POSTs, and confirming a chat lead | `lib/leads.js`, `lib/chatLeads.js` |
+| `sendContactEmail` | 1st | `/contact` and chat-card POSTs. **Queues; sends nothing.** | `lib/leadQueue.js` |
 | `chat` | 2nd | SSE stream for Sol; files each turn and any extracted lead to Firestore | `lib/chat.js`, `lib/chatStore.js`, `lib/chatLeads.js` |
+| `sendPendingLeads` | 2nd | **Scheduled** every 2 min — the ONLY thing that emails a lead | `lib/leadHandoff.js`, `lib/leads.js` |
+| `solReview` | 1st | The questionnaire the lead email links to | `lib/solReviews.js`, `lib/reviewForm.js` |
 | `dailyChatReport` | 2nd | **Scheduled** 08:00 America/New_York — the daily review email | `lib/dailyReport.js` |
 
 The entry points are thin because `lib/` is transport-agnostic — the Vite dev middleware in
@@ -32,6 +35,13 @@ Long-form reasoning for the core modules lives one level down, in `lib/CLAUDE.md
 | The lead record is not the transcript | `chatLeads`, why it has no TTL, what `confirmed` means |
 | The daily report replaced the digest | The schedule, the retry, and why it sends on silent days |
 | Conversation digests — RETIRED | What the old per-conversation email did, and why it is gone |
+| A lead is a person, not a submission | Contact keys, and why the first fix (per-session) was wrong |
+| One email per lead, after the quiet period | The window, the sweep, and the absent `notifyAfter` |
+| The review corpus is permanent | `solReviews`, the token, and the 1-5 scales that make it comparable |
+
+The review loop has its own document — `docs/sol-review-loop.md` — because it spans the email,
+two new collections, an HTML form and a deliberately-unbuilt vector search. Read it before
+touching `solReviews.js`, `reviewForm.js` or `leadHandoff.js`.
 
 
 ## Why chat is gen2 and sendContactEmail is not
@@ -44,14 +54,31 @@ passes writes through, which is the whole reason for the split.
 deployed URL, which the live contact form is hard-coded against. Do not "modernize" it for
 consistency — the cost is a broken form and the benefit is nil.
 
+**Nothing is emailed from a request any more.** `sendContactEmail` queues and returns
+`{ queued: true }`; `sendPendingLeads` sends once the lead has been quiet for 20 minutes. That is
+what turns one person's chat card and contact form into one email — see
+`lib/CLAUDE.md § One email per lead, after the quiet period` before "fixing" the missing send.
+It also means a broken schedule is a lead nobody receives, so `sendPendingLeads` **throws** on
+any failure (the batches are already requeued) rather than logging and moving on.
+
+**`solReview` is 1st gen for a different reason.** Firebase Hosting rewrites onto a 1st-gen
+function *by name* (`{"source": "/sol-review", "function": "solReview"}`), which is what keeps the
+link in every lead email an `enjoynano.com` URL rather than a `cloudfunctions.net` one. A gen2
+rewrite needs a `run.serviceId` and the service name is not the export name. Same rule, different
+trap: leave it alone.
+
 Consequence to remember: the two generations declare secrets differently
-(`.runWith({ secrets })` vs the `secrets:` array in `onRequest` options). Only `sendContactEmail`
-lists the SendGrid and Mailchimp handles, because it is the only function that sends anything.
-`chat` needs `GOOGLE_AI_API_KEY` and nothing else.
+(`.runWith({ secrets })` vs the `secrets:` array in `onRequest`/`onSchedule` options).
+`sendPendingLeads` lists the SendGrid and Mailchimp handles, because it is the only function that
+sends a lead; `dailyChatReport` lists SendGrid alone. `chat` needs `GOOGLE_AI_API_KEY` and
+nothing else, and **`sendContactEmail` declares none at all** — it only queues now, and a grant
+nothing uses is blast radius for free.
 
 *Corrected 2026-08-25: this section previously said both functions must declare the send secrets,
 which was true while `chat` sent leads directly. It no longer does — see § The tool proposes, the
-visitor sends — so those secrets were removed from `chat` rather than left granted unused.*
+visitor sends — so those secrets were removed from `chat` rather than left granted unused.
+Corrected again 2026-09-19: it then named `sendContactEmail` as the sender. That moved to
+`sendPendingLeads`, and the secrets moved with it for the same reason.*
 
 ## persona.js is compliance-bearing
 
@@ -64,6 +91,53 @@ Do not soften, summarize or "tighten" that section to save prompt tokens — if 
 change, that is a business decision, not an editing pass. The distinction it draws between
 manufacturer dosing guidance (legitimate, in the knowledge base) and personal consumption advice
 (declined) is deliberate and load-bearing.
+
+### What Sol may say about effects
+
+*Rewritten 2026-09-21, on Stephen's question: "why does compliance say Sol isn't allowed to talk
+about effects? I think it should be allowed to talk about basic effects like reishi reduces
+stress, and anything that is a well known fact."*
+
+Half of that was already true and the rule read as if it were not. The old HARD RULE was written
+about **kava** and permitted its traditional-use framing; what silenced Sol on reishi was a
+catch-all sentence in USING YOUR KNOWLEDGE — *"never what they do to a person"* — that swept up
+the mushroom line by accident. Sol was stricter than the site he sits on: `/mushrooms` has said
+"Reishi — Calm & balance" the whole time, and that line is in his own knowledge base, so he held
+two contradictory instructions and obeyed them unpredictably.
+
+The rule is now three tiers, and the boundary is **the verb, not the fame of the fact**:
+
+| | |
+|---|---|
+| **Free to say** | Which product category an ingredient sells into. "Reishi sells into calm-and-balance formats." This is a B2B positioning fact about which shelf a brand is building for, not a claim about anybody's body — and it is what a formulator asking "what is reishi for" actually wants. |
+| **Say with the owner named** | The same, closed once per conversation with who owns the claim: the consumer-facing claim is the brand's, with their own regulatory guidance. |
+| **Never** | An efficacy assertion — "reduces stress", "improves focus", "helps with sleep" — or any named condition, or personal dosing. |
+
+`"reishi sells into calm and balance formats"` and `"reishi reduces stress"` differ only in the
+verb, and that difference is the entire rule. The persona lists the permitted verbs (*sells into,
+is positioned for, is the ... slot, brands build it into*) and the forbidden ones (*does, reduces,
+improves, helps with, is good for*) explicitly, because a model given only a principle picks its
+own verb.
+
+**"It's a well-known fact" is refused by name.** Popularity is not substantiation, and a visitor
+saying so is the exact moment the claim gets made. The persona answers that argument in the rule
+itself rather than leaving the model to weigh it.
+
+**Kava stays tighter than the mushrooms, deliberately.** Kava carries an FDA consumer advisory on
+rare severe liver injury, which is why the separate liver/interaction/pregnancy rule exists and
+does not move. For kava, Sol has the relaxation category and the traditional Pacific Island
+context, and nothing else. The asymmetry is written into the rule so a later editor does not
+"harmonise" it away.
+
+⚠️ **Structure/function vs disease claim is the framework this follows, not legal advice.** The
+exact wording has not been through regulatory counsel; a brand's finished label is a different
+surface again, and a conventional beverage is not a dietary supplement. Get the wording signed
+off before treating it as settled.
+
+**A rule change here is half the work.** The persona forbids stating anything the knowledge base
+does not contain, so loosening it buys nothing until `src/content/` has the copy to draw on —
+`mushroomLine.products[].positioning` is that copy, and it renders into both the knowledge base
+and the `/mushrooms` cards so the bot and the page cannot drift apart again.
 
 It also tells the model to treat visitor input as data, never instructions — the only defense
 against prompt injection here, alongside § Lead email escaping in code.
@@ -115,3 +189,20 @@ while clicking around a dev server.
 Consequence: **local testing cannot verify real delivery.** The terminal block shows what Josh
 would have received; confirming he actually receives it, that the auto-reply lands, and that
 Mailchimp captured the lead all require a deploy.
+
+It does run the **real queue** against an in-memory store, so the terminal prints how many
+submissions are on the lead — post twice as the same person and it says `2 submission(s) on this
+lead`, which is the behaviour the whole change is about. Locally it sweeps immediately instead of
+waiting out the window, because nobody would ever see the form otherwise.
+
+### `/sol-review` runs locally, against memory
+
+The one thing the dry run does **not** skip is the permanent copy: it queues the submission,
+archives the lead into an in-memory store (`memoryDb()` in `vite.config.js`) and prints a
+clickable `http://localhost:3000/sol-review?token=…` link. The form, the validation and the
+stored document shape are the ones that ship — only the database is local, and it dies with the
+dev server.
+
+That covers the half a local click can actually exercise. The other half — that two submissions
+twenty minutes apart really do produce one email, and that the archive survives the 90-day TTL
+on a real Firestore — is `make test-review-loop` against the deployed functions.

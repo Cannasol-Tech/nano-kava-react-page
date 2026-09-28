@@ -112,9 +112,23 @@ async function confirmLead({ db = chatDb(), sessionId, now = new Date() }) {
   }
 }
 
+/** The stored prospect, for the archive the review page renders. Never throws. */
+async function loadLead({ db = chatDb(), sessionId }) {
+  if (!isValidSessionId(sessionId)) return { ok: false, reason: 'invalid-session-id' };
+  try {
+    const snapshot = await db.collection(LEADS_COLLECTION).doc(sessionId).get();
+    if (!snapshot.exists) return { ok: false, reason: 'not-found' };
+    return { ok: true, lead: snapshot.data() };
+  } catch (error) {
+    console.error('[chatLeads] failed to read lead:', error.message);
+    return { ok: false, reason: 'read-failed' };
+  }
+}
+
 module.exports = {
   LEADS_COLLECTION,
   normalizeLead,
   persistLead,
   confirmLead,
+  loadLead,
 };
