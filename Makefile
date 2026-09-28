@@ -1,7 +1,7 @@
 # Cannasol Nano Kava Landing Page - Makefile
 # ============================================
 
-.PHONY: help install install-functions test-review-loop preview preview-mushrooms preview-chrome preview-chrome-mushrooms dev build clean deploy deploy-all deploy-functions deploy-firestore firestore-status kb seo-assets seo-indexnow claude-code test-lead-delivery test-sol
+.PHONY: help install install-functions verify-release test-review-loop preview preview-mushrooms preview-chrome preview-chrome-mushrooms dev build clean deploy deploy-all deploy-functions deploy-firestore firestore-status kb seo-assets seo-indexnow claude-code test-lead-delivery test-sol
 
 # Default target
 help:
@@ -26,6 +26,7 @@ help:
 	@echo "  make firestore-status - Show the deployed indexes and TTL policy"
 	@echo "  make seo-assets - Regenerate sitemap.xml, feed.xml, feed.json"
 	@echo "  make seo-indexnow - Submit URLs to IndexNow (Bing/Yandex/Seznam/Naver)"
+	@echo "  make verify-release - Check what is ACTUALLY live (read-only, run after deploy)"
 	@echo "  make kb        - Regenerate the Sol chatbot knowledge base"
 	@echo "  make claude-code - Launch Claude Code with permission prompts skipped"
 	@echo ""
@@ -158,6 +159,12 @@ test-lead-delivery:
 ## Live conversation checks against the real model. Needs `make dev` running.
 test-sol:
 	node test/e2e/sol-conversation.mjs
+
+## Read-only: is what we built actually live? Sends nothing, emails nobody.
+## Run this after every `make deploy-all` — a release that did not happen looks
+## exactly like one that did, until a lead arrives without its conversation.
+verify-release:
+	node test/e2e/verify-release.mjs
 
 ## Sends a real test lead through the DEPLOYED function and prints the review link it emailed,
 ## then reads Firestore back to prove the permanent copy landed. Emails the team.
