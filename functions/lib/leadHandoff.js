@@ -23,7 +23,9 @@ const { chatDb, loadTranscript } = require('./chatStore');
 const { confirmLead, loadLead } = require('./chatLeads');
 const { sessionsForContact } = require('./leadIdentity');
 const { archiveForReview } = require('./solReviews');
-const { dueLeads, claimForSend, markSent, returnToQueue } = require('./leadQueue');
+const {
+  dueLeads, claimForSend, markSent, returnToQueue, reconcileLedger,
+} = require('./leadQueue');
 
 // A person with more conversations than this is a returning visitor, not a lead: take the most
 // recent, or one email carries a year of chat.
@@ -104,10 +106,17 @@ async function prepareLeadEmail({ db = chatDb(), batch, now = new Date() }) {
  * A claim that comes back empty is not an error: another sweep took it, which is exactly what
  * the claim is for. A send that throws goes back on the queue rather than being dropped — this
  * is the only path a lead has to a human, so a swallowed failure loses a prospect outright.
+ *
+ * The ledger reconciler runs first, so anything the queue lost is back in it before the query
+ * that decides what to send. Delivery is therefore at-least-once: a sweep that dies between the
+ * send and `markSent` re-sends when its lease expires. A duplicate email is the price, and the
+ * right one — the alternative failure is a lead nobody ever sees.
  */
 async function sweepDueLeads({ db = chatDb(), send, now = new Date() }) {
+  const reconciled = await reconcileLedger({ db, now });
+
   const due = await dueLeads({ db, now });
-  if (!due.ok) return { ok: false, reason: 'read-failed', sent: 0, failures: [] };
+  if (!due.ok) return { ok: false, reason: 'read-failed', sent: 0, failures: [], reconciled };
 
   let sent = 0;
   const failures = [];
@@ -125,7 +134,19 @@ async function sweepDueLeads({ db = chatDb(), send, now = new Date() }) {
         conversations: prepared.conversations,
         reviewToken: prepared.reviewToken,
       });
-      await markSent({ db, contactKey: batch.contactKey, now });
+      const marked = await markSent({
+        db,
+        contactKey: batch.contactKey,
+        sessionIds: prepared.sessionIds,
+        reviewId: prepared.reviewId,
+        now,
+      });
+      // The email went. If recording that failed, the lease will re-send it: say so, because a
+      // duplicate in Josh's inbox should have an explanation in the logs.
+      if (!marked.ok) {
+        console.error(`[leadSweep] ${batch.contactKey} was SENT but could not be marked sent`
+          + ` (${marked.reason}); it will be re-sent when its lease expires`);
+      }
       sent += 1;
       console.info(`[leadSweep] sent ${batch.contactKey}: ${batch.submissions.length} submission(s),`
         + ` ${prepared.conversations.length} conversation(s)`);
@@ -136,7 +157,7 @@ async function sweepDueLeads({ db = chatDb(), send, now = new Date() }) {
     }
   }
 
-  return { ok: true, sent, failures, considered: due.leads.length };
+  return { ok: true, sent, failures, considered: due.leads.length, reconciled };
 }
 
 module.exports = { prepareLeadEmail, sweepDueLeads, MAX_CONVERSATIONS };

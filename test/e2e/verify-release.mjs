@@ -116,7 +116,7 @@ async function main() {
   } else {
     check('chatSessions still has its 90-day TTL', /chatSessions/.test(indexes.stdout), indexes.stdout.slice(0, 200));
     // Their absence IS the retention policy for these three — see CLAUDE.md.
-    for (const collection of ['chatLeads', 'leadNotifications', 'solReviews']) {
+    for (const collection of ['chatLeads', 'leadNotifications', 'leadSubmissions', 'solReviews']) {
       check(`${collection} has NO TTL`, !new RegExp(`${collection}[\\s\\S]{0,200}"ttl"\\s*:\\s*true`).test(indexes.stdout),
         'a TTL here would delete business records');
     }

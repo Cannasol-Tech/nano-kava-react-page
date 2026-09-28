@@ -59,7 +59,9 @@ consistency — the cost is a broken form and the benefit is nil.
 what turns one person's chat card and contact form into one email — see
 `lib/CLAUDE.md § One email per lead, after the quiet period` before "fixing" the missing send.
 It also means a broken schedule is a lead nobody receives, so `sendPendingLeads` **throws** on
-any failure (the batches are already requeued) rather than logging and moving on.
+any failure (the batches are already requeued) rather than logging and moving on. Every
+submission is also ledgered in `leadSubmissions` until it is emailed, and the 08:00 daily report
+lists any that are not — see `lib/CLAUDE.md § Every submission is ledgered until it is emailed`.
 
 **`solReview` is 1st gen for a different reason.** Firebase Hosting rewrites onto a 1st-gen
 function *by name* (`{"source": "/sol-review", "function": "solReview"}`), which is what keeps the
