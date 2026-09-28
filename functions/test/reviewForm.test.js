@@ -201,6 +201,38 @@ describe('reopening the link', () => {
   });
 });
 
+describe('a star tapped in the email', () => {
+  const checkedOverall = (html) => (html.match(/name="overall" value="(\d)" checked/) || [])[1];
+
+  it('arrives with that score picked and a Save button at the top', () => {
+    const html = renderForm({ record: RECORD, token: TOKEN, preselect: '4' });
+    expect(checkedOverall(html)).toBe('4');
+    expect(html).toContain('Save 4/5');
+    expect(html).toContain('not saved until you press Save');
+    // The top button submits the same form as the one at the bottom.
+    expect(html).toContain('form="review"');
+    expect(html).toContain('<form id="review"');
+  });
+
+  it('shows the tapped star over a score already saved, since that is what they just chose', () => {
+    const record = { ...RECORD, review: normalizeReview({ overall: 2 }) };
+    expect(checkedOverall(renderForm({ record, token: TOKEN, preselect: '5' }))).toBe('5');
+  });
+
+  it('ignores a rating that is not one', () => {
+    for (const bad of ['0', '6', '4.5', '"><script>', undefined]) {
+      const html = renderForm({ record: RECORD, token: TOKEN, preselect: bad });
+      expect(html).not.toContain('class="quick"');
+      expect(html).not.toContain('<script>');
+    }
+  });
+
+  it('calls it training for Sol', () => {
+    expect(renderForm({ record: RECORD, token: TOKEN })).toContain('training material for Sol');
+    expect(renderSaved({ rating: 4 })).toContain('fed back into Sol');
+  });
+});
+
 describe('the other two pages', () => {
   it('confirms a save and names the score', () => {
     expect(renderSaved({ rating: 4 })).toContain('Scored 4/5');

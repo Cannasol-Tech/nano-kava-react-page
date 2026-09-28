@@ -23,6 +23,7 @@ const { sendgridApiKey } = require('./leads');
 const { addUsage, formatUsd, EMPTY_USAGE } = require('./usageCost');
 const { chatDb, COLLECTION: SESSIONS_COLLECTION } = require('./chatStore');
 const { LEADS_COLLECTION } = require('./chatLeads');
+const { unsentSubmissions } = require('./leadQueue');
 
 const REPORT_RECIPIENT = 'stephen.boyett@cannasolusa.com';
 const REPORT_SENDER = { email: 'do-not-reply@enjoynano.com', name: 'EnjoyNano - Sol' };
@@ -157,14 +158,51 @@ function leadHtml(lead) {
     <ul style="margin:0;padding-left:18px;font-size:12px;color:#1f2937;">${rows || '<li>no fields</li>'}</ul>`;
 }
 
+const SOURCE_LABEL = { chat: 'Sol chat card', form: 'Contact form' };
+
+const undeliveredLine = (e) => `  ${SOURCE_LABEL[e.source] || e.source || 'Submission'} · `
+  + `queued ${toDate(e.queuedAt || e.at)?.toISOString?.() || 'unknown'}\n`
+  + `  ${e.name || 'unnamed'} · ${e.email || 'no email'} · ${e.phone || 'no phone'}`
+  + `${e.company ? ` · ${e.company}` : ''}\n  ${e.message || '(no message)'}`;
+
+/**
+ * The backstop for the lead sweep. Everything here is a person who asked to be contacted and
+ * whose email has not gone out an hour on, so the report carries the lead itself, not just a
+ * count. This job runs on its own schedule — it still arrives if `sendPendingLeads` is dead.
+ */
+function undeliveredHtml(entries) {
+  const items = entries.map((e) => `
+      <li style="margin:0 0 10px;">
+        <strong>${escapeHtml(e.name || 'unnamed')}</strong>
+        ${e.company ? ` &middot; ${escapeHtml(e.company)}` : ''}
+        &middot; ${escapeHtml(e.email || 'no email')} &middot; ${escapeHtml(e.phone || 'no phone')}
+        <br><span style="color:#6b7280;">${escapeHtml(SOURCE_LABEL[e.source] || e.source || '')}
+          &middot; queued ${escapeHtml(toDate(e.queuedAt || e.at)?.toISOString?.() || 'unknown')}</span>
+        <br><span style="white-space:pre-wrap;">${escapeHtml(e.message || '(no message)')}</span>
+      </li>`).join('');
+  return `
+    <div style="border:2px solid #dc2626;background:#fef2f2;border-radius:8px;padding:14px 16px;margin-bottom:18px;">
+      <p style="margin:0 0 8px;font-size:14px;font-weight:700;color:#991b1b;">
+        ${entries.length} lead${entries.length === 1 ? '' : 's'} NOT emailed yet &mdash; contact
+        ${entries.length === 1 ? 'this person' : 'these people'} directly, and check the
+        sendPendingLeads schedule
+      </p>
+      <ul style="margin:0;padding-left:18px;font-size:13px;color:#1f2937;">${items}</ul>
+    </div>`;
+}
+
 function buildReportEmail(report) {
   const { conversations, confirmedLeads, extractedOnly, rows, window, cost } = report;
+  const undelivered = report.undelivered || [];
   const costLine = costReportLine(cost);
   const day = dayLabel(window.until);
 
+  const alert = undelivered.length
+    ? `⚠️ ${undelivered.length} lead${undelivered.length === 1 ? '' : 's'} NOT emailed · `
+    : '';
   const subject = conversations === 0
-    ? `[Sol daily] ${day} — no conversations`
-    : `[Sol daily] ${day} — ${conversations} conversation${conversations === 1 ? '' : 's'}, `
+    ? `[Sol daily] ${alert}${day} — no conversations`
+    : `[Sol daily] ${alert}${day} — ${conversations} conversation${conversations === 1 ? '' : 's'}, `
       + `${confirmedLeads} submitted, ${extractedOnly} unconfirmed`;
 
   const text = [
@@ -175,6 +213,10 @@ function buildReportEmail(report) {
     `Contact details captured but not submitted: ${extractedOnly}`,
     costLine,
     '',
+    ...(undelivered.length
+      ? [`!!! ${undelivered.length} lead(s) NOT emailed yet — contact them directly:`,
+        ...undelivered.map(undeliveredLine), '']
+      : []),
     ...(conversations === 0
       ? ['No conversations in this window. (This report is sent daily either way, so silence',
          'here means a quiet day rather than a broken job.)']
@@ -216,6 +258,7 @@ function buildReportEmail(report) {
       <p style="margin:6px 0 0;color:#94a3b8;font-size:12px;">${escapeHtml(costLine)}</p>
     </div>
     <div style="border:1px solid #e5e7eb;border-top:0;border-radius:0 0 10px 10px;padding:18px 20px;">
+      ${undelivered.length ? undeliveredHtml(undelivered) : ''}
       ${body}
     </div>
   </div>`;
@@ -256,6 +299,12 @@ async function sendWithRetry(send, { attempts = RETRY_ATTEMPTS, delayMs = RETRY_
  * the window (Sol extracted it yesterday, the visitor submitted today) and it would be missed.
  */
 async function collectReport({ db = chatDb(), now = new Date() }) {
+  const unsent = await unsentSubmissions({ db, now });
+  const summary = await collectConversations({ db, now });
+  return { ...summary, undelivered: unsent.entries };
+}
+
+async function collectConversations({ db, now }) {
   const window = reportWindow(now);
 
   const snapshot = await db.collection(SESSIONS_COLLECTION)

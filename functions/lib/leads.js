@@ -203,9 +203,10 @@ function reviewUrl(token, params = {}) {
 }
 
 /**
- * The CTA. A score is one click straight from the inbox — the star links record `overall` and
- * land on the questionnaire prefilled — because one number on every lead beats a long form on
- * none. See docs/sol-review-loop.md § Why the stars are links.
+ * The CTA. Each star links to the questionnaire with that score already picked, one tap from
+ * Save. The link itself records nothing: Microsoft 365 scans every link in an email before a
+ * human opens it, and a link that saved on GET would score every lead on its own. See
+ * docs/sol-review-loop.md § Why the stars preselect and do not save.
  */
 function reviewCtaHtml(token) {
   const stars = [1, 2, 3, 4, 5].map((n) => `
@@ -216,9 +217,9 @@ function reviewCtaHtml(token) {
           <div style="margin:24px 0;padding:18px 20px;background:#f0fdfa;border:1px solid #99f6e4;border-radius:10px;">
             <p style="margin:0 0 4px;font-size:14px;font-weight:700;color:#0f766e;">How did Sol do on this one?</p>
             <p style="margin:0 0 12px;font-size:13px;color:#115e59;">
-              Tap an overall score &mdash; 1 poor, 5 excellent. It saves on the tap and opens the
-              short review: knowledge, tone and handoff, four taps in all. It becomes training
-              material for LIVEY.
+              Tap an overall score &mdash; 1 poor, 5 excellent. It opens the short review with that
+              score picked; press Save to record it, or add knowledge, tone and handoff first. It
+              becomes training material for Sol.
             </p>
             <div style="margin-bottom:12px;">${stars}</div>
             <a href="${escapeHtml(reviewUrl(token))}"
@@ -230,7 +231,7 @@ function reviewCtaHtml(token) {
 
 const reviewCtaText = (token) =>
   `\nHow did Sol do? Four taps — overall, knowledge, tone, handoff. It becomes training\n`
-  + `material for LIVEY:\n${reviewUrl(token)}\n`;
+  + `material for Sol:\n${reviewUrl(token)}\n`;
 
 const SOURCE_LABEL = { chat: 'Sol chat card', form: 'Contact form' };
 

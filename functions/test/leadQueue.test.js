@@ -30,6 +30,11 @@ import {
   claimForSend,
   markSent,
   returnToQueue,
+  reconcileLedger,
+  unsentSubmissions,
+  LEDGER_COLLECTION,
+  LEASE_MS,
+  OVERDUE_MS,
 } from '../lib/leadQueue.js';
 import { contactKeyFor, normalizePhone, normalizeEmail, sessionsForContact } from '../lib/leadIdentity.js';
 import { LEADS_COLLECTION } from '../lib/chatLeads.js';
@@ -246,21 +251,45 @@ describe('claiming and sending', () => {
     expect(first.ok).toBe(true);
     expect(first.batch.submissions).toHaveLength(1);
 
+    // A second sweep running beside the first, inside its lease, gets nothing.
     const second = await claimForSend({ db, contactKey: KEY, now: at(25) });
-    expect(second).toMatchObject({ ok: false, reason: 'nothing-pending' });
+    expect(second).toMatchObject({ ok: false, reason: 'in-flight' });
   });
 
-  /** The one Firestore subtlety the whole sweep rests on. */
-  it('REMOVES notifyAfter rather than nulling it', async () => {
+  it('holds a claim as a lease, so a sweep that dies leaves the lead due again', async () => {
     const db = fakeDb();
     await enqueueSubmission({ db, submission: CHAT, now: T0 });
     await claimForSend({ db, contactKey: KEY, now: at(25) });
 
+    expect(queued(db).notifyAfter).toEqual(new Date(at(25).getTime() + LEASE_MS));
+    expect((await dueLeads({ db, now: at(26) })).leads).toHaveLength(0);
+    expect((await dueLeads({ db, now: new Date(at(25).getTime() + LEASE_MS) })).leads).toHaveLength(1);
+  });
+
+  /** The one Firestore subtlety the whole sweep rests on. */
+  it('REMOVES notifyAfter once sent, rather than nulling it', async () => {
+    const db = fakeDb();
+    await enqueueSubmission({ db, submission: CHAT, now: T0 });
+    await claimForSend({ db, contactKey: KEY, now: at(25) });
+    await markSent({ db, contactKey: KEY, now: at(25) });
+
     expect('notifyAfter' in queued(db)).toBe(false);
+    expect('leaseUntil' in queued(db)).toBe(false);
 
     // A null would sort below every timestamp and match `<= now` forever.
     const due = await dueLeads({ db, now: at(999) });
     expect(due.leads).toHaveLength(0);
+  });
+
+  it('keeps a submission that arrived mid-send on its own quiet period', async () => {
+    const db = fakeDb();
+    await enqueueSubmission({ db, submission: CHAT, now: T0 });
+    await claimForSend({ db, contactKey: KEY, now: at(25) });
+    await enqueueSubmission({ db, submission: FORM, now: at(26) });
+    await markSent({ db, contactKey: KEY, now: at(27) });
+
+    expect(queued(db).pending.map((s) => s.source)).toEqual(['form']);
+    expect(queued(db).notifyAfter).toEqual(new Date(at(26).getTime() + QUIET_MS));
   });
 
   it('counts the emails a person has generated, for the review sequence', async () => {
@@ -295,5 +324,105 @@ describe('claiming and sending', () => {
 
     expect(queued(db).pending).toHaveLength(1);
     expect(queued(db).notifyAfter).toEqual(new Date(T0.getTime() + QUIET_MS));
+  });
+});
+
+describe('the delivery ledger', () => {
+  const ledger = (db) => [...db.docs.entries()]
+    .filter(([path]) => path.startsWith(`${LEDGER_COLLECTION}/`)).map(([, data]) => data);
+
+  it('records every submission as queued, under the same id the queue holds', async () => {
+    const db = fakeDb();
+    const result = await enqueueSubmission({ db, submission: CHAT, now: T0 });
+
+    const [entry] = ledger(db);
+    expect(entry).toMatchObject({ id: result.submissionId, status: 'queued', contactKey: KEY });
+    expect(queued(db).pending[0].id).toBe(result.submissionId);
+  });
+
+  it('mints the id itself, so a visitor cannot aim at another submission\'s record', async () => {
+    const db = fakeDb();
+    const result = await enqueueSubmission({ db, submission: { ...CHAT, id: 'someone-else' }, now: T0 });
+    expect(result.submissionId).not.toBe('someone-else');
+    expect(db.docs.has(`${LEDGER_COLLECTION}/someone-else`)).toBe(false);
+  });
+
+  it('marks each submission emailed, and each conversation, when the send lands', async () => {
+    const db = fakeDb();
+    db.docs.set(`${LEADS_COLLECTION}/session-kelsy001`, { sessionId: 'session-kelsy001', email: EMAIL });
+    await enqueueSubmission({ db, submission: CHAT, now: T0 });
+    await enqueueSubmission({ db, submission: FORM, now: at(5) });
+    await claimForSend({ db, contactKey: KEY, now: at(30) });
+    await markSent({
+      db, contactKey: KEY, sessionIds: ['session-kelsy001', 'session-nolead01'], reviewId: 'r_0', now: at(30),
+    });
+
+    expect(ledger(db)).toHaveLength(2);
+    for (const entry of ledger(db)) {
+      expect(entry).toMatchObject({ status: 'emailed', emailedAt: at(30), reviewId: 'r_0' });
+    }
+    expect(db.docs.get(`${LEADS_COLLECTION}/session-kelsy001`).emailedAt).toEqual(at(30));
+    // A conversation with no lead record gets none invented for it.
+    expect(db.docs.has(`${LEADS_COLLECTION}/session-nolead01`)).toBe(false);
+  });
+
+  it('recovers a batch whose sweep died, once the lease runs out', async () => {
+    const db = fakeDb();
+    await enqueueSubmission({ db, submission: CHAT, now: T0 });
+    await claimForSend({ db, contactKey: KEY, now: at(25) });
+    // ...the instance is killed here: no markSent, no returnToQueue.
+    await enqueueSubmission({ db, submission: FORM, now: at(27) });
+
+    const expired = new Date(at(25).getTime() + LEASE_MS + 1000);
+    const retry = await claimForSend({ db, contactKey: KEY, now: expired });
+
+    expect(retry.ok).toBe(true);
+    expect(retry.recovered).toBe(1);
+    expect(retry.batch.submissions.map((s) => s.source)).toEqual(['chat', 'form']);
+  });
+
+  it('puts back a submission the queue lost entirely', async () => {
+    const db = fakeDb();
+    const { submissionId } = await enqueueSubmission({ db, submission: CHAT, now: T0 });
+    db.docs.delete(`${QUEUE_COLLECTION}/${KEY}`);
+
+    // Not yet overdue: the reconciler leaves the queue's own timing alone.
+    const early = await reconcileLedger({ db, now: at(20) });
+    expect(early.requeued).toBe(0);
+
+    const late = new Date(T0.getTime() + OVERDUE_MS + 1000);
+    const result = await reconcileLedger({ db, now: late });
+    expect(result.requeued).toBe(1);
+    expect(queued(db).pending.map((s) => s.id)).toEqual([submissionId]);
+    expect((await dueLeads({ db, now: late })).leads).toHaveLength(1);
+  });
+
+  it('re-arms a held submission that nothing would ever pick up', async () => {
+    const db = fakeDb();
+    await enqueueSubmission({ db, submission: CHAT, now: T0 });
+    const { notifyAfter, ...rest } = queued(db);
+    db.docs.set(`${QUEUE_COLLECTION}/${KEY}`, rest);
+
+    const late = new Date(T0.getTime() + OVERDUE_MS + 1000);
+    await reconcileLedger({ db, now: late });
+    expect(queued(db).pending).toHaveLength(1);
+    expect(queued(db).notifyAfter).toEqual(late);
+  });
+
+  it('leaves an emailed submission alone', async () => {
+    const db = fakeDb();
+    await enqueueSubmission({ db, submission: CHAT, now: T0 });
+    await claimForSend({ db, contactKey: KEY, now: at(25) });
+    await markSent({ db, contactKey: KEY, now: at(25) });
+
+    const result = await reconcileLedger({ db, now: at(999) });
+    expect(result).toMatchObject({ ok: true, requeued: 0, overdue: 0 });
+  });
+
+  it('lists what is still unsent an hour on, for the daily report', async () => {
+    const db = fakeDb();
+    await enqueueSubmission({ db, submission: CHAT, now: T0 });
+    expect((await unsentSubmissions({ db, now: at(30) })).entries).toHaveLength(0);
+    expect((await unsentSubmissions({ db, now: at(61) })).entries).toHaveLength(1);
   });
 });

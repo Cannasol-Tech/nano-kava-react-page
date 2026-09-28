@@ -19,7 +19,7 @@ The lead queue and review loop added five more on 2026-09-19.*
 | `particlePalette.js` | Sol's colour library and resolver — see § Colour resolution is server-side. |
 | `transcript.js` | Rendering a stored conversation as text, HTML and a markdown attachment. |
 | `leadIdentity.js` | Who a lead IS — see § A lead is a person, not a submission. |
-| `leadQueue.js` | The quiet window that makes one lead one email — see § One email per lead. |
+| `leadQueue.js` | The quiet window that makes one lead one email, and the delivery ledger — see § One email per lead. |
 | `leadHandoff.js` | The ORDER a queued lead is processed in, and the sweep itself. |
 | `solReviews.js` | The permanent review corpus — see § The review corpus is permanent. |
 | `reviewForm.js` | The questionnaire's HTML. Nothing else may render it. |
@@ -83,7 +83,10 @@ attaches however much of the chat existed at the moment the visitor pressed it.
 ### `notifyAfter` is absent, never null
 
 The sweep selects on `where('notifyAfter', '<=', now)`, so the field's **presence** is the queue.
-When a batch is claimed the field is left off the document entirely.
+Once a lead is sent and nothing is pending, the field is left off the document entirely. (A claim
+sets it to the lease expiry rather than removing it — see § Every submission is ledgered until it
+is emailed. *Corrected 2026-09-28: this said a claim removed it, which is what let a dead sweep
+strand a batch.*)
 
 Writing `null` instead would be much worse than useless: Firestore orders null *below* every
 timestamp, so `notifyAfter <= now` matches it, and the sweep would pick up every lead it had ever
@@ -110,6 +113,27 @@ re-armed on a 5-minute retry rather than another full window. `sendPendingLeads`
 the run is marked failed and visible. Dropping it silently would lose the prospect outright —
 this is the only path a lead has to a human.
 
+### Every submission is ledgered until it is emailed
+
+*Added 2026-09-28, at Stephen's request that the sender "cannot fail to send".* The failure above
+is the one that throws. The one that did not: a sweep that **dies** between claiming and marking
+sent left the batch in `sending` with no `notifyAfter`, and nothing ever looked at it again.
+
+- **`leadSubmissions/{id}`** — the ledger. Written in the same transaction as the enqueue, flipped
+  to `emailed` (with `emailedAt`, `reviewId`) in the same transaction as `markSent`, which also
+  stamps `emailedAt` on each conversation's `chatLeads` record that exists. No TTL.
+- **The claim is a lease.** `claimForSend` sets `leaseUntil` and `notifyAfter` 10 minutes out
+  rather than removing `notifyAfter`; an expired lease with `sending` still set is recovered into
+  the next batch. `notifyAfter` is still removed — never nulled — once nothing is pending.
+- **`reconcileLedger`** runs first in every sweep and puts back anything still `queued` past
+  `OVERDUE_MS` that the queue has lost or will never pick up.
+- **The daily report** lists anything still unsent after an hour, lead details included — the
+  backstop for a sweep that is not running at all.
+
+Delivery is **at-least-once**: a sweep that sends then dies before `markSent` re-sends on lease
+expiry. Keep `LEASE_MINUTES` well above the function's 300s timeout. Full reasoning:
+`docs/sol-review-loop.md § Every submission is ledgered until it is emailed`.
+
 ### What the one email carries
 
 - **The contact**, merged: the latest non-empty value for each field, and the **union** of every
@@ -120,7 +144,9 @@ this is the only path a lead has to a human.
 - **Every conversation**, inline and as ONE markdown attachment. An attachment per chat is a
   filing problem, not a help. Capped at the 4 most recent: a person with more than that is a
   returning visitor, not a lead.
-- **The review CTA**, whose stars score `overall` in one click.
+- **The review CTA**, whose stars open the form with `overall` preselected — never saved on the
+  GET, because Microsoft 365 scans every link. See `docs/sol-review-loop.md § Why the stars
+  preselect and do not save`.
 
 The heading and subject say which forms were used — `New Lead (Sol chat + contact form)` is one
 lead that says it did both. Every interpolation is escaped; § Lead email escaping applies with
@@ -199,9 +225,9 @@ paraphrases of it. Flags sort first: a compliance slip outranks a middling score
 
 Answers are allow-listed exactly like `normalizeLead`: this form posts from the open internet, so
 an undeclared key (`__proto__` included) must not reach the document. An unticked checkbox posts
-nothing at all, so absence is read as false rather than unknown. A one-click star scores
-`overall` alone and sets `status: 'rated'`, which must not read as a filled-in questionnaire when
-the corpus is filtered.
+nothing at all, so absence is read as false rather than unknown. A star tapped in the email only
+preselects `overall`; nothing is written until the form is posted, so `training.promptBlock` and
+the scores can never disagree.
 
 The compliance flag means **the claims line**, which moved on 2026-09-21: Sol may now name the
 category an ingredient sells into, so the flag is for saying what something DOES to a person,
@@ -209,8 +235,11 @@ naming a condition, or personal dosing — not for mentioning calm-and-balance. 
 `../CLAUDE.md § What Sol may say about effects`; a review filed against the old, broader meaning
 will read as a false positive.
 
-**`training.promptBlock` is the deliverable** — markdown that concatenates into LIVEY's system
+**`training.promptBlock` is the deliverable** — markdown that concatenates into Sol's system
 instruction with no further shaping, reading as a worked example rather than a database row.
+**Nothing consumes it yet** — see `docs/sol-review-loop.md § Feeding reviews back to Sol`. The
+quoted transcript inside it is visitor-authored, so its fence is always longer than any backtick
+run in the text and continuation lines are indented; do not "simplify" either away.
 `training.embeddingText` is the string a future embedding would be computed over, and
 `embedding` / `embeddingModel` / `embeddedAt` are reserved nulls. **kNN retrieval is investigated,
 not built** — Firestore's native vector search, the 2048-dimension ceiling that forces

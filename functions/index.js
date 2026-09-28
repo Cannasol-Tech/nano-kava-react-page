@@ -40,7 +40,7 @@ const { persistLead } = require('./lib/chatLeads');
 const { sweepDueLeads } = require('./lib/leadHandoff');
 const { enqueueSubmission, QUIET_MINUTES } = require('./lib/leadQueue');
 const { collectReport, sendDailyReport } = require('./lib/dailyReport');
-const { resolveReviewToken, loadReview, saveReview, recordRating } = require('./lib/solReviews');
+const { resolveReviewToken, loadReview, saveReview } = require('./lib/solReviews');
 const { renderForm, renderSaved, renderProblem } = require('./lib/reviewForm');
 
 const googleAiApiKey = defineSecret('GOOGLE_AI_API_KEY');
@@ -220,6 +220,12 @@ exports.sendPendingLeads = onSchedule(
         + ` failed: ${result.failures.join(' | ')}`);
     }
 
+    // The ledger is the backstop against a lost lead; a run that could not check it is a failed
+    // run even when everything it did find was sent.
+    if (!result.reconciled?.ok) {
+      throw new Error('[sendPendingLeads] could not read the delivery ledger');
+    }
+
     if (result.sent) console.info(`[sendPendingLeads] ${result.sent} lead email(s) sent`);
   }
 );
@@ -276,20 +282,19 @@ exports.solReview = functions.https.onRequest(async (req, res) => {
         }));
       }
       console.info(`[solReview] review saved for ${reviewId}`);
-      return res.status(200).send(renderSaved({ rating: Number(req.body?.rating) || null }));
+      return res.status(200).send(renderSaved({ rating: Number(req.body?.overall) || null }));
     }
 
-    // A star tapped straight from the inbox. Recorded before the form renders, so one click is
-    // enough even if they never scroll — see docs/sol-review-loop.md § Why the stars are links.
-    if (req.query?.rating) {
-      const rated = await recordRating({ reviewId, rating: req.query.rating });
-      if (rated.ok) console.info(`[solReview] one-click rating for ${reviewId}`);
-    }
-
+    // A star tapped in the inbox PRESELECTS a score; it never saves one. A GET must not write:
+    // Microsoft 365's link scanning opens every link in an email before a human does, and a
+    // write here would file a score on every lead that nobody gave. See
+    // docs/sol-review-loop.md § Why the stars preselect and do not save.
     const record = await loadReview({ reviewId });
     if (!record.ok) return problem(404, 'That lead is no longer on file.');
 
-    return res.status(200).send(renderForm({ record: record.review, token }));
+    return res.status(200).send(renderForm({
+      record: record.review, token, preselect: req.query?.rating,
+    }));
   } catch (error) {
     console.error('[solReview] request failed:', error);
     return problem(500, 'Something went wrong on our end. Try the link again shortly.');
