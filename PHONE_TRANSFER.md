@@ -5,8 +5,23 @@ only commit is this file. Delete it once the work below is finished.
 
 ## Status in one line
 
-Sol is down because **the Gemini API's prepaid credits ran out**. This is billing, not a code bug. Fix: top
-up the AI Studio project that owns `GOOGLE_AI_API_KEY`. No code change or redeploy is needed.
+Sol is down because **Google moved the Gemini billing account to prepay-only, and nobody switched it over**.
+The balance is $0, so every call gets "prepayment credits are depleted". We did *not* overspend. Fix: Stephen
+clicks **Set up prepay** and funds it. No code change or redeploy is needed.
+
+**Corrected after the first handoff:** this doc first said the credits "ran out". AI Studio shows otherwise.
+
+| | |
+|---|---|
+| Key Sol uses | `cannasol-crm-backend` in GCP project **`cannasol-client-db`** (#630919737597). It is **shared with the Cannasol CRM backend**, which is down too. |
+| Billing account | "Cannasol Executive Dashboard" `0170DA-0365B6-0E7E8A`, Paid tier 2, $2,000 cap. Owner login `stephen.boyett@cannasolusa.com`. |
+| Banner on the page | "billing accounts that are required to switch to prepay. Switch now to avoid service interruption." |
+| Spend, Aug 9 – Nov 6 | **$30.89 total**, billed postpaid as normal. That's about $10/month for Sol and the CRM combined. |
+| Who made the calls (75 days) | About 7,040 successful. Only 1,216 (17%) are Sol's `StreamGenerateContent`. The rest are non-streaming `GenerateContent` and `BatchEmbedContents`, calls this repo never makes, so they're the CRM. |
+| Local `.env` key | **Identical to the prod secret**, so dev, e2e runs and bake-offs all bill to this project. |
+| Heads-up | The **LIVEY** AI Studio project (`gen-lang-client-0454246966`) shows the same "Prepay required" status. |
+
+Billing page: `https://aistudio.google.com/u/2/billing?billing=0170DA-0365B6-0E7E8A` (`/u/2` = the cannasolusa account in Chrome).
 
 ## Root cause (verified)
 
@@ -44,8 +59,10 @@ card, so there is no contact info to recover. IDs: `10205259`, `0d1efd53`, `3e90
 
 ## Open items: Stephen to pick (nothing started)
 
-1. **Top up credits.** Only Stephen can do this, at ai.studio/projects. Consider enabling auto-reload.
-   Afterwards, re-run the curl above to confirm Sol answers.
+1. **Set up prepay.** Only Stephen can do this, on the billing page above. At about $10/month, $25–50 with
+   auto-reload covers it. Afterwards, re-run the curl above to confirm Sol answers. Optional, later: give Sol its
+   own key or project so the CRM can't take it down, or move it to Vertex AI on `nano-kava-landing-page`'s own
+   billing. That second option is a code change and hasn't been verified.
 2. **Alerting gap: why 9 days went unnoticed.** The widget header still says "online", and
    `functions/lib/dailyReport.js` lists conversations but has no count of failed or unanswered turns.
    Candidate fix: count turns with no model reply, or log model errors, and put that at the top of the
@@ -56,8 +73,7 @@ card, so there is no contact info to recover. IDs: `10205259`, `0d1efd53`, `3e90
    caching is implicit` documents a 58% hit rate and $0.0033/turn. The cause is not investigated. Check:
    (a) whether `systemInstruction` became non-byte-identical across requests; (b) whether `usageFrom` /
    `usageCost.js` still reads `cachedContentTokenCount` correctly.
-4. **Shared key?** Sol's most expensive conversation ever cost $0.16. If the prepaid balance wasn't tiny,
-   something else may share that AI Studio project or key. Unverified.
+4. **Shared key: confirmed.** See the table above. Sol shares its key and project with the CRM backend.
 5. **Separate small bug seen in passing.** On 2026-10-21 (`93fe0229`), the sample-request chip got the
    empty-response fallback ("I can't answer that one here…") with `outputTokens: 0`. That matches the
    failure mode in `functions/lib/CLAUDE.md § Thinking budget`. Not investigated.
