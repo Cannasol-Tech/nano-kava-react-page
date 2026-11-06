@@ -111,6 +111,9 @@ button:hover { filter: brightness(1.07); }
   display: inline-grid; place-items: center; width: 56px; height: 56px; border-radius: 50%;
   background: linear-gradient(135deg, #2ECC71, #17A2B8); color: #062d21; font-size: 28px; font-weight: 700;
 }
+.quick { background: #134e4a; border: 1px solid #2ECC71; border-radius: 12px; padding: 14px; margin: 0 0 18px; }
+.quick p { margin: 0; font-size: 15px; color: #f1f5f9; }
+.quick .hint { margin-top: 8px; font-size: 13px; }
 .err { border-left: 3px solid #f87171; padding-left: 12px; color: #fca5a5; }
 footer { margin-top: 28px; color: #64748b; font-size: 12px; text-align: center; }
 @media (max-width: 420px) { body { padding: 16px 12px 44px; } }
@@ -216,21 +219,45 @@ function leadCard(record) {
   return `<div class="card">${lines}${submissions}${transcript}</div>`;
 }
 
-/** The whole questionnaire, prefilled when this lead has already been rated or reviewed. */
-function renderForm({ record, token, error }) {
-  const review = record?.review || null;
+/** A star from the email, if it is one. Anything else is ignored rather than trusted. */
+const preselectedScore = (value) => {
+  const n = Number(value);
+  return Number.isInteger(n) && n >= 1 && n <= 5 ? n : null;
+};
+
+/**
+ * The whole questionnaire, prefilled when this lead has already been reviewed.
+ *
+ * `preselect` is the star tapped in the email. It is shown selected but NOT saved — the GET that
+ * carries it must not write, because a mail scanner opens every link first — so the page leads
+ * with a Save button that files it in one more tap.
+ */
+function renderForm({ record, token, error, preselect }) {
+  const stored = record?.review || null;
+  const picked = preselectedScore(preselect);
+  const review = picked
+    ? { ...(stored || {}), scores: { ...(stored?.scores || {}), overall: picked } }
+    : stored;
+
+  const quickSave = picked ? `
+  <div class="quick">
+    <p>You picked <b>${picked}/5</b> overall. It is not saved until you press Save.</p>
+    <button type="submit" form="review">Save ${picked}/5</button>
+    <p class="hint">Or add more below first &mdash; everything else is optional.</p>
+  </div>` : '';
 
   return page('Review Sol — Cannasol', `
   <h1>How did Sol do?</h1>
   <p class="sub">Four taps and you&rsquo;re done. Everything is optional, and it all becomes
-    training material for LIVEY.</p>
+    training material for Sol.</p>
 
   ${error ? `<p class="err">${escapeHtml(error)}</p>` : ''}
+  ${quickSave}
 
   <h2>The lead</h2>
   ${leadCard(record)}
 
-  <form method="POST" action="">
+  <form id="review" method="POST" action="">
     <input type="hidden" name="token" value="${attr(token)}">
 
     <h2>Score it &mdash; 1 poor, 5 excellent</h2>
@@ -264,7 +291,7 @@ function renderSaved({ rating, average }) {
     <p class="tick">&#10003;</p>
     <h1>Saved</h1>
     <p class="sub">${score}This lead, its conversation and your review are stored permanently and
-      are ready to be fed back into LIVEY.</p>
+      are ready to be fed back into Sol.</p>
     <p class="sub">You can close this tab &mdash; or reopen the link any time to revise it.</p>
   </div>`);
 }

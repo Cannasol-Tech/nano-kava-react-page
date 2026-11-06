@@ -98,10 +98,14 @@ async function main() {
 
   console.log('\n[4] The review link in every lead email resolves');
   const review = await get(`${SITE}/sol-review?token=releasecheck0000`);
-  check('/sol-review is served by the solReview function', review.ok && review.status !== 404
-    && /didn.t work|How did Sol do/i.test(review.body || ''),
+  // The function answers an unknown token with its own 404 page, so the status alone cannot tell
+  // "rewrite missing" from "working as designed". Hosting's 404 is dist/404.html; the function's
+  // is the review shell, so the body is what decides.
+  check('/sol-review is served by the solReview function', review.ok
+    && /Review unavailable|How did Sol do/i.test(review.body || ''),
     review.ok
-      ? `status ${review.status} — a hosting 404 means the rewrite or the function is missing`
+      ? `status ${review.status}, not the review page — hosting served it, so the rewrite or the`
+        + ' function is missing'
       : review.error);
 
   console.log('\n[5] Hosting carries the current content');
@@ -116,7 +120,7 @@ async function main() {
   } else {
     check('chatSessions still has its 90-day TTL', /chatSessions/.test(indexes.stdout), indexes.stdout.slice(0, 200));
     // Their absence IS the retention policy for these three — see CLAUDE.md.
-    for (const collection of ['chatLeads', 'leadNotifications', 'solReviews']) {
+    for (const collection of ['chatLeads', 'leadNotifications', 'leadSubmissions', 'solReviews']) {
       check(`${collection} has NO TTL`, !new RegExp(`${collection}[\\s\\S]{0,200}"ttl"\\s*:\\s*true`).test(indexes.stdout),
         'a TTL here would delete business records');
     }

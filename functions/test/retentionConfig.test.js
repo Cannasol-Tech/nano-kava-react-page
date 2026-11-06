@@ -25,7 +25,7 @@ import { join } from 'node:path';
 import { COLLECTION, RETENTION_DAYS } from '../lib/chatStore.js';
 import { LEADS_COLLECTION } from '../lib/chatLeads.js';
 import { REVIEWS_COLLECTION, TOKENS_COLLECTION } from '../lib/solReviews.js';
-import { QUEUE_COLLECTION } from '../lib/leadQueue.js';
+import { QUEUE_COLLECTION, LEDGER_COLLECTION } from '../lib/leadQueue.js';
 
 const root = join(import.meta.dirname, '..', '..');
 const indexes = JSON.parse(readFileSync(join(root, 'firestore.indexes.json'), 'utf8'));
@@ -81,6 +81,10 @@ describe('the review corpus must never gain a TTL', () => {
   it('leaves the lead queue alone too', () => {
     // A TTL here would delete a lead out from under the sweep before it was ever emailed.
     expect(overrideFor(QUEUE_COLLECTION)).toBeUndefined();
+  });
+
+  it('leaves the delivery ledger alone, or "was this lead emailed?" stops having an answer', () => {
+    expect(overrideFor(LEDGER_COLLECTION)).toBeUndefined();
   });
 
   it('would lose the point of the archive if it did', () => {

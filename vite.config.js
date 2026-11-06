@@ -23,6 +23,7 @@
 import { defineConfig, loadEnv } from 'vite';
 import react from '@vitejs/plugin-react';
 import { createRequire } from 'node:module';
+import { configDefaults } from 'vitest/config';
 
 const CHAT_ROUTE = '/api/chat';
 const LEAD_ROUTE = '/api/sendContactEmail';
@@ -240,7 +241,7 @@ function chatDevServer(mode) {
    * database is local.
    */
   const handleReview = async (req, res) => {
-    const { resolveReviewToken, loadReview, saveReview, recordRating } =
+    const { resolveReviewToken, loadReview, saveReview } =
       require('./functions/lib/solReviews.js');
     const { renderForm, renderSaved, renderProblem } = require('./functions/lib/reviewForm.js');
 
@@ -280,12 +281,12 @@ function chatDevServer(mode) {
         }));
       }
 
-      if (url.searchParams.get('rating')) {
-        await recordRating({ db: reviewDb, reviewId, rating: url.searchParams.get('rating') });
-      }
+      // Preselects, never saves — same as the deployed function. See functions/index.js.
       const record = await loadReview({ db: reviewDb, reviewId });
       if (!record.ok) return finish(404, renderProblem('That lead is not on file.'));
-      return finish(200, renderForm({ record: record.review, token }));
+      return finish(200, renderForm({
+        record: record.review, token, preselect: url.searchParams.get('rating'),
+      }));
     } catch (err) {
       console.error('[sol dev] review route failed:', err);
       return finish(500, '<p>Review route failed — see the Vite terminal.</p>');
@@ -324,7 +325,10 @@ export default defineConfig(({ mode }) => ({
   test: {
     environment: 'jsdom',
     globals: true,
-    setupFiles: ['./src/test/setupTests.js']
+    setupFiles: ['./src/test/setupTests.js'],
+    // .kilo/worktrees holds whole stale copies of this repo, tests included. Without this their
+    // failures are reported as ours.
+    exclude: [...configDefaults.exclude, '.kilo/**'],
   },
   build: {
     outDir: 'dist',

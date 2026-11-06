@@ -24,7 +24,9 @@ import { createRequire } from 'node:module';
 
 import { persistTranscript, createTranscriptRecorder } from '../lib/chatStore.js';
 import { persistLead, LEADS_COLLECTION } from '../lib/chatLeads.js';
-import { enqueueSubmission, QUEUE_COLLECTION, QUIET_MS } from '../lib/leadQueue.js';
+import {
+  enqueueSubmission, claimForSend, QUEUE_COLLECTION, LEDGER_COLLECTION, QUIET_MS, LEASE_MS, OVERDUE_MS,
+} from '../lib/leadQueue.js';
 import { sweepDueLeads } from '../lib/leadHandoff.js';
 import { contactKeyFor } from '../lib/leadIdentity.js';
 import { resolveReviewToken, loadReview, saveReview, REVIEWS_COLLECTION } from '../lib/solReviews.js';
@@ -281,6 +283,61 @@ describe('the sweep is the only thing that sends', () => {
     await sweep(db, leads, after(CHAT_AT, QUIET_MS + 1000));
 
     expect(db.docs.get(`${LEADS_COLLECTION}/${SID}`).confirmed).toBe(true);
+  });
+});
+
+describe('every submission is emailed, whatever fails', () => {
+  const ledger = (db) => [...db.docs.entries()]
+    .filter(([path]) => path.startsWith(`${LEDGER_COLLECTION}/`)).map(([, data]) => data);
+  const key = contactKeyFor({ email: EMAIL }).key;
+
+  it('records both submissions as emailed, against the review they became', async () => {
+    const db = fakeDb();
+    const { leads } = loadLeads();
+    await conversation(db);
+    await enqueueSubmission({ db, submission: chatSubmission, now: CHAT_AT });
+    await enqueueSubmission({ db, submission: formSubmission, now: FORM_AT });
+    await sweep(db, leads, after(FORM_AT, QUIET_MS + 1000));
+
+    const entries = ledger(db);
+    expect(entries).toHaveLength(2);
+    for (const entry of entries) {
+      expect(entry.status).toBe('emailed');
+      expect(entry.reviewId).toBe(`${key}_0`);
+    }
+    // ...and the conversation that went with them.
+    expect(db.docs.get(`${LEADS_COLLECTION}/${SID}`).emailedAt).toEqual(after(FORM_AT, QUIET_MS + 1000));
+  });
+
+  it('sends a lead whose sweep died holding it, once the claim expires', async () => {
+    const db = fakeDb();
+    await enqueueSubmission({ db, submission: chatSubmission, now: CHAT_AT });
+
+    // A sweep claims it and is killed before it can send or hand it back.
+    const diedAt = after(CHAT_AT, QUIET_MS + 1000);
+    await claimForSend({ db, contactKey: key, now: diedAt });
+
+    const early = loadLeads();
+    await sweep(db, early.leads, after(diedAt, 60_000));
+    expect(teamMail(early.sent)).toBeUndefined();
+
+    const { leads, sent } = loadLeads();
+    await sweep(db, leads, after(diedAt, LEASE_MS + 1000));
+    expect(teamMail(sent)).toBeTruthy();
+    expect(ledger(db)[0].status).toBe('emailed');
+  });
+
+  it('sends a lead the queue lost altogether', async () => {
+    const db = fakeDb();
+    await enqueueSubmission({ db, submission: formSubmission, now: FORM_AT });
+    db.docs.delete(`${QUEUE_COLLECTION}/${key}`);
+
+    const { leads, sent } = loadLeads();
+    const result = await sweep(db, leads, after(FORM_AT, OVERDUE_MS + 1000));
+
+    expect(result.reconciled.requeued).toBe(1);
+    expect(teamMail(sent).text).toContain('business-to-business');
+    expect(ledger(db)[0].status).toBe('emailed');
   });
 });
 

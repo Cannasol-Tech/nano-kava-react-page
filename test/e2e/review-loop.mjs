@@ -225,9 +225,18 @@ async function main() {
   const html = await page.text();
   check('the review page renders', page.status === 200, `status ${page.status}`);
   check('it shows the lead being graded', html.includes('How did Sol do'), html.slice(0, 200));
-  check('it offers every score', ['overall', 'knowledge', 'tone', 'compliance']
+  check('it offers every score', ['overall', 'knowledge', 'tone', 'handoff']
     .every((k) => html.includes(`name="${k}" value="5"`)), '');
   check('it is marked noindex', /noindex/.test(page.headers.get('x-robots-tag') || html), '');
+
+  // A star preselects and saves NOTHING: Microsoft 365 opens every link in an email before a
+  // human does, so a star that saved on GET would score every lead by itself.
+  const starred = await fetch(`${link}&rating=5`);
+  const starredHtml = await starred.text();
+  check('a star link preselects its score', /name="overall" value="5" checked/.test(starredHtml), '');
+  const afterStar = await firestoreDoc(`solReviews/${reviewId}`);
+  check('a star link saves nothing', plain(afterStar?.fields?.status) === 'pending'
+    && !afterStar?.fields?.review, `status: ${plain(afterStar?.fields?.status)}`);
 
   console.log(`\n  Review link (this is what the email carried):\n  ${link}\n`);
   console.log(`  Open it, fill it in, then re-read solReviews/${reviewId} for status: 'reviewed'.`);

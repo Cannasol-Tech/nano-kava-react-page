@@ -186,13 +186,22 @@ describe('sendWithRetry', () => {
 
 describe('collectReport', () => {
   /** Enough Firestore surface for a range query plus a getAll of the matching lead docs. */
-  function fakeDb({ sessions = [], leads = [] } = {}) {
+  function fakeDb({ sessions = [], leads = [], unsent = [] } = {}) {
     const leadByPath = new Map(leads.map((l) => [`chatLeads/${l.sessionId}`, l]));
     return {
       queried: null,
       collection(name) {
         const db = this;
         if (name === 'chatLeads') return { doc: (id) => ({ path: `chatLeads/${id}` }) };
+        if (name === 'leadSubmissions') {
+          return {
+            where: (field, op, value) => ({
+              get: async () => ({
+                docs: unsent.filter((e) => e[field] === value).map((e) => ({ data: () => e })),
+              }),
+            }),
+          };
+        }
         return {
           where(field, op, value) {
             db.queried = { field, op, value };
@@ -208,6 +217,33 @@ describe('collectReport', () => {
       },
     };
   }
+
+  it('carries every lead the ledger has not seen emailed after an hour', async () => {
+    const { collectReport, buildReportEmail } = await import('../lib/dailyReport.js');
+    const hourAgo = new Date(NOW.getTime() - 2 * 60 * 60 * 1000);
+    const db = fakeDb({
+      unsent: [
+        { id: 'a', status: 'queued', queuedAt: hourAgo, source: 'form', name: 'Kelsy <b>Bass</b>', email: 'kelsy@treeof12.co', message: 'B2B please' },
+        { id: 'b', status: 'queued', queuedAt: new Date(NOW.getTime() - 60_000), name: 'Just now' },
+        { id: 'c', status: 'emailed', queuedAt: hourAgo, name: 'Already sent' },
+      ],
+    });
+
+    const report = await collectReport({ db, now: NOW });
+    expect(report.undelivered.map((e) => e.id)).toEqual(['a']);
+
+    const mail = buildReportEmail(report);
+    expect(mail.subject).toContain('1 lead NOT emailed');
+    expect(mail.html).toContain('Kelsy &lt;b&gt;Bass&lt;/b&gt;');
+    expect(mail.html).toContain('B2B please');
+    expect(mail.text).toContain('kelsy@treeof12.co');
+  });
+
+  it('says nothing about undelivered leads when there are none', async () => {
+    const { collectReport, buildReportEmail } = await import('../lib/dailyReport.js');
+    const mail = buildReportEmail(await collectReport({ db: fakeDb(), now: NOW }));
+    expect(mail.subject).not.toContain('NOT emailed');
+  });
 
   it('asks Firestore only for conversations inside the window', async () => {
     const { collectReport } = await import('../lib/dailyReport.js');
