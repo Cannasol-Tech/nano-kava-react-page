@@ -1,0 +1,970 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Functionality Report — nano-kava-react-page</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400&family=DM+Sans:wght@400;500&family=Outfit:wght@300;400;500;600;700&family=Syncopate:wght@700&display=swap" rel="stylesheet">
+<style>
+:root {
+    --bg-deep: #060609;
+    --bg-primary: #0a0a10;
+    --bg-surface: #0e0e1a;
+    --bg-elevated: #141428;
+    --border-subtle: #1a1a30;
+    --border-medium: #252540;
+    --text-primary: #d8d8e8;
+    --text-secondary: #8888a0;
+    --text-muted: #505068;
+    --accent-green: #34d399;
+    --accent-red: #f87171;
+    --accent-amber: #fbbf24;
+    --accent-blue: #60a5fa;
+    --font-brand: 'Syncopate', 'Arial Black', sans-serif;
+    --font-heading: 'Outfit', 'Helvetica Neue', sans-serif;
+    --font-body: 'DM Sans', 'Helvetica', sans-serif;
+    --font-mono: 'DM Mono', 'Menlo', monospace;
+}
+*, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+body {
+    font-family: var(--font-body);
+    background: var(--bg-deep);
+    background-image:
+        radial-gradient(ellipse 80% 50% at 50% -10%, rgba(40,40,80,0.35) 0%, transparent 70%),
+        linear-gradient(180deg, var(--bg-deep) 0%, var(--bg-primary) 100%);
+    background-attachment: fixed;
+    color: var(--text-primary);
+    line-height: 1.65;
+    min-height: 100vh;
+    -webkit-font-smoothing: antialiased;
+}
+.report { max-width: 960px; margin: 0 auto; padding: 0 1.5rem 3rem; }
+
+/* ── Header ── */
+.report-header { text-align: center; padding: 3.5rem 0 2rem; }
+@keyframes shimmer {
+    0%   { background-position: -200% center; }
+    100% { background-position: 200% center; }
+}
+.brand-text {
+    font-family: var(--font-brand);
+    font-weight: 700;
+    font-size: 1.05rem;
+    letter-spacing: 0.4em;
+    background: linear-gradient(90deg, #555 0%, #666 30%, #909090 45%, #aaa 50%, #909090 55%, #666 70%, #555 100%);
+    background-size: 200% auto;
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    animation: shimmer 8s ease-in-out infinite;
+    margin-bottom: 0.75rem;
+}
+.silver-line {
+    height: 1px;
+    background: linear-gradient(90deg, transparent 0%, #2a2a40 12%, #555 40%, #999 50%, #555 60%, #2a2a40 88%, transparent 100%);
+    margin: 0.75rem auto;
+    max-width: 400px;
+}
+.report-title {
+    font-family: var(--font-heading);
+    font-weight: 300;
+    font-size: 2.2rem;
+    color: var(--text-primary);
+    margin: 1rem 0 1.25rem;
+    letter-spacing: -0.02em;
+}
+.release-meta {
+    display: flex;
+    justify-content: center;
+    gap: 0.6rem;
+    flex-wrap: wrap;
+    margin-bottom: 1.5rem;
+}
+.meta-chip {
+    font-size: 0.78rem;
+    color: var(--text-secondary);
+    background: var(--bg-surface);
+    border: 1px solid var(--border-subtle);
+    border-radius: 100px;
+    padding: 0.3rem 0.85rem;
+}
+.meta-chip strong {
+    color: var(--text-muted);
+    font-weight: 500;
+    text-transform: uppercase;
+    font-size: 0.62rem;
+    letter-spacing: 0.1em;
+    margin-right: 0.35rem;
+}
+.overall-status { margin-top: 0.25rem; }
+.status-badge {
+    display: inline-block;
+    font-family: var(--font-heading);
+    font-weight: 600;
+    font-size: 0.82rem;
+    letter-spacing: 0.18em;
+    padding: 0.4rem 1.6rem;
+    border-radius: 100px;
+    border: 1px solid;
+}
+.status-badge--green {
+    color: var(--accent-green);
+    border-color: rgba(52,211,153,0.3);
+    background: rgba(52,211,153,0.07);
+    box-shadow: 0 0 24px rgba(52,211,153,0.08);
+}
+.status-badge--red {
+    color: var(--accent-red);
+    border-color: rgba(248,113,113,0.3);
+    background: rgba(248,113,113,0.07);
+    box-shadow: 0 0 24px rgba(248,113,113,0.08);
+}
+.status-badge--amber {
+    color: var(--accent-amber);
+    border-color: rgba(251,191,36,0.3);
+    background: rgba(251,191,36,0.07);
+    box-shadow: 0 0 24px rgba(251,191,36,0.08);
+}
+.status-badge--muted {
+    color: var(--text-muted);
+    border-color: rgba(80,80,104,0.3);
+    background: rgba(80,80,104,0.06);
+}
+
+/* ── Navigation ── */
+.toc {
+    display: flex; justify-content: center; gap: 0.2rem;
+    padding: 0.7rem 0; margin-bottom: 2.5rem;
+    border-top: 1px solid var(--border-subtle);
+    border-bottom: 1px solid var(--border-subtle);
+}
+.toc a {
+    font-family: var(--font-heading);
+    font-size: 0.78rem; font-weight: 500;
+    color: var(--text-secondary); text-decoration: none;
+    padding: 0.3rem 0.9rem; border-radius: 100px;
+    transition: all 0.2s;
+}
+.toc a:hover { color: var(--text-primary); background: var(--bg-elevated); }
+
+/* ── Sections ── */
+.section { margin-bottom: 3rem; }
+.section-title {
+    font-family: var(--font-heading);
+    font-weight: 600; font-size: 1.2rem;
+    letter-spacing: 0.05em;
+    color: var(--text-primary);
+    text-transform: uppercase;
+    margin-bottom: 0.25rem;
+}
+.section .silver-line { margin: 0.4rem 0 1.5rem; max-width: 180px; margin-left: 0; }
+
+/* ── Stat Cards ── */
+.stat-grid {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 0.65rem;
+}
+.stat-card {
+    background: var(--bg-surface);
+    border: 1px solid var(--border-subtle);
+    border-radius: 10px;
+    padding: 1.25rem 0.75rem;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+    transition: border-color 0.25s, transform 0.15s;
+}
+.stat-card::before {
+    content: '';
+    position: absolute; top: 0; left: 0; right: 0; height: 2px;
+    background: var(--border-medium);
+    transition: background 0.25s;
+}
+.stat-card:hover { border-color: var(--border-medium); transform: translateY(-1px); }
+.stat-card--green::before { background: var(--accent-green); }
+.stat-card--red::before { background: var(--accent-red); }
+.stat-card--amber::before { background: var(--accent-amber); }
+.stat-card--blue::before { background: var(--accent-blue); }
+.stat-number {
+    font-family: var(--font-heading);
+    font-size: 1.85rem; font-weight: 700;
+    line-height: 1; margin-bottom: 0.35rem;
+}
+.stat-label {
+    font-size: 0.68rem; color: var(--text-muted);
+    text-transform: uppercase; letter-spacing: 0.12em; font-weight: 500;
+}
+.stat-card--green .stat-number { color: var(--accent-green); }
+.stat-card--red .stat-number { color: var(--accent-red); }
+.stat-card--amber .stat-number { color: var(--accent-amber); }
+.stat-card--blue .stat-number { color: var(--accent-blue); }
+
+/* ── Suite Cards ── */
+.suite-grid { display: grid; gap: 0.65rem; }
+.suite-card {
+    background: var(--bg-surface);
+    border: 1px solid var(--border-subtle);
+    border-radius: 10px; padding: 1.25rem;
+}
+.suite-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.75rem; }
+.suite-header h3 { font-family: var(--font-heading); font-weight: 500; font-size: 0.95rem; }
+.badge {
+    font-family: var(--font-heading);
+    font-size: 0.7rem; font-weight: 600;
+    padding: 0.18rem 0.65rem; border-radius: 100px; letter-spacing: 0.03em;
+}
+.badge--green { color: var(--accent-green); background: rgba(52,211,153,0.1); }
+.badge--red { color: var(--accent-red); background: rgba(248,113,113,0.1); }
+.badge--amber { color: var(--accent-amber); background: rgba(251,191,36,0.1); }
+.badge--muted { color: var(--text-muted); background: rgba(80,80,104,0.1); }
+.progress-bar {
+    height: 3px; background: var(--bg-elevated);
+    border-radius: 2px; overflow: hidden; margin-bottom: 0.75rem;
+}
+.progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--accent-green), #6ee7b7);
+    border-radius: 2px;
+}
+.suite-stats { display: flex; gap: 1.5rem; font-size: 0.76rem; color: var(--text-secondary); }
+
+/* ── Filter Bar ── */
+.filter-bar {
+    display: flex; justify-content: space-between; align-items: center;
+    margin-bottom: 1.5rem; gap: 1rem;
+}
+.filter-input {
+    width: 100%; max-width: 300px;
+    padding: 0.45rem 0.9rem;
+    background: var(--bg-surface);
+    border: 1px solid var(--border-subtle);
+    border-radius: 8px; color: var(--text-primary);
+    font-family: var(--font-body); font-size: 0.82rem;
+    outline: none; transition: border-color 0.2s;
+}
+.filter-input:focus { border-color: var(--border-medium); }
+.filter-input::placeholder { color: var(--text-muted); }
+.help-btn {
+    font-family: var(--font-heading); font-size: 0.72rem; font-weight: 500;
+    color: var(--text-secondary); background: var(--bg-surface);
+    border: 1px solid var(--border-subtle); border-radius: 100px;
+    padding: 0.35rem 0.85rem; cursor: pointer;
+    transition: all 0.2s; white-space: nowrap;
+}
+.help-btn:hover { color: var(--text-primary); border-color: var(--border-medium); }
+
+/* ── Phase Blocks ── */
+.phase-block { margin-bottom: 2.5rem; }
+.phase-heading {
+    font-family: var(--font-heading); font-weight: 600; font-size: 1.05rem;
+    color: var(--text-primary); letter-spacing: 0.04em;
+    margin-bottom: 0.3rem;
+}
+.phase-desc {
+    font-size: 0.76rem; color: var(--text-secondary);
+    margin-bottom: 1.25rem; line-height: 1.5;
+}
+
+/* ── Category Sections ── */
+.category-section {
+    margin-bottom: 0.65rem;
+    background: var(--bg-surface);
+    border: 1px solid var(--border-subtle);
+    border-radius: 10px; overflow: hidden;
+}
+.category-header {
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 0.75rem 1.15rem; cursor: pointer;
+    user-select: none; list-style: none;
+}
+.category-header::-webkit-details-marker { display: none; }
+.category-header::before {
+    content: '\25B8'; margin-right: 0.5rem;
+    font-size: 0.65rem; color: var(--text-muted);
+    transition: transform 0.2s; display: inline-block;
+}
+.category-section[open] > .category-header::before { transform: rotate(90deg); }
+.category-name {
+    font-family: var(--font-heading); font-weight: 500; font-size: 0.82rem;
+    text-transform: uppercase; letter-spacing: 0.1em;
+}
+.category-subtitle {
+    font-size: 0.7rem; color: var(--text-muted); font-weight: 400;
+    letter-spacing: 0; text-transform: none; margin-left: 0.5rem;
+}
+.category-count {
+    font-size: 0.7rem; color: var(--text-secondary); font-weight: 400;
+}
+.category-desc {
+    font-size: 0.72rem; color: var(--text-muted);
+    padding: 0 1.15rem 0.6rem;
+    border-bottom: 1px solid var(--border-subtle);
+    line-height: 1.45;
+}
+
+/* ── Requirement Items ── */
+.req-item {
+    border-bottom: 1px solid rgba(255,255,255,0.02);
+}
+.req-item:last-child { border-bottom: none; }
+.req-item > summary {
+    display: flex; align-items: center; gap: 0.55rem;
+    padding: 0.5rem 1.15rem; cursor: pointer;
+    user-select: none; list-style: none;
+    transition: background 0.15s;
+}
+.req-item > summary::-webkit-details-marker { display: none; }
+.req-item > summary:hover { background: rgba(255,255,255,0.015); }
+.req-arrow {
+    font-size: 0.55rem; color: var(--text-muted);
+    transition: transform 0.2s; display: inline-block; width: 0.55rem; flex-shrink: 0;
+}
+.req-item[open] > summary .req-arrow { transform: rotate(90deg); }
+.req-check {
+    display: inline-flex; align-items: center; justify-content: center;
+    width: 1rem; height: 1rem; flex-shrink: 0;
+    border-radius: 50%; font-size: 0.55rem; line-height: 1;
+}
+.req-check--passing {
+    background: linear-gradient(135deg, #0d3320, #134e2e);
+    color: var(--accent-green);
+    box-shadow: 0 0 8px rgba(52,211,153,0.15);
+}
+.req-check--failing {
+    background: linear-gradient(135deg, #3b1111, #4c1d1d);
+    color: var(--accent-red);
+    box-shadow: 0 0 8px rgba(248,113,113,0.15);
+}
+.req-check--untested {
+    background: var(--bg-elevated);
+    color: var(--text-muted);
+}
+.req-check--partial {
+    background: linear-gradient(135deg, #3b2e0a, #4c3a14);
+    color: var(--accent-amber);
+}
+.req-id {
+    font-family: var(--font-mono); font-size: 0.72rem;
+    color: var(--text-secondary); background: var(--bg-elevated);
+    padding: 0.1rem 0.4rem; border-radius: 4px; white-space: nowrap;
+}
+.req-desc-text {
+    flex: 1; font-size: 0.78rem; color: var(--text-secondary);
+    min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.req-meta {
+    display: flex; gap: 0.35rem; align-items: center; flex-shrink: 0;
+}
+.impl-badge {
+    font-family: var(--font-mono); font-size: 0.56rem;
+    padding: 0.06rem 0.3rem; border-radius: 3px;
+    text-transform: uppercase; letter-spacing: 0.05em;
+}
+.impl-badge--implemented { color: var(--accent-green); background: rgba(52,211,153,0.08); }
+.impl-badge--planned { color: var(--accent-amber); background: rgba(251,191,36,0.08); }
+.impl-badge--backlog { color: var(--text-muted); background: rgba(80,80,104,0.08); }
+.priority-badge {
+    font-family: var(--font-mono); font-size: 0.58rem;
+    padding: 0.06rem 0.3rem; border-radius: 3px;
+    color: var(--text-muted); background: rgba(80,80,104,0.12);
+}
+.sc-count-badge {
+    font-family: var(--font-heading); font-size: 0.62rem; font-weight: 500;
+    color: var(--text-muted); white-space: nowrap;
+}
+
+/* ── Scenario Items ── */
+.req-scenarios {
+    padding: 0.2rem 0 0.5rem 2.1rem;
+}
+.scenario-item {
+    margin-bottom: 0.1rem;
+    border-left: 2px solid var(--border-subtle);
+}
+.scenario-item > summary {
+    display: flex; align-items: center; gap: 0.4rem;
+    padding: 0.25rem 0.65rem; cursor: pointer;
+    user-select: none; list-style: none; transition: all 0.15s;
+}
+.scenario-item > summary::-webkit-details-marker { display: none; }
+.scenario-item > summary:hover { background: rgba(255,255,255,0.015); }
+.scenario-arrow {
+    font-size: 0.55rem; color: var(--text-muted); flex-shrink: 0;
+    transition: transform 0.15s; display: inline-block;
+}
+.scenario-item[open] > summary .scenario-arrow { transform: rotate(90deg); }
+.scenario-dot {
+    display: inline-block; width: 6px; height: 6px; border-radius: 50%; flex-shrink: 0;
+}
+.scenario-dot--passed { background: var(--accent-green); box-shadow: 0 0 6px rgba(52,211,153,0.4); }
+.scenario-dot--failed { background: var(--accent-red); box-shadow: 0 0 6px rgba(248,113,113,0.4); }
+.scenario-dot--unknown { background: var(--text-muted); }
+.scenario-title {
+    font-family: var(--font-heading); font-size: 0.74rem; font-weight: 400;
+    color: var(--accent-green);
+}
+.scenario-title--failed { color: var(--accent-red); }
+.scenario-title--unknown { color: var(--text-secondary); }
+.scenario-feat {
+    font-size: 0.62rem; color: var(--text-muted); margin-left: auto; white-space: nowrap;
+}
+
+/* ── Gherkin Steps ── */
+.step-list {
+    padding: 0.25rem 0 0.45rem 1.4rem;
+}
+.step {
+    font-family: var(--font-mono); font-size: 0.7rem;
+    color: var(--text-secondary); padding: 0.1rem 0; line-height: 1.45;
+}
+.step-kw {
+    color: var(--accent-blue); font-weight: 500; margin-right: 0.25rem;
+}
+.no-scenarios {
+    font-size: 0.72rem; color: var(--text-muted); font-style: italic;
+    padding: 0.25rem 0 0.35rem 2.1rem;
+}
+.traceability-hint {
+    font-size: 0.7rem; color: var(--text-muted); margin: 0.5rem 0 1rem;
+    padding-left: 0.2rem;
+}
+
+/* ── Help Modal ── */
+.help-overlay {
+    display: none; position: fixed; inset: 0;
+    background: rgba(0,0,0,0.7); z-index: 1000;
+    align-items: center; justify-content: center;
+}
+.help-overlay.active { display: flex; }
+.help-modal {
+    background: var(--bg-surface);
+    border: 1px solid var(--border-medium);
+    border-radius: 12px; padding: 2rem;
+    max-width: 560px; width: 90%; max-height: 80vh; overflow-y: auto;
+}
+.help-modal h3 {
+    font-family: var(--font-heading); font-weight: 600;
+    font-size: 1rem; margin-bottom: 1rem; color: var(--text-primary);
+}
+.help-modal p {
+    font-size: 0.82rem; color: var(--text-secondary);
+    margin-bottom: 0.75rem; line-height: 1.6;
+}
+.help-modal code {
+    font-family: var(--font-mono); font-size: 0.75rem;
+    background: var(--bg-elevated); padding: 0.1rem 0.35rem;
+    border-radius: 3px; color: var(--accent-blue);
+}
+.help-close {
+    font-family: var(--font-heading); font-size: 0.78rem;
+    color: var(--text-secondary); background: var(--bg-elevated);
+    border: 1px solid var(--border-subtle); border-radius: 8px;
+    padding: 0.4rem 1.2rem; cursor: pointer;
+    margin-top: 1rem; transition: all 0.2s;
+}
+.help-close:hover { color: var(--text-primary); border-color: var(--border-medium); }
+
+/* ── Detail Results ── */
+.detail-suite-name {
+    font-family: var(--font-heading); font-weight: 500; font-size: 0.95rem;
+    color: var(--text-secondary);
+    margin: 1.75rem 0 0.5rem; padding-bottom: 0.3rem;
+    border-bottom: 1px solid var(--border-subtle);
+}
+.feature-detail {
+    margin-bottom: 0.25rem;
+    border-left: 2px solid var(--border-subtle); margin-left: 0.5rem;
+}
+.feature-detail summary {
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 0.35rem 0.75rem; cursor: pointer;
+    font-size: 0.8rem; color: var(--text-secondary);
+    user-select: none; list-style: none; transition: color 0.15s;
+}
+.feature-detail summary::-webkit-details-marker { display: none; }
+.feature-detail summary:hover { color: var(--text-primary); }
+.feature-name { font-family: var(--font-heading); font-weight: 400; }
+.feature-count { font-size: 0.7rem; color: var(--text-muted); }
+.scenario-table { width: 100%; border-collapse: collapse; margin-left: 0.5rem; }
+.scenario-table td {
+    padding: 0.2rem 0.5rem; font-size: 0.76rem; color: var(--text-secondary);
+}
+.scenario-table td:first-child { width: 1.5rem; }
+.time-cell { text-align: right; color: var(--text-muted); font-size: 0.7rem; }
+.status-dot {
+    display: inline-block; width: 6px; height: 6px; border-radius: 50%;
+}
+.status-dot--green { background: var(--accent-green); box-shadow: 0 0 6px rgba(52,211,153,0.4); }
+.status-dot--red { background: var(--accent-red); box-shadow: 0 0 6px rgba(248,113,113,0.4); }
+.status-dot--amber { background: var(--accent-amber); box-shadow: 0 0 6px rgba(251,191,36,0.4); }
+.status-dot--muted { background: var(--text-muted); }
+
+/* ── Misc ── */
+.empty-note { color: var(--text-muted); font-style: italic; font-size: 0.82rem; padding: 1rem 0; }
+.report-footer {
+    text-align: center; padding: 2rem 0 1rem;
+    font-size: 0.76rem; color: var(--text-muted);
+}
+.report-footer .silver-line { max-width: 100%; margin-bottom: 1.5rem; }
+.footer-brand {
+    font-family: var(--font-brand); font-weight: 700;
+    font-size: 0.6rem; letter-spacing: 0.35em;
+    color: var(--text-muted); margin-top: 0.75rem; opacity: 0.5;
+}
+
+/* ── Animations ── */
+@keyframes fadeUp {
+    from { opacity: 0; transform: translateY(10px); }
+    to   { opacity: 1; transform: translateY(0); }
+}
+.report-header { animation: fadeUp 0.6s ease; }
+.section { animation: fadeUp 0.5s ease backwards; }
+.section:nth-of-type(1) { animation-delay: 0.1s; }
+.section:nth-of-type(2) { animation-delay: 0.15s; }
+.section:nth-of-type(3) { animation-delay: 0.2s; }
+.section:nth-of-type(4) { animation-delay: 0.25s; }
+
+/* ── Print ── */
+@media print {
+    body { background: #fff; color: #1a1a1a; }
+    .report { max-width: 100%; }
+    .brand-text { -webkit-text-fill-color: #333; animation: none; }
+    .silver-line { background: #ccc; }
+    .toc, .filter-input { display: none; }
+    .stat-card, .suite-card, .req-group { border-color: #ddd; background: #fafafa; }
+    .stat-card--green .stat-number { color: #16a34a; }
+    .stat-card--red .stat-number { color: #dc2626; }
+    .stat-card--amber .stat-number { color: #d97706; }
+    .stat-card--blue .stat-number { color: #2563eb; }
+    .badge--green { color: #16a34a; background: #dcfce7; }
+    .badge--red { color: #dc2626; background: #fee2e2; }
+    .status-badge { border: 1px solid currentColor; background: transparent; box-shadow: none; }
+    details[open] { page-break-inside: avoid; }
+}
+@media (max-width: 640px) {
+    .stat-grid { grid-template-columns: repeat(2, 1fr); }
+    .release-meta { flex-direction: column; align-items: center; }
+    .toc { flex-wrap: wrap; }
+}
+.corpus-line{margin:.4rem 0;line-height:1.5}.tool-tag{margin-left:.5rem;font-size:.7rem;opacity:.6;font-family:'DM Mono',monospace}</style>
+</head>
+<body>
+<div class="report">
+    <header class="report-header">
+        <div class="brand-text">SILVERLINE SOFTWARE</div>
+        <div class="silver-line"></div>
+        <h1 class="report-title">Functionality Report</h1>
+        <div class="release-meta">
+            <span class="meta-chip"><strong>Release</strong> local-5cef697b17c2</span>
+            <span class="meta-chip"><strong>Commit</strong> 5cef697b</span>
+            <span class="meta-chip"><strong>Generated</strong> 2026-11-06 21:58:11</span>
+            
+        </div>
+        <div class="overall-status">
+            <span class="status-badge status-badge--amber">PARTIAL</span>
+        </div>
+    </header>
+
+    <nav class="toc">
+        <a href="#summary">Summary</a>
+        <a href="#suites">Test Suites</a>
+        <a href="#requirements">Requirements</a>
+        <a href="#details">Details</a>
+    </nav>
+
+    <main><section id="corpus" class="section"><h2 class="section-title">What this report describes</h2><div class="silver-line"></div><p class="corpus-line">Headline coverage is the acceptance corpus <code>test/acceptance/features</code>, run by the <strong>e2e</strong> suite: 20 requirements traced across 30 scenarios.</p><p class="corpus-line">Of 20 requirements: <strong>19</strong> proven end-to-end in a real browser · <strong>0</strong> proven at service level · <strong>1</strong> written, nothing passing in this run · <strong>0</strong> with no scenario.</p></section>
+        <section id="summary" class="section">
+            <h2 class="section-title">Executive Summary</h2>
+            <div class="silver-line"></div>
+            
+        <div class="stat-grid">
+            <div class="stat-card">
+                <div class="stat-number">30</div>
+                <div class="stat-label">Total Scenarios</div>
+            </div>
+            <div class="stat-card stat-card--green">
+                <div class="stat-number">28</div>
+                <div class="stat-label">Passed</div>
+            </div>
+            <div class="stat-card stat-card--red">
+                <div class="stat-number">0</div>
+                <div class="stat-label">Failed</div>
+            </div>
+            <div class="stat-card stat-card--amber">
+                <div class="stat-number">2</div>
+                <div class="stat-label">Skipped</div>
+            </div>
+            <div class="stat-card stat-card--blue">
+                <div class="stat-number">93.33%</div>
+                <div class="stat-label">Pass Rate</div>
+            </div>
+        </div>
+        </section>
+
+        <section id="suites" class="section">
+            <h2 class="section-title">Test Suites</h2>
+            <div class="silver-line"></div>
+            <div class="suite-grid">
+            <div class="suite-card">
+                <div class="suite-header">
+                    <h3>BDD Acceptance Tests</h3>
+                    <span class="badge badge--green">28/30</span>
+                </div>
+                <div class="progress-bar">
+                    <div class="progress-fill" style="width:93.3%"></div>
+                </div>
+                <div class="suite-stats">
+                    <span>Passed: 28</span>
+                    <span>Failed: 0</span>
+                    <span>Skipped: 2</span>
+                </div>
+            </div></div>
+            
+        </section>
+
+        <section id="requirements" class="section">
+            <h2 class="section-title">Requirement Traceability</h2>
+            <div class="silver-line"></div>
+            <div class="filter-bar">
+                <input type="text" class="filter-input" placeholder="Filter requirements…" oninput="filterReqs(this.value)">
+                <button class="help-btn" onclick="document.getElementById('helpOverlay').classList.add('active')">What is this?</button>
+            </div>
+            <p class="traceability-hint">Click the &#9654; arrow next to each scenario to view the detailed test implementation for that requirement.</p>
+            <div class="phase-block"><h3 class="phase-heading">MVP</h3><p class="phase-desc">Behaviour the site already ships.</p><details class="category-section" open><summary class="category-header"><span><span class="category-name">F-001</span><span class="category-subtitle">— Site pages &amp; discoverability</span></span><span class="category-count">8/8 tested &amp; passing</span></summary><div class="category-desc">Site pages &amp; discoverability</div><details class="req-item"><summary><span class="req-arrow">▸</span><span class="req-check req-check--passing">✓</span><code class="req-id">FR-0101</code><span class="tool-tag" title="Proven end-to-end: a real browser drove 2 passing scenario(s).">playwright</span><span class="req-desc-text">Each public page (`/`, `/faq`, `/contact`, `/mushrooms`) loads and shows its own heading and the main navigation.</span><span class="req-meta"><span class="impl-badge impl-badge--implemented">Implemented</span><span class="priority-badge">P0</span><span class="sc-count-badge">2 scenarios</span></span></summary><div class="req-scenarios"><details class="scenario-item"><summary><span class="scenario-arrow">&#9654;</span><span class="scenario-dot scenario-dot--passed"></span><span class="scenario-title">Each public page shows its own heading and the main navigation</span><span class="scenario-feat">Site pages &amp; discoverability</span></summary><div class="step-list"><div class="step"><span class="step-kw">When</span>the visitor opens each public page</div>
+<div class="step"><span class="step-kw">Then</span>each page shows its own heading</div>
+<div class="step"><span class="step-kw">And</span>each page shows the main navigation</div>
+</div></details>
+<details class="scenario-item"><summary><span class="scenario-arrow">&#9654;</span><span class="scenario-dot scenario-dot--passed"></span><span class="scenario-title">UF-01 A prospect requests a sample through Sol</span><span class="scenario-feat">User flows</span></summary><div class="step-list"><div class="step"><span class="step-kw">Given</span>a visitor is on the landing page</div>
+<div class="step"><span class="step-kw">Then</span>Sol&#x27;s launcher is visible</div>
+<div class="step"><span class="step-kw">When</span>the visitor opens Sol from the launcher</div>
+<div class="step"><span class="step-kw">Then</span>Sol greets them by name with a question and no health claim</div>
+<div class="step"><span class="step-kw">When</span>the visitor asks Sol a product question</div>
+<div class="step"><span class="step-kw">Then</span>Sol&#x27;s answer streams into the transcript</div>
+<div class="step"><span class="step-kw">When</span>the visitor asks Sol for a sample, giving their name, company and email</div>
+<div class="step"><span class="step-kw">Then</span>Sol shows a sample request card filled in from the conversation</div>
+<div class="step"><span class="step-kw">When</span>the visitor adds a phone number and sends the card</div>
+<div class="step"><span class="step-kw">Then</span>the card confirms it was sent</div>
+</div></details>
+</div></details>
+<details class="req-item"><summary><span class="req-arrow">▸</span><span class="req-check req-check--passing">✓</span><code class="req-id">FR-0102</code><span class="tool-tag" title="Proven end-to-end: a real browser drove 1 passing scenario(s).">playwright</span><span class="req-desc-text">The main navigation reaches every public page.</span><span class="req-meta"><span class="impl-badge impl-badge--implemented">Implemented</span><span class="priority-badge">P0</span><span class="sc-count-badge">1 scenario</span></span></summary><div class="req-scenarios"><details class="scenario-item"><summary><span class="scenario-arrow">&#9654;</span><span class="scenario-dot scenario-dot--passed"></span><span class="scenario-title">The main navigation reaches every public page</span><span class="scenario-feat">Site pages &amp; discoverability</span></summary><div class="step-list"><div class="step"><span class="step-kw">Given</span>a visitor is on the landing page</div>
+<div class="step"><span class="step-kw">Then</span>the landing page&#x27;s main navigation reaches every other public page</div>
+<div class="step"><span class="step-kw">And</span>every other page&#x27;s main navigation leads back to the landing page</div>
+</div></details>
+</div></details>
+<details class="req-item"><summary><span class="req-arrow">▸</span><span class="req-check req-check--passing">✓</span><code class="req-id">FR-0103</code><span class="tool-tag" title="Proven end-to-end: a real browser drove 2 passing scenario(s).">playwright</span><span class="req-desc-text">The landing page&#x27;s sample-request call to action leads the visitor to the contact page.</span><span class="req-meta"><span class="impl-badge impl-badge--implemented">Implemented</span><span class="priority-badge">P0</span><span class="sc-count-badge">2 scenarios</span></span></summary><div class="req-scenarios"><details class="scenario-item"><summary><span class="scenario-arrow">&#9654;</span><span class="scenario-dot scenario-dot--passed"></span><span class="scenario-title">The landing page&#x27;s sample request call to action leads to the contact page</span><span class="scenario-feat">Site pages &amp; discoverability</span></summary><div class="step-list"><div class="step"><span class="step-kw">Given</span>a visitor is on the landing page</div>
+<div class="step"><span class="step-kw">When</span>the visitor follows the sample request call to action</div>
+<div class="step"><span class="step-kw">Then</span>the visitor is on the contact page</div>
+</div></details>
+<details class="scenario-item"><summary><span class="scenario-arrow">&#9654;</span><span class="scenario-dot scenario-dot--passed"></span><span class="scenario-title">UF-02 A prospect follows the call to action and sends the contact form</span><span class="scenario-feat">User flows</span></summary><div class="step-list"><div class="step"><span class="step-kw">Given</span>a visitor is on the landing page</div>
+<div class="step"><span class="step-kw">When</span>the visitor follows the sample request call to action</div>
+<div class="step"><span class="step-kw">Then</span>the visitor is on the contact page</div>
+<div class="step"><span class="step-kw">When</span>the visitor submits a complete contact form</div>
+<div class="step"><span class="step-kw">Then</span>the visitor sees a confirmation that Josh will follow up within 24 hours</div>
+</div></details>
+</div></details>
+<details class="req-item"><summary><span class="req-arrow">▸</span><span class="req-check req-check--passing">✓</span><code class="req-id">FR-0104</code><span class="tool-tag" title="Proven end-to-end: a real browser drove 1 passing scenario(s).">playwright</span><span class="req-desc-text">An address that is not a page returns HTTP 404 with a not-found page, never a soft 404 that serves the home page.</span><span class="req-meta"><span class="impl-badge impl-badge--implemented">Implemented</span><span class="priority-badge">P0</span><span class="sc-count-badge">1 scenario</span></span></summary><div class="req-scenarios"><details class="scenario-item"><summary><span class="scenario-arrow">&#9654;</span><span class="scenario-dot scenario-dot--passed"></span><span class="scenario-title">An address that is not a page returns a real 404</span><span class="scenario-feat">Site pages &amp; discoverability</span></summary><div class="step-list"><div class="step"><span class="step-kw">When</span>a visitor requests an address that is not a page on the live site</div>
+<div class="step"><span class="step-kw">Then</span>the live site answers HTTP 404</div>
+<div class="step"><span class="step-kw">And</span>the visitor sees a not-found page rather than the home page</div>
+</div></details>
+</div></details>
+<details class="req-item"><summary><span class="req-arrow">▸</span><span class="req-check req-check--passing">✓</span><code class="req-id">FR-0105</code><span class="tool-tag" title="Proven end-to-end: a real browser drove 1 passing scenario(s).">playwright</span><span class="req-desc-text">Each public page&#x27;s content is readable in the served HTML with JavaScript disabled, so crawlers that do not run JavaScript, including AI retrieval bots, can read it.</span><span class="req-meta"><span class="impl-badge impl-badge--implemented">Implemented</span><span class="priority-badge">P0</span><span class="sc-count-badge">1 scenario</span></span></summary><div class="req-scenarios"><details class="scenario-item"><summary><span class="scenario-arrow">&#9654;</span><span class="scenario-dot scenario-dot--passed"></span><span class="scenario-title">Every public page is readable on the live site with JavaScript disabled</span><span class="scenario-feat">Site pages &amp; discoverability</span></summary><div class="step-list"><div class="step"><span class="step-kw">When</span>a crawler without JavaScript opens each public page on the live site</div>
+<div class="step"><span class="step-kw">Then</span>each page&#x27;s heading and copy are readable without JavaScript</div>
+</div></details>
+</div></details>
+<details class="req-item"><summary><span class="req-arrow">▸</span><span class="req-check req-check--passing">✓</span><code class="req-id">FR-0106</code><span class="tool-tag" title="Proven end-to-end: a real browser drove 1 passing scenario(s).">playwright</span><span class="req-desc-text">Each public page ships exactly one `&lt;title&gt;`, one meta description and one canonical URL.</span><span class="req-meta"><span class="impl-badge impl-badge--implemented">Implemented</span><span class="priority-badge">P0</span><span class="sc-count-badge">1 scenario</span></span></summary><div class="req-scenarios"><details class="scenario-item"><summary><span class="scenario-arrow">&#9654;</span><span class="scenario-dot scenario-dot--passed"></span><span class="scenario-title">Every public page ships exactly one title, one description and one canonical URL</span><span class="scenario-feat">Site pages &amp; discoverability</span></summary><div class="step-list"><div class="step"><span class="step-kw">When</span>a crawler without JavaScript opens each public page on the live site</div>
+<div class="step"><span class="step-kw">Then</span>each page has exactly one title, one meta description and one canonical URL</div>
+<div class="step"><span class="step-kw">And</span>each canonical URL is that page&#x27;s own address</div>
+</div></details>
+</div></details>
+<details class="req-item"><summary><span class="req-arrow">▸</span><span class="req-check req-check--passing">✓</span><code class="req-id">FR-0107</code><span class="tool-tag" title="Proven end-to-end: a real browser drove 1 passing scenario(s).">playwright</span><span class="req-desc-text">Each public page carries JSON-LD structured data that identifies Cannasol Technologies as the organization.</span><span class="req-meta"><span class="impl-badge impl-badge--implemented">Implemented</span><span class="priority-badge">P0</span><span class="sc-count-badge">1 scenario</span></span></summary><div class="req-scenarios"><details class="scenario-item"><summary><span class="scenario-arrow">&#9654;</span><span class="scenario-dot scenario-dot--passed"></span><span class="scenario-title">Every public page identifies Cannasol Technologies in its structured data</span><span class="scenario-feat">Site pages &amp; discoverability</span></summary><div class="step-list"><div class="step"><span class="step-kw">When</span>a crawler without JavaScript opens each public page on the live site</div>
+<div class="step"><span class="step-kw">Then</span>each page&#x27;s JSON-LD names Cannasol Technologies as the organization</div>
+</div></details>
+</div></details>
+<details class="req-item"><summary><span class="req-arrow">▸</span><span class="req-check req-check--passing">✓</span><code class="req-id">FR-0108</code><span class="tool-tag" title="Proven end-to-end: a real browser drove 1 passing scenario(s).">playwright</span><span class="req-desc-text">`sitemap.xml` lists every public page, and `llms.txt` is served as Markdown.</span><span class="req-meta"><span class="impl-badge impl-badge--implemented">Implemented</span><span class="priority-badge">P0</span><span class="sc-count-badge">1 scenario</span></span></summary><div class="req-scenarios"><details class="scenario-item"><summary><span class="scenario-arrow">&#9654;</span><span class="scenario-dot scenario-dot--passed"></span><span class="scenario-title">The sitemap lists every public page and llms.txt is served as Markdown</span><span class="scenario-feat">Site pages &amp; discoverability</span></summary><div class="step-list"><div class="step"><span class="step-kw">When</span>a crawler fetches the live sitemap.xml</div>
+<div class="step"><span class="step-kw">Then</span>the sitemap lists every public page</div>
+<div class="step"><span class="step-kw">When</span>a crawler fetches the live llms.txt</div>
+<div class="step"><span class="step-kw">Then</span>it is served as Markdown</div>
+</div></details>
+</div></details>
+</details>
+<details class="category-section" open><summary class="category-header"><span><span class="category-name">F-002</span><span class="category-subtitle">— Sol, the sales concierge</span></span><span class="category-count">6/6 tested &amp; passing</span></summary><div class="category-desc">Sol, the sales concierge</div><details class="req-item"><summary><span class="req-arrow">▸</span><span class="req-check req-check--passing">✓</span><code class="req-id">FR-0201</code><span class="tool-tag" title="Proven end-to-end: a real browser drove 2 passing scenario(s).">playwright</span><span class="req-desc-text">A visitor can open Sol from the launcher. Sol greets them by name (&quot;Sol&quot;) and asks a question, and the greeting makes no health or dosing claim.</span><span class="req-meta"><span class="impl-badge impl-badge--implemented">Implemented</span><span class="priority-badge">P0</span><span class="sc-count-badge">2 scenarios</span></span></summary><div class="req-scenarios"><details class="scenario-item"><summary><span class="scenario-arrow">&#9654;</span><span class="scenario-dot scenario-dot--passed"></span><span class="scenario-title">A visitor opens Sol from the launcher and is greeted by name</span><span class="scenario-feat">Sol, the sales concierge</span></summary><div class="step-list"><div class="step"><span class="step-kw">Given</span>a visitor is on the landing page</div>
+<div class="step"><span class="step-kw">When</span>the visitor opens Sol from the launcher</div>
+<div class="step"><span class="step-kw">Then</span>Sol greets them by name with a question and no health claim</div>
+</div></details>
+<details class="scenario-item"><summary><span class="scenario-arrow">&#9654;</span><span class="scenario-dot scenario-dot--passed"></span><span class="scenario-title">UF-01 A prospect requests a sample through Sol</span><span class="scenario-feat">User flows</span></summary><div class="step-list"><div class="step"><span class="step-kw">Given</span>a visitor is on the landing page</div>
+<div class="step"><span class="step-kw">Then</span>Sol&#x27;s launcher is visible</div>
+<div class="step"><span class="step-kw">When</span>the visitor opens Sol from the launcher</div>
+<div class="step"><span class="step-kw">Then</span>Sol greets them by name with a question and no health claim</div>
+<div class="step"><span class="step-kw">When</span>the visitor asks Sol a product question</div>
+<div class="step"><span class="step-kw">Then</span>Sol&#x27;s answer streams into the transcript</div>
+<div class="step"><span class="step-kw">When</span>the visitor asks Sol for a sample, giving their name, company and email</div>
+<div class="step"><span class="step-kw">Then</span>Sol shows a sample request card filled in from the conversation</div>
+<div class="step"><span class="step-kw">When</span>the visitor adds a phone number and sends the card</div>
+<div class="step"><span class="step-kw">Then</span>the card confirms it was sent</div>
+</div></details>
+</div></details>
+<details class="req-item"><summary><span class="req-arrow">▸</span><span class="req-check req-check--passing">✓</span><code class="req-id">FR-0202</code><span class="tool-tag" title="Proven end-to-end: a real browser drove 2 passing scenario(s).">playwright</span><span class="req-desc-text">Sol answers a product question in the conversation, with the reply streaming into the transcript.</span><span class="req-meta"><span class="impl-badge impl-badge--implemented">Implemented</span><span class="priority-badge">P0</span><span class="sc-count-badge">2 scenarios</span></span></summary><div class="req-scenarios"><details class="scenario-item"><summary><span class="scenario-arrow">&#9654;</span><span class="scenario-dot scenario-dot--passed"></span><span class="scenario-title">Sol answers a product question with a reply that streams into the transcript</span><span class="scenario-feat">Sol, the sales concierge</span></summary><div class="step-list"><div class="step"><span class="step-kw">Given</span>a visitor is chatting with Sol</div>
+<div class="step"><span class="step-kw">When</span>the visitor asks Sol a product question</div>
+<div class="step"><span class="step-kw">Then</span>Sol&#x27;s answer streams into the transcript</div>
+</div></details>
+<details class="scenario-item"><summary><span class="scenario-arrow">&#9654;</span><span class="scenario-dot scenario-dot--passed"></span><span class="scenario-title">UF-01 A prospect requests a sample through Sol</span><span class="scenario-feat">User flows</span></summary><div class="step-list"><div class="step"><span class="step-kw">Given</span>a visitor is on the landing page</div>
+<div class="step"><span class="step-kw">Then</span>Sol&#x27;s launcher is visible</div>
+<div class="step"><span class="step-kw">When</span>the visitor opens Sol from the launcher</div>
+<div class="step"><span class="step-kw">Then</span>Sol greets them by name with a question and no health claim</div>
+<div class="step"><span class="step-kw">When</span>the visitor asks Sol a product question</div>
+<div class="step"><span class="step-kw">Then</span>Sol&#x27;s answer streams into the transcript</div>
+<div class="step"><span class="step-kw">When</span>the visitor asks Sol for a sample, giving their name, company and email</div>
+<div class="step"><span class="step-kw">Then</span>Sol shows a sample request card filled in from the conversation</div>
+<div class="step"><span class="step-kw">When</span>the visitor adds a phone number and sends the card</div>
+<div class="step"><span class="step-kw">Then</span>the card confirms it was sent</div>
+</div></details>
+</div></details>
+<details class="req-item"><summary><span class="req-arrow">▸</span><span class="req-check req-check--passing">✓</span><code class="req-id">FR-0203</code><span class="tool-tag" title="Proven end-to-end: a real browser drove 2 passing scenario(s).">playwright</span><span class="req-desc-text">Sol declines personal dosing or health advice and does not state what an ingredient does to a person&#x27;s body.</span><span class="req-meta"><span class="impl-badge impl-badge--implemented">Implemented</span><span class="priority-badge">P0</span><span class="sc-count-badge">2 scenarios</span></span></summary><div class="req-scenarios"><details class="scenario-item"><summary><span class="scenario-arrow">&#9654;</span><span class="scenario-dot scenario-dot--passed"></span><span class="scenario-title">Sol declines personal dosing and health advice</span><span class="scenario-feat">Sol, the sales concierge</span></summary><div class="step-list"><div class="step"><span class="step-kw">Given</span>a visitor is chatting with Sol</div>
+<div class="step"><span class="step-kw">When</span>the visitor asks Sol for personal dosing or health advice</div>
+<div class="step"><span class="step-kw">Then</span>Sol declines and makes no claim about what kava does to a person</div>
+</div></details>
+<details class="scenario-item"><summary><span class="scenario-arrow">&#9654;</span><span class="scenario-dot scenario-dot--passed"></span><span class="scenario-title">UF-01 E2 Sol declines personal dosing advice and keeps to product facts</span><span class="scenario-feat">User flows</span></summary><div class="step-list"><div class="step"><span class="step-kw">Given</span>a visitor is chatting with Sol</div>
+<div class="step"><span class="step-kw">When</span>the visitor asks Sol for personal dosing or health advice</div>
+<div class="step"><span class="step-kw">Then</span>Sol declines and makes no claim about what kava does to a person</div>
+</div></details>
+</div></details>
+<details class="req-item"><summary><span class="req-arrow">▸</span><span class="req-check req-check--passing">✓</span><code class="req-id">FR-0204</code><span class="tool-tag" title="Proven end-to-end: a real browser drove 3 passing scenario(s).">playwright</span><span class="req-desc-text">When a visitor asks for a sample, Sol shows an editable sample-request card, filled in from the conversation, for the visitor to confirm.</span><span class="req-meta"><span class="impl-badge impl-badge--implemented">Implemented</span><span class="priority-badge">P0</span><span class="sc-count-badge">3 scenarios</span></span></summary><div class="req-scenarios"><details class="scenario-item"><summary><span class="scenario-arrow">&#9654;</span><span class="scenario-dot scenario-dot--passed"></span><span class="scenario-title">Asking for a sample shows an editable card filled in from the conversation</span><span class="scenario-feat">Sol, the sales concierge</span></summary><div class="step-list"><div class="step"><span class="step-kw">Given</span>a visitor is chatting with Sol</div>
+<div class="step"><span class="step-kw">When</span>the visitor asks Sol for a sample, giving their name, company and email</div>
+<div class="step"><span class="step-kw">Then</span>Sol shows a sample request card filled in from the conversation</div>
+<div class="step"><span class="step-kw">And</span>every field on the card can be edited</div>
+</div></details>
+<details class="scenario-item"><summary><span class="scenario-arrow">&#9654;</span><span class="scenario-dot scenario-dot--passed"></span><span class="scenario-title">UF-01 A prospect requests a sample through Sol</span><span class="scenario-feat">User flows</span></summary><div class="step-list"><div class="step"><span class="step-kw">Given</span>a visitor is on the landing page</div>
+<div class="step"><span class="step-kw">Then</span>Sol&#x27;s launcher is visible</div>
+<div class="step"><span class="step-kw">When</span>the visitor opens Sol from the launcher</div>
+<div class="step"><span class="step-kw">Then</span>Sol greets them by name with a question and no health claim</div>
+<div class="step"><span class="step-kw">When</span>the visitor asks Sol a product question</div>
+<div class="step"><span class="step-kw">Then</span>Sol&#x27;s answer streams into the transcript</div>
+<div class="step"><span class="step-kw">When</span>the visitor asks Sol for a sample, giving their name, company and email</div>
+<div class="step"><span class="step-kw">Then</span>Sol shows a sample request card filled in from the conversation</div>
+<div class="step"><span class="step-kw">When</span>the visitor adds a phone number and sends the card</div>
+<div class="step"><span class="step-kw">Then</span>the card confirms it was sent</div>
+</div></details>
+<details class="scenario-item"><summary><span class="scenario-arrow">&#9654;</span><span class="scenario-dot scenario-dot--passed"></span><span class="scenario-title">UF-03 The team reviews a Sol conversation from the lead&#x27;s review link</span><span class="scenario-feat">User flows</span></summary><div class="step-list"><div class="step"><span class="step-kw">Given</span>a prospect has sent a sample request through Sol</div>
+<div class="step"><span class="step-kw">When</span>the reviewer opens the lead&#x27;s review link</div>
+<div class="step"><span class="step-kw">Then</span>the questionnaire shows four 1 to 5 scales, two checkboxes and one comment box</div>
+<div class="step"><span class="step-kw">When</span>the reviewer scores the conversation and submits the review</div>
+<div class="step"><span class="step-kw">Then</span>the reviewer sees the Saved page</div>
+</div></details>
+</div></details>
+<details class="req-item"><summary><span class="req-arrow">▸</span><span class="req-check req-check--passing">✓</span><code class="req-id">FR-0205</code><span class="tool-tag" title="Proven end-to-end: a real browser drove 3 passing scenario(s).">playwright</span><span class="req-desc-text">The sample-request card cannot be sent until it has a phone number or an email.</span><span class="req-meta"><span class="impl-badge impl-badge--implemented">Implemented</span><span class="priority-badge">P0</span><span class="sc-count-badge">3 scenarios</span></span></summary><div class="req-scenarios"><details class="scenario-item"><summary><span class="scenario-arrow">&#9654;</span><span class="scenario-dot scenario-dot--passed"></span><span class="scenario-title">The sample request card cannot be sent without a phone number or an email</span><span class="scenario-feat">Sol, the sales concierge</span></summary><div class="step-list"><div class="step"><span class="step-kw">Given</span>Sol has shown the visitor a sample request card</div>
+<div class="step"><span class="step-kw">When</span>the visitor removes both the phone number and the email from the card</div>
+<div class="step"><span class="step-kw">Then</span>the card cannot be sent</div>
+<div class="step"><span class="step-kw">When</span>the visitor adds only a phone number</div>
+<div class="step"><span class="step-kw">Then</span>the card can be sent</div>
+</div></details>
+<details class="scenario-item"><summary><span class="scenario-arrow">&#9654;</span><span class="scenario-dot scenario-dot--passed"></span><span class="scenario-title">UF-01 A prospect requests a sample through Sol</span><span class="scenario-feat">User flows</span></summary><div class="step-list"><div class="step"><span class="step-kw">Given</span>a visitor is on the landing page</div>
+<div class="step"><span class="step-kw">Then</span>Sol&#x27;s launcher is visible</div>
+<div class="step"><span class="step-kw">When</span>the visitor opens Sol from the launcher</div>
+<div class="step"><span class="step-kw">Then</span>Sol greets them by name with a question and no health claim</div>
+<div class="step"><span class="step-kw">When</span>the visitor asks Sol a product question</div>
+<div class="step"><span class="step-kw">Then</span>Sol&#x27;s answer streams into the transcript</div>
+<div class="step"><span class="step-kw">When</span>the visitor asks Sol for a sample, giving their name, company and email</div>
+<div class="step"><span class="step-kw">Then</span>Sol shows a sample request card filled in from the conversation</div>
+<div class="step"><span class="step-kw">When</span>the visitor adds a phone number and sends the card</div>
+<div class="step"><span class="step-kw">Then</span>the card confirms it was sent</div>
+</div></details>
+<details class="scenario-item"><summary><span class="scenario-arrow">&#9654;</span><span class="scenario-dot scenario-dot--passed"></span><span class="scenario-title">UF-01 A2 and E1 The card refuses to send without a contact method and sends with only a phone</span><span class="scenario-feat">User flows</span></summary><div class="step-list"><div class="step"><span class="step-kw">Given</span>Sol has shown the visitor a sample request card</div>
+<div class="step"><span class="step-kw">When</span>the visitor removes both the phone number and the email from the card</div>
+<div class="step"><span class="step-kw">Then</span>the card cannot be sent</div>
+<div class="step"><span class="step-kw">When</span>the visitor adds only a phone number and sends the card</div>
+<div class="step"><span class="step-kw">Then</span>the card confirms it was sent</div>
+</div></details>
+</div></details>
+<details class="req-item"><summary><span class="req-arrow">▸</span><span class="req-check req-check--passing">✓</span><code class="req-id">FR-0206</code><span class="tool-tag" title="Proven end-to-end: a real browser drove 2 passing scenario(s).">playwright</span><span class="req-desc-text">On a phone-sized screen, Sol never opens itself. Only a tap opens the chat.</span><span class="req-meta"><span class="impl-badge impl-badge--implemented">Implemented</span><span class="priority-badge">P0</span><span class="sc-count-badge">2 scenarios</span></span></summary><div class="req-scenarios"><details class="scenario-item"><summary><span class="scenario-arrow">&#9654;</span><span class="scenario-dot scenario-dot--passed"></span><span class="scenario-title">On a phone-sized screen Sol never opens itself</span><span class="scenario-feat">Sol, the sales concierge</span></summary><div class="step-list"><div class="step"><span class="step-kw">Given</span>a visitor on a phone-sized screen is on the landing page</div>
+<div class="step"><span class="step-kw">When</span>the visitor waits past Sol&#x27;s greeting and scrolls down the page</div>
+<div class="step"><span class="step-kw">Then</span>Sol has not opened itself</div>
+<div class="step"><span class="step-kw">When</span>the visitor taps Sol&#x27;s launcher</div>
+<div class="step"><span class="step-kw">Then</span>the chat opens</div>
+</div></details>
+<details class="scenario-item"><summary><span class="scenario-arrow">&#9654;</span><span class="scenario-dot scenario-dot--passed"></span><span class="scenario-title">UF-01 A1 On a phone the prospect taps Sol&#x27;s greeting bubble to open the chat</span><span class="scenario-feat">User flows</span></summary><div class="step-list"><div class="step"><span class="step-kw">Given</span>a visitor on a phone-sized screen is on the landing page</div>
+<div class="step"><span class="step-kw">When</span>the visitor waits past Sol&#x27;s greeting and scrolls past the hero</div>
+<div class="step"><span class="step-kw">Then</span>Sol has not opened itself</div>
+<div class="step"><span class="step-kw">And</span>Sol offers a greeting bubble instead</div>
+<div class="step"><span class="step-kw">When</span>the visitor taps the greeting bubble</div>
+<div class="step"><span class="step-kw">Then</span>the chat opens</div>
+</div></details>
+</div></details>
+</details>
+<details class="category-section" open><summary class="category-header"><span><span class="category-name">F-003</span><span class="category-subtitle">— Contact form</span></span><span class="category-count">1/2 tested &amp; passing</span></summary><div class="category-desc">Contact form</div><details class="req-item"><summary><span class="req-arrow">▸</span><span class="req-check req-check--partial">~</span><code class="req-id">FR-0301</code><span class="tool-tag" title="Proven end-to-end: a real browser drove 2 passing scenario(s).">playwright</span><span class="req-desc-text">The contact form refuses to submit without a name, a valid email and a message, and says which field needs attention.</span><span class="req-meta"><span class="impl-badge impl-badge--implemented">Implemented</span><span class="priority-badge">P0</span><span class="sc-count-badge">3 scenarios</span></span></summary><div class="req-scenarios"><details class="scenario-item"><summary><span class="scenario-arrow">&#9654;</span><span class="scenario-dot scenario-dot--passed"></span><span class="scenario-title">The contact form refuses a submission without a name or a valid email and names the field</span><span class="scenario-feat">Contact form</span></summary><div class="step-list"><div class="step"><span class="step-kw">Given</span>a visitor is on the contact page</div>
+<div class="step"><span class="step-kw">When</span>the visitor submits the contact form empty</div>
+<div class="step"><span class="step-kw">Then</span>the form names the Name and Email fields as needing attention</div>
+<div class="step"><span class="step-kw">And</span>nothing was submitted</div>
+<div class="step"><span class="step-kw">When</span>the visitor fills in a name and an invalid email and submits</div>
+<div class="step"><span class="step-kw">Then</span>the form names the Email field as invalid</div>
+<div class="step"><span class="step-kw">And</span>nothing was submitted</div>
+</div></details>
+<details class="scenario-item"><summary><span class="scenario-arrow">&#9654;</span><span class="scenario-dot scenario-dot--unknown"></span><span class="scenario-title scenario-title--unknown">The contact form refuses a submission without a message and names the message field</span><span class="scenario-feat">Contact form</span></summary><div class="step-list"><div class="step"><span class="step-kw">Given</span>a visitor is on the contact page</div>
+<div class="step"><span class="step-kw">When</span>the visitor submits the contact form with everything but a message</div>
+<div class="step"><span class="step-kw">Then</span>the form names the Message field as needing attention</div>
+<div class="step"><span class="step-kw">And</span>nothing was submitted</div>
+</div></details>
+<details class="scenario-item"><summary><span class="scenario-arrow">&#9654;</span><span class="scenario-dot scenario-dot--passed"></span><span class="scenario-title">UF-02 E1 The contact form names an invalid email and does not submit</span><span class="scenario-feat">User flows</span></summary><div class="step-list"><div class="step"><span class="step-kw">Given</span>a visitor is on the contact page</div>
+<div class="step"><span class="step-kw">When</span>the visitor fills in a name and an invalid email and submits</div>
+<div class="step"><span class="step-kw">Then</span>the form names the Email field as invalid</div>
+<div class="step"><span class="step-kw">And</span>nothing was submitted</div>
+</div></details>
+</div></details>
+<details class="req-item"><summary><span class="req-arrow">▸</span><span class="req-check req-check--passing">✓</span><code class="req-id">FR-0302</code><span class="tool-tag" title="Proven end-to-end: a real browser drove 2 passing scenario(s).">playwright</span><span class="req-desc-text">A complete submission is accepted and the visitor sees a confirmation that names the follow-up.</span><span class="req-meta"><span class="impl-badge impl-badge--implemented">Implemented</span><span class="priority-badge">P0</span><span class="sc-count-badge">2 scenarios</span></span></summary><div class="req-scenarios"><details class="scenario-item"><summary><span class="scenario-arrow">&#9654;</span><span class="scenario-dot scenario-dot--passed"></span><span class="scenario-title">A complete contact form submission is confirmed with the follow-up named</span><span class="scenario-feat">Contact form</span></summary><div class="step-list"><div class="step"><span class="step-kw">Given</span>a visitor is on the contact page</div>
+<div class="step"><span class="step-kw">When</span>the visitor submits a complete contact form</div>
+<div class="step"><span class="step-kw">Then</span>the visitor sees a confirmation that Josh will follow up within 24 hours</div>
+</div></details>
+<details class="scenario-item"><summary><span class="scenario-arrow">&#9654;</span><span class="scenario-dot scenario-dot--passed"></span><span class="scenario-title">UF-02 A prospect follows the call to action and sends the contact form</span><span class="scenario-feat">User flows</span></summary><div class="step-list"><div class="step"><span class="step-kw">Given</span>a visitor is on the landing page</div>
+<div class="step"><span class="step-kw">When</span>the visitor follows the sample request call to action</div>
+<div class="step"><span class="step-kw">Then</span>the visitor is on the contact page</div>
+<div class="step"><span class="step-kw">When</span>the visitor submits a complete contact form</div>
+<div class="step"><span class="step-kw">Then</span>the visitor sees a confirmation that Josh will follow up within 24 hours</div>
+</div></details>
+</div></details>
+</details>
+<details class="category-section" open><summary class="category-header"><span><span class="category-name">F-004</span><span class="category-subtitle">— Lead hand-off &amp; Sol review loop</span></span><span class="category-count">3/4 tested &amp; passing</span></summary><div class="category-desc">Lead hand-off &amp; Sol review loop</div><details class="req-item"><summary><span class="req-arrow">▸</span><span class="req-check req-check--partial">~</span><code class="req-id">FR-0401</code><span class="tool-tag" title="1 scenario(s) written; none passed in this run.">service</span><span class="req-desc-text">One person&#x27;s submissions, whether a chat card, the contact form or both, reach the sales team as **one** lead email after a 20-minute quiet period. The email carries every conversation that person had.</span><span class="req-meta"><span class="impl-badge impl-badge--implemented">Implemented</span><span class="priority-badge">P0</span><span class="sc-count-badge">1 scenario</span></span></summary><div class="req-scenarios"><details class="scenario-item"><summary><span class="scenario-arrow">&#9654;</span><span class="scenario-dot scenario-dot--unknown"></span><span class="scenario-title scenario-title--unknown">One person&#x27;s chat card and contact form reach the sales team as one lead email</span><span class="scenario-feat">Lead hand-off &amp; Sol review loop</span></summary><div class="step-list"><div class="step"><span class="step-kw">Given</span>the deployed functions and real email are available</div>
+<div class="step"><span class="step-kw">When</span>one person sends a Sol sample card and a contact form to the deployed functions</div>
+<div class="step"><span class="step-kw">Then</span>the sales team receives one lead email carrying every conversation after the quiet period</div>
+</div></details>
+</div></details>
+<details class="req-item"><summary><span class="req-arrow">▸</span><span class="req-check req-check--passing">✓</span><code class="req-id">FR-0402</code><span class="tool-tag" title="Proven end-to-end: a real browser drove 2 passing scenario(s).">playwright</span><span class="req-desc-text">The lead email&#x27;s review link opens a questionnaire with four 1–5 scales (overall, knowledge, tone, hand-off), two checkboxes and one comment box.</span><span class="req-meta"><span class="impl-badge impl-badge--implemented">Implemented</span><span class="priority-badge">P0</span><span class="sc-count-badge">2 scenarios</span></span></summary><div class="req-scenarios"><details class="scenario-item"><summary><span class="scenario-arrow">&#9654;</span><span class="scenario-dot scenario-dot--passed"></span><span class="scenario-title">The lead email&#x27;s review link opens the questionnaire</span><span class="scenario-feat">Lead hand-off &amp; Sol review loop</span></summary><div class="step-list"><div class="step"><span class="step-kw">Given</span>a lead has been submitted through the contact form</div>
+<div class="step"><span class="step-kw">When</span>the reviewer opens the lead&#x27;s review link</div>
+<div class="step"><span class="step-kw">Then</span>the questionnaire shows four 1 to 5 scales, two checkboxes and one comment box</div>
+</div></details>
+<details class="scenario-item"><summary><span class="scenario-arrow">&#9654;</span><span class="scenario-dot scenario-dot--passed"></span><span class="scenario-title">UF-03 The team reviews a Sol conversation from the lead&#x27;s review link</span><span class="scenario-feat">User flows</span></summary><div class="step-list"><div class="step"><span class="step-kw">Given</span>a prospect has sent a sample request through Sol</div>
+<div class="step"><span class="step-kw">When</span>the reviewer opens the lead&#x27;s review link</div>
+<div class="step"><span class="step-kw">Then</span>the questionnaire shows four 1 to 5 scales, two checkboxes and one comment box</div>
+<div class="step"><span class="step-kw">When</span>the reviewer scores the conversation and submits the review</div>
+<div class="step"><span class="step-kw">Then</span>the reviewer sees the Saved page</div>
+</div></details>
+</div></details>
+<details class="req-item"><summary><span class="req-arrow">▸</span><span class="req-check req-check--passing">✓</span><code class="req-id">FR-0403</code><span class="tool-tag" title="Proven end-to-end: a real browser drove 2 passing scenario(s).">playwright</span><span class="req-desc-text">A star tapped in the email only preselects the overall score. Nothing is saved until the reviewer submits the form.</span><span class="req-meta"><span class="impl-badge impl-badge--implemented">Implemented</span><span class="priority-badge">P0</span><span class="sc-count-badge">2 scenarios</span></span></summary><div class="req-scenarios"><details class="scenario-item"><summary><span class="scenario-arrow">&#9654;</span><span class="scenario-dot scenario-dot--passed"></span><span class="scenario-title">A star tapped in the email only preselects the overall score</span><span class="scenario-feat">Lead hand-off &amp; Sol review loop</span></summary><div class="step-list"><div class="step"><span class="step-kw">Given</span>a lead has been submitted through the contact form</div>
+<div class="step"><span class="step-kw">When</span>the reviewer opens the review link from a 4 star tap</div>
+<div class="step"><span class="step-kw">Then</span>the overall score shows 4 selected and says it is not saved yet</div>
+<div class="step"><span class="step-kw">When</span>the reviewer reopens the review link</div>
+<div class="step"><span class="step-kw">Then</span>no score has been saved</div>
+</div></details>
+<details class="scenario-item"><summary><span class="scenario-arrow">&#9654;</span><span class="scenario-dot scenario-dot--passed"></span><span class="scenario-title">UF-03 A1 A star tapped in the email opens the form preselected and unsaved</span><span class="scenario-feat">User flows</span></summary><div class="step-list"><div class="step"><span class="step-kw">Given</span>a lead has been submitted through the contact form</div>
+<div class="step"><span class="step-kw">When</span>the reviewer opens the review link from a 5 star tap</div>
+<div class="step"><span class="step-kw">Then</span>the overall score shows 5 selected and says it is not saved yet</div>
+</div></details>
+</div></details>
+<details class="req-item"><summary><span class="req-arrow">▸</span><span class="req-check req-check--passing">✓</span><code class="req-id">FR-0404</code><span class="tool-tag" title="Proven end-to-end: a real browser drove 3 passing scenario(s).">playwright</span><span class="req-desc-text">A submitted review is confirmed with a &quot;Saved&quot; page. Reopening the same link shows the saved answers, so a second visit edits that review rather than filing another.</span><span class="req-meta"><span class="impl-badge impl-badge--implemented">Implemented</span><span class="priority-badge">P0</span><span class="sc-count-badge">3 scenarios</span></span></summary><div class="req-scenarios"><details class="scenario-item"><summary><span class="scenario-arrow">&#9654;</span><span class="scenario-dot scenario-dot--passed"></span><span class="scenario-title">A submitted review is confirmed as Saved and reopens for editing</span><span class="scenario-feat">Lead hand-off &amp; Sol review loop</span></summary><div class="step-list"><div class="step"><span class="step-kw">Given</span>a lead has been submitted through the contact form</div>
+<div class="step"><span class="step-kw">When</span>the reviewer opens the lead&#x27;s review link</div>
+<div class="step"><span class="step-kw">And</span>the reviewer scores the conversation and submits the review</div>
+<div class="step"><span class="step-kw">Then</span>the reviewer sees the Saved page</div>
+<div class="step"><span class="step-kw">When</span>the reviewer reopens the review link</div>
+<div class="step"><span class="step-kw">Then</span>the saved answers are shown for editing</div>
+<div class="step"><span class="step-kw">When</span>the reviewer changes the overall score to 2 and submits again</div>
+<div class="step"><span class="step-kw">Then</span>reopening the review link shows an overall score of 2</div>
+</div></details>
+<details class="scenario-item"><summary><span class="scenario-arrow">&#9654;</span><span class="scenario-dot scenario-dot--passed"></span><span class="scenario-title">UF-03 The team reviews a Sol conversation from the lead&#x27;s review link</span><span class="scenario-feat">User flows</span></summary><div class="step-list"><div class="step"><span class="step-kw">Given</span>a prospect has sent a sample request through Sol</div>
+<div class="step"><span class="step-kw">When</span>the reviewer opens the lead&#x27;s review link</div>
+<div class="step"><span class="step-kw">Then</span>the questionnaire shows four 1 to 5 scales, two checkboxes and one comment box</div>
+<div class="step"><span class="step-kw">When</span>the reviewer scores the conversation and submits the review</div>
+<div class="step"><span class="step-kw">Then</span>the reviewer sees the Saved page</div>
+</div></details>
+<details class="scenario-item"><summary><span class="scenario-arrow">&#9654;</span><span class="scenario-dot scenario-dot--passed"></span><span class="scenario-title">UF-03 A2 Reopening the review link later shows the saved answers</span><span class="scenario-feat">User flows</span></summary><div class="step-list"><div class="step"><span class="step-kw">Given</span>a lead has been submitted through the contact form</div>
+<div class="step"><span class="step-kw">And</span>the reviewer has already filed a review</div>
+<div class="step"><span class="step-kw">When</span>the reviewer reopens the review link</div>
+<div class="step"><span class="step-kw">Then</span>the saved answers are shown for editing</div>
+</div></details>
+</div></details>
+</details>
+</div>
+
+            
+        </section>
+
+        <section id="details" class="section">
+            <h2 class="section-title">Detailed Results</h2>
+            <div class="silver-line"></div>
+            <h3 class="detail-suite-name">BDD Acceptance Tests</h3><details class="feature-detail"><summary><span class="feature-name">test_epic_1</span><span class="feature-count">8/8</span></summary><table class="scenario-table"><tbody><tr><td><span class="status-dot status-dot--green"></span></td><td>test_an_address_that_is_not_a_page_returns_a_real_404</td><td class="time-cell">0.59s</td></tr>
+<tr><td><span class="status-dot status-dot--green"></span></td><td>test_each_public_page_shows_its_own_heading_and_the_main_navigation</td><td class="time-cell">4.08s</td></tr>
+<tr><td><span class="status-dot status-dot--green"></span></td><td>test_every_public_page_identifies_cannasol_technologies_in_its_structured_data</td><td class="time-cell">2.14s</td></tr>
+<tr><td><span class="status-dot status-dot--green"></span></td><td>test_every_public_page_is_readable_on_the_live_site_with_javascript_disabled</td><td class="time-cell">3.14s</td></tr>
+<tr><td><span class="status-dot status-dot--green"></span></td><td>test_every_public_page_ships_exactly_one_title_one_description_and_one_canonical_url</td><td class="time-cell">1.23s</td></tr>
+<tr><td><span class="status-dot status-dot--green"></span></td><td>test_the_landing_pages_sample_request_call_to_action_leads_to_the_contact_page</td><td class="time-cell">1.94s</td></tr>
+<tr><td><span class="status-dot status-dot--green"></span></td><td>test_the_main_navigation_reaches_every_public_page</td><td class="time-cell">6.78s</td></tr>
+<tr><td><span class="status-dot status-dot--green"></span></td><td>test_the_sitemap_lists_every_public_page_and_llmstxt_is_served_as_markdown</td><td class="time-cell">0.27s</td></tr>
+</tbody></table></details>
+<details class="feature-detail"><summary><span class="feature-name">test_epic_2</span><span class="feature-count">6/6</span></summary><table class="scenario-table"><tbody><tr><td><span class="status-dot status-dot--green"></span></td><td>test_a_visitor_opens_sol_from_the_launcher_and_is_greeted_by_name</td><td class="time-cell">4.10s</td></tr>
+<tr><td><span class="status-dot status-dot--green"></span></td><td>test_asking_for_a_sample_shows_an_editable_card_filled_in_from_the_conversation</td><td class="time-cell">11.80s</td></tr>
+<tr><td><span class="status-dot status-dot--green"></span></td><td>test_on_a_phonesized_screen_sol_never_opens_itself</td><td class="time-cell">10.83s</td></tr>
+<tr><td><span class="status-dot status-dot--green"></span></td><td>test_sol_answers_a_product_question_with_a_reply_that_streams_into_the_transcript</td><td class="time-cell">14.84s</td></tr>
+<tr><td><span class="status-dot status-dot--green"></span></td><td>test_sol_declines_personal_dosing_and_health_advice</td><td class="time-cell">9.77s</td></tr>
+<tr><td><span class="status-dot status-dot--green"></span></td><td>test_the_sample_request_card_cannot_be_sent_without_a_phone_number_or_an_email</td><td class="time-cell">12.85s</td></tr>
+</tbody></table></details>
+<details class="feature-detail"><summary><span class="feature-name">test_epic_3</span><span class="feature-count">2/3</span></summary><table class="scenario-table"><tbody><tr><td><span class="status-dot status-dot--green"></span></td><td>test_a_complete_contact_form_submission_is_confirmed_with_the_followup_named</td><td class="time-cell">5.32s</td></tr>
+<tr><td><span class="status-dot status-dot--muted"></span></td><td>test_the_contact_form_refuses_a_submission_without_a_message_and_names_the_message_field</td><td class="time-cell">8.07s</td></tr>
+<tr><td><span class="status-dot status-dot--green"></span></td><td>test_the_contact_form_refuses_a_submission_without_a_name_or_a_valid_email_and_names_the_field</td><td class="time-cell">2.65s</td></tr>
+</tbody></table></details>
+<details class="feature-detail"><summary><span class="feature-name">test_epic_4</span><span class="feature-count">3/4</span></summary><table class="scenario-table"><tbody><tr><td><span class="status-dot status-dot--green"></span></td><td>test_a_star_tapped_in_the_email_only_preselects_the_overall_score</td><td class="time-cell">5.64s</td></tr>
+<tr><td><span class="status-dot status-dot--green"></span></td><td>test_a_submitted_review_is_confirmed_as_saved_and_reopens_for_editing</td><td class="time-cell">5.80s</td></tr>
+<tr><td><span class="status-dot status-dot--muted"></span></td><td>test_one_persons_chat_card_and_contact_form_reach_the_sales_team_as_one_lead_email</td><td class="time-cell">0.00s</td></tr>
+<tr><td><span class="status-dot status-dot--green"></span></td><td>test_the_lead_emails_review_link_opens_the_questionnaire</td><td class="time-cell">5.59s</td></tr>
+</tbody></table></details>
+<details class="feature-detail"><summary><span class="feature-name">test_user_flows</span><span class="feature-count">9/9</span></summary><table class="scenario-table"><tbody><tr><td><span class="status-dot status-dot--green"></span></td><td>test_uf01_a1_on_a_phone_the_prospect_taps_sols_greeting_bubble_to_open_the_chat</td><td class="time-cell">7.20s</td></tr>
+<tr><td><span class="status-dot status-dot--green"></span></td><td>test_uf01_a2_and_e1_the_card_refuses_to_send_without_a_contact_method_and_sends_with_only_a_phone</td><td class="time-cell">11.46s</td></tr>
+<tr><td><span class="status-dot status-dot--green"></span></td><td>test_uf01_a_prospect_requests_a_sample_through_sol</td><td class="time-cell">16.22s</td></tr>
+<tr><td><span class="status-dot status-dot--green"></span></td><td>test_uf01_e2_sol_declines_personal_dosing_advice_and_keeps_to_product_facts</td><td class="time-cell">9.80s</td></tr>
+<tr><td><span class="status-dot status-dot--green"></span></td><td>test_uf02_a_prospect_follows_the_call_to_action_and_sends_the_contact_form</td><td class="time-cell">3.31s</td></tr>
+<tr><td><span class="status-dot status-dot--green"></span></td><td>test_uf02_e1_the_contact_form_names_an_invalid_email_and_does_not_submit</td><td class="time-cell">1.71s</td></tr>
+<tr><td><span class="status-dot status-dot--green"></span></td><td>test_uf03_a1_a_star_tapped_in_the_email_opens_the_form_preselected_and_unsaved</td><td class="time-cell">5.30s</td></tr>
+<tr><td><span class="status-dot status-dot--green"></span></td><td>test_uf03_a2_reopening_the_review_link_later_shows_the_saved_answers</td><td class="time-cell">5.58s</td></tr>
+<tr><td><span class="status-dot status-dot--green"></span></td><td>test_uf03_the_team_reviews_a_sol_conversation_from_the_leads_review_link</td><td class="time-cell">12.95s</td></tr>
+</tbody></table></details>
+
+            
+        </section>
+    </main>
+
+    <footer class="report-footer">
+        <div class="silver-line"></div>
+        <p>Generated by <strong>Silverline Software Report Automation</strong> v2.0.0</p>
+        <p>20 requirements · 20 with test coverage</p>
+        <p class="footer-brand">SILVERLINE SOFTWARE</p>
+    </footer>
+</div>
+
+<div class="help-overlay" id="helpOverlay" onclick="if(event.target===this)this.classList.remove('active')">
+    <div class="help-modal">
+        <h3>What is this report?</h3>
+        <p>This <strong>Functionality Report</strong> traces every product requirement
+        back to its automated acceptance tests using
+        <strong>Behavior-Driven Development (BDD)</strong>.</p>
+        <p>Requirements are tagged in test scenarios using identifiers like
+        <code>@req-SIGNUP-01</code>. Each requirement can be expanded to see
+        the specific scenarios that verify it, along with the
+        <strong>Given / When / Then</strong> steps that describe expected behavior
+        in plain language.</p>
+        <p><strong>Status indicators:</strong></p>
+        <p>✓ <strong>Passing</strong> — All tagged scenarios pass<br>
+        ✗ <strong>Failing</strong> — One or more scenarios fail<br>
+        ~ <strong>Partial</strong> — Mixed results<br>
+        — <strong>Untested</strong> — No test scenarios tagged yet</p>
+        <button class="help-close" onclick="document.getElementById('helpOverlay').classList.remove('active')">Got it</button>
+    </div>
+</div>
+
+<script>
+function filterReqs(q) {
+    q = q.toLowerCase();
+    document.querySelectorAll('.req-item').forEach(function(el) {
+        var match = el.textContent.toLowerCase().indexOf(q) > -1;
+        el.style.display = match ? '' : 'none';
+    });
+    document.querySelectorAll('.category-section').forEach(function(cat) {
+        var visible = cat.querySelectorAll('.req-item[style=""], .req-item:not([style])');
+        var hasVisible = false;
+        cat.querySelectorAll('.req-item').forEach(function(r) {
+            if (r.style.display !== 'none') hasVisible = true;
+        });
+        cat.style.display = hasVisible ? '' : 'none';
+    });
+}
+</script>
+</body>
+</html>

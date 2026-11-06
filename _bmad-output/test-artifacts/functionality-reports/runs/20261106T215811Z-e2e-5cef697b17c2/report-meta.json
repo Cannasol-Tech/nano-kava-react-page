@@ -1,0 +1,29 @@
+{
+  "generated_at": "2026-11-06T21:58:11.009937+00:00",
+  "suite": "e2e",
+  "corpus": {
+    "suite": "e2e",
+    "corpus_root": "test/acceptance/features",
+    "requirements_traced": 20,
+    "scenarios": 30
+  },
+  "commit": "5cef697b17c2db184ef8e52e3c94b81cdd5f1725",
+  "commit_short": "5cef697b17c2",
+  "branch": "main",
+  "worktree_dirty": true,
+  "junit_xml": "test-results/e2e-results.xml",
+  "junit_sha256": "23a61018034ed331e479ad17e2e0b7edad64415b2216a224e76febb968c61e86",
+  "overall_status": "partial",
+  "total_scenarios": 30,
+  "passed": 28,
+  "failed": 0,
+  "skipped": 2,
+  "pass_rate": 93.33,
+  "proof_levels": {
+    "e2e": 19,
+    "service": 0,
+    "written_not_passing": 1,
+    "none": 0,
+    "requirements": 20
+  }
+}

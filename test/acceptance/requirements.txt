@@ -1,0 +1,23 @@
+# file: test/acceptance/requirements.txt
+# author: Stephen Boyett
+#
+# description:
+#   Python dependencies of the acceptance suite (test/acceptance/) and its evidence chain.
+#   Installed into the repo-root .venv by `make acceptance-setup`. The browser is the installed
+#   Google Chrome (Playwright channel "chrome"), so no Playwright browser download is needed.
+#
+# See Also:
+#   Makefile
+#   test/acceptance/README.md
+#
+# ---
+# Copyright © 2026 Cannasol Technologies LLC. All Rights Reserved.
+# ---
+
+pytest>=8.0,<9.0
+pytest-bdd>=7.3,<8.0
+playwright>=1.45,<2.0
+
+# The shared report generator. v1.0.0 is the NEWEST ref despite the number and the only one with
+# packaging metadata; do not "upgrade" it. See test/acceptance/CLAUDE.md § The cd-pipeline pin.
+silverline-cd-pipeline @ git+https://github.com/Silverline-Software/cd-pipeline@v1.0.0
