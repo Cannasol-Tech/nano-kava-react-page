@@ -164,6 +164,29 @@ Standards are documented in `docs/sw-testing-standards.md`. Key points:
 - Assert user-visible behavior: headings, CTAs, navigation links. Do not assert animation timings, Tailwind class strings, or pixel layout
 - Test mocks for `IntersectionObserver` and `ResizeObserver` are in `src/test/setupTests.js`
 
+### Acceptance tests (pytest-bdd + Playwright, added 2026-11-06)
+
+`make acceptance-setup` once, then `make test-acceptance`. Filter with `FR=0101` or `STORY=2.1`;
+a filtered run writes JUnit only, and only a full run produces the functionality report. Every
+scenario carries `@FR_<EENN> @story_<E>_<S>` (**underscores**), one tier tag (`@e2e`/`@service`)
+and, for `@e2e`, the `@web` surface; `make check-scenario-levels` enforces that and
+`make check-evidence` checks the report. Interactive scenarios run against the dev server, which
+uses the `nano-kava-sol-dev` key and never sends mail. Served-HTML scenarios do read-only GETs
+against `enjoynano.com`. Traps: `test/acceptance/CLAUDE.md`.
+
+## Planning & standards (BMAD, added 2026-11-06)
+
+- **FR SSoT:** `_bmad-output/planning-artifacts/PRD.md`, numbered `FR-<EE><NN>`. Traced in
+  `docs/REQUIREMENTS_TRACEABILITY_MATRIX.md`; `make requirements-doc` renders
+  `docs/requirements/functional-requirements.html` from both.
+- **BMAD 6.12.4** is installed skills-based in `.claude/skills/`, with the Silverline conventions in
+  `_bmad/custom/*.toml`. Conventions: `_bmad-output/project-context.md`. No Trello board.
+- **Company SOPs** live in `docs/SOP/` and are mandatory. This repo's deviations are in
+  `docs/SOP/project-deviations.md`.
+- **Release versioning:** `versions.yaml` lists `frontend` (root `package.json`) and `api`
+  (`functions/package.json`). `.github/workflows/release-versioning.yml` bumps them from
+  Conventional Commits, so write `feat(sol):`/`fix(sol):`, not `sol:`.
+
 ## AI Chat Widget (Sol)
 
 A floating sales-concierge widget backed by Gemini. Architecture:
