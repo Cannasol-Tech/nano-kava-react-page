@@ -85,7 +85,22 @@ card, so there is no contact info to recover. IDs: `10205259`, `0d1efd53`, `3e90
    failure mode in `functions/lib/CLAUDE.md § Thinking budget`. Not investigated.
 6. **Cleanup.** Delete the diagnostic docs `chatSessions/diag-probe-20261106` and `diag-probe-20261106b`,
    or leave them to the 90-day TTL. Both will appear in the next daily report.
-7. **Separate Sol's key.** Import `nano-kava-landing-page` into AI Studio and make a Sol key there; that
+7. **Separate Sol's key: half done (2026-11-06).** In `nano-kava-landing-page`, which bills to "Firebase Payment"
+   (prepay, $10 balance, auto-reload on), I created `nano-kava-sol-prod` (uid `69c3e386…`) and `nano-kava-sol-dev`
+   (uid `18b72ade…`). Both are restricted to the Gemini API, and both were tested. Prod is **stored as secret
+   `GOOGLE_AI_API_KEY` version 2**, but production still runs version 1 (the old CRM key, which works). The local
+   `.env` uses the dev key now.
+   **Blocked:** `firebase deploy` refuses: **"Runtime Node.js 20 was decommissioned on 2026-10-30."** No function
+   can be deployed until `functions/package.json` `engines.node` moves to 22. A direct
+   `gcloud run services update --update-secrets` crashed on Firebase's secret annotation; it was abandoned and
+   nothing changed. **Production code is `fix/sol-review-hardening` (47973a9), not `main`**: 7 of 19 function
+   files differ, so a deploy from `main` would roll back the lead ledger. Proposed path: merge that branch into
+   `main`, bump Node to 22, run the tests, then `make deploy-functions`. That deploy also picks up secret v2.
+8. **Rotate the SendGrid key.** The Sep 28 deploy uploaded `functions/.env.disabled-plaintext-sendgrid`, which
+   holds a plaintext `SENDGRID_API_KEY`, into the function source zips in `gcf-v2-sources-103851289661-us-central1`.
+   The file is gone from the Mac and the next deploy won't include it, but the old zips still have it.
+
+Original plan for item 7: Import `nano-kava-landing-page` into AI Studio and make a Sol key there; that
    project bills to a different account, "Firebase Payment" `013159-10F781-89BE45`, and it isn't known yet
    whether that account requires prepay. Make a dev key for `.env` too. To roll it out:
    `pbpaste | npx firebase functions:secrets:set GOOGLE_AI_API_KEY --project nano-kava-landing-page --data-file=-`,
