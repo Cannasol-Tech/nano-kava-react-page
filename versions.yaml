@@ -1,0 +1,21 @@
+# versions.yaml — component registry for the release pipeline (see docs/SOP/release-versioning.md)
+components:
+  frontend:
+    paths:                     # path filters for change detection; the site lives at the repo root
+      - src/
+      - public/
+      - index.html
+      - package.json
+      - package-lock.json
+      - vite.config.js
+      - tailwind.config.js
+      - postcss.config.js
+      - scripts/
+    manifest: package.json
+    tag_prefix: frontend/v
+  api:
+    paths:
+      - functions/
+    manifest: functions/package.json
+    tag_prefix: api/v
+    exposes_version_endpoint: false   # GET /version + /versions not built yet (SOP §6)

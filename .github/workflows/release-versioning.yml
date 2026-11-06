@@ -1,0 +1,125 @@
+# Per-component release pipeline: docs/SOP/release-versioning.md §5.
+# Components, path filters and tag prefixes come from versions.yaml; each manifest is the version SSoT.
+# A component with no <prefix>* tag yet is tagged at its current manifest version as a baseline, unbumped.
+name: release-versioning
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: release-versioning
+  cancel-in-progress: false
+
+jobs:
+  release:
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-24.04
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - uses: actions/checkout@v6.1.0
+        with:
+          fetch-depth: 0
+
+      - name: Configure git identity
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898283+github-actions[bot]@users.noreply.github.com"
+
+      - name: Bump, changelog, commit and tag each changed component
+        id: bump
+        run: |
+          set -euo pipefail
+          command -v yq >/dev/null || { echo "::error::yq is not on this runner image"; exit 1; }
+          registry=versions.yaml
+          releases="$RUNNER_TEMP/releases.tsv"
+          : > "$releases"
+          tags=()
+
+          emit() { [ -n "$2" ] || return 0; printf '### %s\n\n%s\n' "$1" "$2"; }
+
+          mapfile -t components < <(yq '.components | keys | .[]' "$registry")
+          for component in "${components[@]}"; do
+            export C="$component"
+            manifest=$(yq '.components[strenv(C)].manifest' "$registry")
+            prefix=$(yq '.components[strenv(C)].tag_prefix' "$registry")
+            mapfile -t paths < <(yq '.components[strenv(C)].paths[]' "$registry")
+            [ "${#paths[@]}" -gt 0 ] || { echo "::error::$component has no paths in $registry"; exit 1; }
+            current=$(node -p "require('./$manifest').version")
+            [[ $current =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]] || { echo "::error::$manifest version '$current' is not MAJ.MIN.BUG"; exit 1; }
+            dir=$(dirname "$manifest")
+            notes="$RUNNER_TEMP/$component.md"
+            last_tag=$(git tag --list "${prefix}*" --sort=-v:refname | head -n1)
+
+            if [ -z "$last_tag" ]; then
+              next=$current
+              printf 'Baseline: the version in %s when the release pipeline was adopted.\n' "$manifest" > "$notes"
+            else
+              rank=0 breaking="" features="" fixes=""
+              while IFS=$'\t' read -r sha subject; do
+                [[ $subject == "chore(release):"* ]] && continue
+                line="- $subject (${sha:0:7})"$'\n'
+                body=$(git log -1 --format=%b "$sha")
+                if [[ $subject =~ ^[a-z]+(\([^\)]*\))?!: ]] || grep -qE '^BREAKING[ -]CHANGE:' <<< "$body"; then
+                  rank=3; breaking+=$line
+                elif [[ $subject =~ ^feat(\([^\)]*\))?: ]]; then
+                  rank=$(( rank > 2 ? rank : 2 )); features+=$line
+                else
+                  rank=$(( rank > 1 ? rank : 1 )); fixes+=$line
+                fi
+              done < <(git log --no-merges --format='%H%x09%s' "$last_tag..HEAD" -- "${paths[@]}")
+
+              if [ "$rank" -eq 0 ]; then echo "$component: unchanged since $last_tag"; continue; fi
+              IFS=. read -r maj min bug <<< "$current"
+              case $rank in
+                3) next="$((maj + 1)).0.0" ;;
+                2) next="$maj.$((min + 1)).0" ;;
+                *) next="$maj.$min.$((bug + 1))" ;;
+              esac
+              { emit "MAJ — breaking" "$breaking"; emit "MIN — features" "$features"; emit "BUG — fixes and other" "$fixes"; } > "$notes"
+
+              (cd "$dir" && npm version "$next" --no-git-tag-version > /dev/null)
+              changelog="$dir/CHANGELOG.md"
+              [ -f "$changelog" ] || printf '# Changelog — %s\n\n' "$component" > "$changelog"
+              section="$RUNNER_TEMP/$component.section.md"
+              { printf '## [v%s] - %s\n\n' "$next" "$(date -u +%F)"; cat "$notes"; } > "$section"
+              # New section goes above the newest existing one, so the file stays newest-first.
+              awk -v f="$section" '!done && /^## / { while ((getline l < f) > 0) print l; done = 1 } { print } END { if (!done) while ((getline l < f) > 0) print l }' "$changelog" > "$changelog.tmp"
+              mv "$changelog.tmp" "$changelog"
+              git add -- "$manifest" "$changelog"
+              [ ! -f "$dir/package-lock.json" ] || git add -- "$dir/package-lock.json"
+              git commit -q -m "chore(release): $component v$next [skip ci]"
+            fi
+
+            tag="$prefix$next"
+            git tag -a "$tag" -m "$component v$next"
+            tags+=("$tag")
+            printf '%s\t%s\t%s\n' "$tag" "$component v$next" "$notes" >> "$releases"
+            echo "$component: $tag"
+          done
+          echo "tags=${tags[*]}" >> "$GITHUB_OUTPUT"
+
+      - name: Push release commits and tags atomically
+        if: steps.bump.outputs.tags != ''
+        env:
+          TAGS: ${{ steps.bump.outputs.tags }}
+        run: |
+          set -euo pipefail
+          read -ra tags <<< "$TAGS"
+          git push --atomic origin "HEAD:refs/heads/$GITHUB_REF_NAME" "${tags[@]}"
+
+      - name: Publish GitHub Releases
+        if: steps.bump.outputs.tags != ''
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          while IFS=$'\t' read -r tag title notes; do
+            gh release create "$tag" --title "$title" --notes-file "$notes" --verify-tag
+          done < "$RUNNER_TEMP/releases.tsv"
