@@ -23,6 +23,7 @@ The lead queue and review loop added five more on 2026-09-19.*
 | `leadHandoff.js` | The ORDER a queued lead is processed in, and the sweep itself. |
 | `solReviews.js` | The permanent review corpus — see § The review corpus is permanent. |
 | `reviewForm.js` | The questionnaire's HTML. Nothing else may render it. |
+| `modelAlert.js` | Telling a human when Gemini refuses Sol — see § A refused model call alerts within minutes. |
 
 `chat.js` does **not** import `leads.js`. The chat path proposes a lead; only `sendContactEmail`
 sends one. See § The tool proposes, the visitor sends.
@@ -852,3 +853,42 @@ receipt", and this delivers the retry half honestly but not true receipt: that n
 Event Webhook (`delivered` / `bounced` / `dropped`), which is a public endpoint plus signature
 verification plus storage, and is **not built**. Do not describe the current behaviour as
 confirmed delivery.
+
+## A refused model call alerts within minutes
+
+*Added 2026-11-06.* Sol answered nothing from 2026-10-28 to at least 2026-11-06: the AI Studio
+prepaid credits ran out, so every Gemini call came back `402 RESOURCE_EXHAUSTED`. Nine days passed
+before anyone noticed. The visitor saw the friendly offline reply, the widget still said
+"online", and the daily report lists conversations without counting the ones that failed. Eight
+visitors asked for samples in that window and none got an answer.
+
+`modelAlert.js` closes that in two halves:
+
+- **`chat` records.** Its `catch` calls `recordModelError`, which files any **4xx** into the one
+  document `opsAlerts/gemini`. The write is awaited before `res.end()` for the reason in
+  § How it is captured without touching chat.js, and it never throws.
+- **`sendModelAlerts` sends**, every 5 minutes, with SendGrid as its only secret. `chat` stays
+  without a send key, the same rule as § Why chat is gen2 in `../CLAUDE.md`.
+
+**Only 4xx counts.** A 4xx is ours to fix (billing, quota, a revoked key, a retired model, a
+request Gemini rejects) and does not clear by itself. A 5xx is Google having a bad minute. An
+error with no `status` is not an API refusal. The SDK's `ApiError.status` is the HTTP status, on
+streaming calls too.
+
+**One email per incident, then one a day.** An incident is refusals with less than an hour
+(`INCIDENT_GAP_MS`) between them. Its first sweep emails Stephen; while refusals keep arriving a
+reminder goes every 24 hours (`REMIND_MS`); a refusal after an hour of quiet is a new incident and
+emails again. Sending on every refusal would mail once per visitor; sending once ever would go
+quiet on day two of a week-long outage.
+
+The send is **claimed in a transaction** (`notifiedAt` set before sending) so two overlapping runs
+cannot both send, and the claim is **given back** if SendGrid fails, so the next run retries and
+the function throws to mark the run failed. The email names the status, what Gemini said, the
+count, and the likely cause by status — 402/429 point at `ai.studio/projects`.
+
+`opsAlerts` is one document, overwritten in place, so it needs no TTL and has no fieldOverride.
+
+**What this does not catch:** a turn that fails *without* an error. An empty model reply
+(§ Thinking budget) and a blocked response both end in `SAFETY_FALLBACK` with no exception, so
+they never reach the `catch`. Neither does a Sol nobody is talking to.
+

@@ -8,7 +8,8 @@
  *     Sol concierge; `solReview` serves the questionnaire that lead email links to. All are
  *     thin transports — lead capture lives in lib/leads.js, the streaming chat core in
  *     lib/chat.js, and the permanent review corpus in lib/solReviews.js. `chat` also files each
- *     turn to Firestore through lib/chatStore.js. See CLAUDE.md for why the generations differ.
+ *     turn to Firestore through lib/chatStore.js, and records a refused model call that
+ *     `sendModelAlerts` emails about. See CLAUDE.md for why the generations differ.
  *
  * @See Also:
  *     functions/lib/leads.js
@@ -42,6 +43,7 @@ const { enqueueSubmission, QUIET_MINUTES } = require('./lib/leadQueue');
 const { collectReport, sendDailyReport } = require('./lib/dailyReport');
 const { resolveReviewToken, loadReview, saveReview, recordRating } = require('./lib/solReviews');
 const { renderForm, renderSaved, renderProblem } = require('./lib/reviewForm');
+const { recordModelError, sweepModelAlert } = require('./lib/modelAlert');
 
 const googleAiApiKey = defineSecret('GOOGLE_AI_API_KEY');
 
@@ -168,6 +170,10 @@ exports.chat = onRequest(
     } catch (error) {
       console.error('Chat stream failed:', error);
       send({ type: 'error', message: CHAT_ERROR_MESSAGE });
+      // A 4xx from Gemini does not clear by itself. Recording it is what gets a human told
+      // within minutes; `sendModelAlerts` sends. Never throws. See lib/CLAUDE.md § A refused
+      // model call alerts within minutes.
+      await recordModelError({ error });
     }
 
     // After the stream: the visitor already has their answer, so a slow or failed write costs
@@ -221,6 +227,31 @@ exports.sendPendingLeads = onSchedule(
     }
 
     if (result.sent) console.info(`[sendPendingLeads] ${result.sent} lead email(s) sent`);
+  }
+);
+
+
+/**
+ * Emails Stephen when Gemini has started refusing Sol's calls. `chat` records each refusal and
+ * holds no SendGrid key, so the email goes from here. Five minutes is the delay between Sol
+ * going quiet and a human hearing about it; the 2026-10-28 outage ran nine days unnoticed.
+ * See lib/CLAUDE.md § A refused model call alerts within minutes.
+ */
+exports.sendModelAlerts = onSchedule(
+  {
+    schedule: 'every 5 minutes',
+    secrets: [sendgridApiKey],
+    region: 'us-central1',
+    memory: '256MiB',
+    timeoutSeconds: 120,
+  },
+  async () => {
+    const result = await sweepModelAlert();
+
+    // Thrown so the run is marked failed. The claim was given back, so the next run retries.
+    if (!result.ok) throw new Error(`[sendModelAlerts] ${result.reason}: ${result.error || ''}`);
+
+    if (result.sent) console.info(`[sendModelAlerts] ${result.sent} alert sent`);
   }
 );
 

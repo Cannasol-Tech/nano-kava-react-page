@@ -1,11 +1,11 @@
 # functions/ — Cloud Functions for the Nano Kava site
 
-Five entry points in `index.js`, all thin transports:
+Six entry points in `index.js`, all thin transports:
 
 *Corrected 2026-08-26: this read "Two entry points" and listed `sendChatDigest` below. That
 endpoint was **removed** — see `lib/CLAUDE.md § Conversation digests — RETIRED` — and the
 scheduled `dailyChatReport` replaced it. `solReview` and `sendPendingLeads` made it five on
-2026-09-19.*
+2026-09-19. `sendModelAlerts` made it six on 2026-11-06, after the credits outage.*
 
 | Export | Gen | Owns | Core logic |
 |---|---|---|---|
@@ -14,6 +14,7 @@ scheduled `dailyChatReport` replaced it. `solReview` and `sendPendingLeads` made
 | `sendPendingLeads` | 2nd | **Scheduled** every 2 min — the ONLY thing that emails a lead | `lib/leadHandoff.js`, `lib/leads.js` |
 | `solReview` | 1st | The questionnaire the lead email links to | `lib/solReviews.js`, `lib/reviewForm.js` |
 | `dailyChatReport` | 2nd | **Scheduled** 08:00 America/New_York — the daily review email | `lib/dailyReport.js` |
+| `sendModelAlerts` | 2nd | **Scheduled** every 5 min — emails when Gemini starts refusing Sol | `lib/modelAlert.js` |
 
 The entry points are thin because `lib/` is transport-agnostic — the Vite dev middleware in
 `vite.config.js` requires the same modules directly, so `make preview` serves both endpoints with
@@ -34,6 +35,7 @@ Long-form reasoning for the core modules lives one level down, in `lib/CLAUDE.md
 | Transcript persistence | The 60-message cap, the declarative 90-day TTL, and the append rule |
 | The lead record is not the transcript | `chatLeads`, why it has no TTL, what `confirmed` means |
 | The daily report replaced the digest | The schedule, the retry, and why it sends on silent days |
+| A refused model call alerts within minutes | Why `chat` records and a schedule sends, and what one incident is |
 | Conversation digests — RETIRED | What the old per-conversation email did, and why it is gone |
 | A lead is a person, not a submission | Contact keys, and why the first fix (per-session) was wrong |
 | One email per lead, after the quiet period | The window, the sweep, and the absent `notifyAfter` |
@@ -70,7 +72,7 @@ trap: leave it alone.
 Consequence to remember: the two generations declare secrets differently
 (`.runWith({ secrets })` vs the `secrets:` array in `onRequest`/`onSchedule` options).
 `sendPendingLeads` lists the SendGrid and Mailchimp handles, because it is the only function that
-sends a lead; `dailyChatReport` lists SendGrid alone. `chat` needs `GOOGLE_AI_API_KEY` and
+sends a lead; `dailyChatReport` and `sendModelAlerts` list SendGrid alone. `chat` needs `GOOGLE_AI_API_KEY` and
 nothing else, and **`sendContactEmail` declares none at all** — it only queues now, and a grant
 nothing uses is blast radius for free.
 
