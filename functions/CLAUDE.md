@@ -82,6 +82,21 @@ visitor sends — so those secrets were removed from `chat` rather than left gra
 Corrected again 2026-09-19: it then named `sendContactEmail` as the sender. That moved to
 `sendPendingLeads`, and the secrets moved with it for the same reason.*
 
+## The Gemini key and its billing
+
+*Added 2026-11-06, after a 9-day outage.* `GOOGLE_AI_API_KEY` (secret version 2) is the
+**`nano-kava-sol-prod`** key in **this** project, `nano-kava-landing-page`. It bills to the "Firebase
+Payment" account, which is **prepay**: $10 balance, auto-reload on. Local `.env` holds
+`nano-kava-sol-dev`, from the same project. Both keys are restricted to the Gemini API.
+
+- **A $0 prepay balance looks like a code bug.** Every turn gets 402 "prepayment credits are depleted",
+  and the widget shows "I can't reach my knowledge base". Sol was down from 2026-10-28 to 11-06 that
+  way, on a key shared with the Cannasol CRM (`cannasol-client-db`), after Google moved that billing
+  account to prepay-only. Check `npx firebase functions:log --only chat` before the code.
+- **Version 1 is the CRM's key.** Do not disable it in its own project; the CRM still uses it.
+- **Runtime is Node 22.** Google decommissioned Node 20 on 2026-10-30, and `firebase deploy` refuses
+  to ship a decommissioned runtime, so bump `engines.node` *before* the next deadline.
+
 ## persona.js is compliance-bearing
 
 `lib/persona.js` is not tone-of-voice copy. Its HARD RULES section carries the obligations that

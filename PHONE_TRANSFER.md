@@ -85,7 +85,13 @@ card, so there is no contact info to recover. IDs: `10205259`, `0d1efd53`, `3e90
    failure mode in `functions/lib/CLAUDE.md § Thinking budget`. Not investigated.
 6. **Cleanup.** Delete the diagnostic docs `chatSessions/diag-probe-20261106` and `diag-probe-20261106b`,
    or leave them to the 90-day TTL. Both will appear in the next daily report.
-7. **Separate Sol's key: half done (2026-11-06).** In `nano-kava-landing-page`, which bills to "Firebase Payment"
+7. ✅ **DONE 2026-11-06 21:12Z.** I merged `fix/sol-review-hardening` into `main` and deleted it, bumped
+   the functions to Node 22, and ran `make deploy-functions`. All 754 tests passed, and
+   `make verify-release` passes 14/14 (run with
+   `CLOUDSDK_CORE_ACCOUNT=stephen.boyett@cannasolusa.com`). `chat` runs on secret v2, the
+   `nano-kava-sol-prod` key; Cloud Monitoring shows no old-key traffic after the deploy. Recorded in
+   `functions/CLAUDE.md § The Gemini key and its billing`. History follows.
+   **Was: half done.** In `nano-kava-landing-page`, which bills to "Firebase Payment"
    (prepay, $10 balance, auto-reload on), I created `nano-kava-sol-prod` (uid `69c3e386…`) and `nano-kava-sol-dev`
    (uid `18b72ade…`). Both are restricted to the Gemini API, and both were tested. Prod is **stored as secret
    `GOOGLE_AI_API_KEY` version 2**, but production still runs version 1 (the old CRM key, which works). The local
