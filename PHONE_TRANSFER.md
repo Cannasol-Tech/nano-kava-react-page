@@ -5,7 +5,10 @@ only commit is this file. Delete it once the work below is finished.
 
 ## Status in one line
 
-Sol is down because **Google moved the Gemini billing account to prepay-only, and nobody switched it over**.
+✅ **RESOLVED 2026-11-06 ~21:00Z.** Stephen set up prepay, and a production probe streamed a full answer with
+a tool call. The rest of this doc is the record plus the follow-ups.
+
+Sol was down because **Google moved the Gemini billing account to prepay-only, and nobody switched it over**.
 The balance is $0, so every call gets "prepayment credits are depleted". We did *not* overspend. Fix: Stephen
 clicks **Set up prepay** and funds it. No code change or redeploy is needed.
 
@@ -59,7 +62,7 @@ card, so there is no contact info to recover. IDs: `10205259`, `0d1efd53`, `3e90
 
 ## Open items: Stephen to pick (nothing started)
 
-1. **Set up prepay.** Only Stephen can do this, on the billing page above. At about $10/month, $25–50 with
+1. ✅ **Done: prepay is set up.** For the record: only Stephen can do this, on the billing page above. At about $10/month, $25–50 with
    auto-reload covers it. Afterwards, re-run the curl above to confirm Sol answers. Optional, later: give Sol its
    own key or project so the CRM can't take it down, or move it to Vertex AI on `nano-kava-landing-page`'s own
    billing. That second option is a code change and hasn't been verified.
@@ -68,7 +71,10 @@ card, so there is no contact info to recover. IDs: `10205259`, `0d1efd53`, `3e90
    Candidate fix: count turns with no model reply, or log model errors, and put that at the top of the
    08:00 report. The other option is an alert on the first 4xx from Gemini. Read
    `functions/lib/CLAUDE.md § The daily report replaced the digest` first.
-3. **Caching looks broken: about 3x the cost per turn.** Every recent session has `usage.cachedTokens: 0`
+3. **Downgraded: the recording is fine.** The first probe after the fix returned `cachedContentTokenCount: 11566`,
+   and Firestore stored `cachedTokens: 11566` and $0.0029. So `usageFrom` is correct, and the earlier zeros
+   were real cache misses whose cause is unknown. Watch the daily report's cache-hit share; it's not urgent.
+   Original note: **Caching looked broken: about 3x the cost per turn.** Every recent session has `usage.cachedTokens: 0`
    (about 13k prompt tokens per turn at full rate, about $0.010/turn). `functions/lib/CLAUDE.md § Prompt
    caching is implicit` documents a 58% hit rate and $0.0033/turn. The cause is not investigated. Check:
    (a) whether `systemInstruction` became non-byte-identical across requests; (b) whether `usageFrom` /
@@ -77,8 +83,14 @@ card, so there is no contact info to recover. IDs: `10205259`, `0d1efd53`, `3e90
 5. **Separate small bug seen in passing.** On 2026-10-21 (`93fe0229`), the sample-request chip got the
    empty-response fallback ("I can't answer that one here…") with `outputTokens: 0`. That matches the
    failure mode in `functions/lib/CLAUDE.md § Thinking budget`. Not investigated.
-6. **Cleanup.** Delete the diagnostic doc `chatSessions/diag-probe-20261106`, or leave it to its 90-day
-   TTL. It will appear in the next daily report.
+6. **Cleanup.** Delete the diagnostic docs `chatSessions/diag-probe-20261106` and `diag-probe-20261106b`,
+   or leave them to the 90-day TTL. Both will appear in the next daily report.
+7. **Separate Sol's key.** Import `nano-kava-landing-page` into AI Studio and make a Sol key there; that
+   project bills to a different account, "Firebase Payment" `013159-10F781-89BE45`, and it isn't known yet
+   whether that account requires prepay. Make a dev key for `.env` too. To roll it out:
+   `pbpaste | npx firebase functions:secrets:set GOOGLE_AI_API_KEY --project nano-kava-landing-page --data-file=-`,
+   then `make deploy-functions` (the function only reads the secret version it was deployed with). Keep
+   the old "cannasol-crm-backend" key, because the CRM uses it.
 
 ## Branches (end-of-session sweep)
 
