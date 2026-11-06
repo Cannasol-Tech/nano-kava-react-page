@@ -64,6 +64,17 @@ card, so there is no contact info to recover. IDs: `10205259`, `0d1efd53`, `3e90
 6. **Cleanup.** Delete the diagnostic doc `chatSessions/diag-probe-20261106`, or leave it to its 90-day
    TTL. It will appear in the next daily report.
 
+## Branches (end-of-session sweep)
+
+- Deleted the merged local branches `copy-update/ingredient-brief` and `main-css-anim`.
+- **Unmerged, needs a decision:** `origin/fix/sol-review-hardening` is 3 commits ahead of main (2026-09-28):
+  "every lead is ledgered until emailed, stars preselect, and it is Sol not LIVEY", plus a release-check
+  fix and an SEO regen. It is unrelated to the outage, but it is Sol work that never landed.
+- Merged on the remote and safe to delete, not done because pushes that delete need Stephen's say-so:
+  `claude/landing-page-tests-calculator-hHcf7`, `claude/sol-lead-email-reviews-pdfeq0`,
+  `copilot/extract-nano-mushrooms-page`, `main-css-anim`, `main-latest`.
+- Stale and unmerged: `main-latest-v3` (2026-03, 1 ahead) and `main-latest-v3-optimized` (2026-02, 2 ahead).
+
 ## What the phone session can and cannot do
 
 - **Can:** read and edit code, run the `vitest` suites (`npm run test`, `cd functions && npm test`), and run
