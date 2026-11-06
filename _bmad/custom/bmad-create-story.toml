@@ -1,0 +1,24 @@
+# Silverline BMAD conventions for bmad-create-story (Nano Kava); preserved across `npx bmad-method install`.
+
+[workflow]
+
+persistent_facts = [
+  "file:{project-root}/_bmad-output/project-context.md",
+  "file:{project-root}/docs/SOP/story-frontmatter.md",
+  "All SOPs in {project-root}/docs/SOP/ are MANDATORY for this project.",
+  "TRELLO IS NOT USED for this project (Stephen, 2026-11-06): create no card, make no Trello MCP call, and write no Trello-Card-ID field into a story.",
+  "The PRD is _bmad-output/planning-artifacts/PRD.md, uppercase, not the prd.md this skill defaults to.",
+  "There is no epics.md: the Features table in PRD.md is the epic list. Epic N is Feature F-00N, and its requirements are the FR-0N.. entries under that Feature.",
+  "Stories are stored at _bmad-output/implementation-artifacts/epic-<num>/<epic>-<story>-<slug>.md (e.g. epic-1/1-1-site-pages-and-discoverability.md).",
+  "Directly under the story H1 come three lines: Status, Blocked (true/false), Blocked-Reason. Valid statuses: backlog | ready-for-dev | in-progress | blocked | review | done.",
+  "A blocked story MUST have a non-empty Blocked-Reason; never set Blocked: true without one.",
+  "The YAML frontmatter carries the ACs: map required by docs/SOP/story-frontmatter.md, with levels mapped to this stack per project-context.md § Test Levels.",
+  "Acceptance criteria are written Given/When/Then, and each one cites the FR-<EE><NN> it validates from PRD.md.",
+  "Every story has a Requirement Traceability table mapping FR -> AC -> test tag, with tags in the underscore form: @FR_0101 @story_1_1.",
+  "Every acceptance scenario carries @FR_<EE><NN> AND @story_<epic>_<story>, plus exactly one tier tag (@e2e or @service) and, for @e2e, exactly one surface tag (@web).",
+  "Acceptance feature files: test/acceptance/features/epic-<N>-<slug>.feature, one per epic, plus test/acceptance/features/user_flows.feature.",
+  "Every story carries the Definition of Done in {skill-root}/template.md, including the functionality-report, release-versioning and hours-log lines.",
+  "TRAP: {skill-root}/template.md was patched for these conventions on 2026-11-06, and `npx bmad-method install` resets it. If it has no Blocked-Reason line, write the story to these facts anyway and tell the user the template needs re-patching per ~/.claude/commands/silverline-bmad-setup.md section 9.",
+  "CRITICAL ACTION: create the epic directory if it does not exist, and use the <epic>-<story>-<slug>.md naming.",
+  "CRITICAL ACTION: verify each story maps to specific FR-<EE><NN> IDs, and record the tag mapping in its Requirement Traceability table.",
+]

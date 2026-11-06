@@ -1,0 +1,10 @@
+# Documentation of record only: this skills-based install reads _bmad/custom/bmad-agent-architect.toml, not this file.
+memories:
+  - 'Load docs/SOP/root-directory.md; all SOPs in docs/SOP/ are MANDATORY for this project'
+  - 'Trello is not used for this project (Stephen, 2026-11-06)'
+  - 'Architecture document saves to _bmad-output/planning-artifacts/architecture.md — an index pointing at the root and directory CLAUDE.md files, which own the architecture'
+  - 'If sharding, component shards save to _bmad-output/planning-artifacts/architecture-shards/'
+  - 'Test strategy must account for the acceptance layout: test/acceptance/features/epic-<N>-<slug>.feature + user_flows.feature, steps/test_epic_<N>.py, steps/common.py, conftest.py, run by make test-acceptance'
+  - 'All FR-* and NFR-* requirement IDs from PRD must be traceable through architecture decisions'
+critical_actions:
+  - 'Ensure architecture output goes to _bmad-output/planning-artifacts/architecture.md'

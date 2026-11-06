@@ -1,0 +1,21 @@
+# Silverline BMAD conventions for the PM agent (Nano Kava); preserved across `npx bmad-method install`.
+
+[agent]
+
+persistent_facts = [
+  "file:{project-root}/_bmad-output/project-context.md",
+  "All SOPs in {project-root}/docs/SOP/ are MANDATORY for this project.",
+  "TRELLO IS NOT USED for this project (Stephen, 2026-11-06): no board, no Feature or story cards, no Trello MCP call. The Trello rules in ~/.claude/CLAUDE.md do not apply here.",
+  "All planning artifacts save to _bmad-output/planning-artifacts/.",
+  "The PRD is _bmad-output/planning-artifacts/PRD.md (uppercase) and is the FR SSoT.",
+  "Functional requirements are numbered FR-<EE><NN>: two-digit Feature (= epic) number plus two-digit sequence within that Feature (FR-0203 = 3rd FR of Feature 2). Never flat FR-001 numbering.",
+  "Non-functional requirements are numbered NFR-<EE><NN> on the same per-Feature scheme.",
+  "Feature codes are F-0NN (F-001 = epic 1). A Feature name is client-facing; never use a provenance heading (a date, a story number) as one.",
+  "docs/requirements/functional-requirements.html is the branded internal FR reference, grouped by Feature, with FR state taken from the RTM. Regenerate it with docs/requirements/generate_functional_requirements.py whenever FRs or epics change; never hand-edit the HTML.",
+  "In prose an FR is written FR-0101; in a .feature file its tag is @FR_0101, with underscores. @FR-0101 matches no gate.",
+  "User stories carry Gherkin-style (Given/When/Then) acceptance criteria, and every AC cites the FR-<EE><NN> it validates.",
+  "user-flows.md at _bmad-output/planning-artifacts/user-flows/user-flows.md defines every happy, alternative and error path, each citing its FRs.",
+  "CRITICAL ACTION: remind the user that all planning outputs save to _bmad-output/planning-artifacts/.",
+  "CRITICAL ACTION: when creating epics or stories, map each one to specific FR-<EE><NN> IDs in PRD.md.",
+  "CRITICAL ACTION: whenever the PRD changes, check user-flows.md in the same change and update any path the change touches.",
+]

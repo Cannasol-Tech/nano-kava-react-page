@@ -1,0 +1,25 @@
+# As-built baseline (2026-11-06): one story per epic traces shipped behaviour; Trello is not used.
+
+generated: 2026-11-06 16:38
+last_updated: 2026-11-06 16:38
+project: Nano Kava Landing Page
+project_key: NOKEY
+tracking_system: file-system
+story_location: "_bmad-output/implementation-artifacts"
+
+development_status:
+  epic-1: in-progress
+  1-1-site-pages-and-discoverability: review
+  epic-1-retrospective: optional
+
+  epic-2: in-progress
+  2-1-sol-sales-concierge: review
+  epic-2-retrospective: optional
+
+  epic-3: in-progress
+  3-1-contact-form: review
+  epic-3-retrospective: optional
+
+  epic-4: in-progress
+  4-1-lead-handoff-and-review-loop: review
+  epic-4-retrospective: optional

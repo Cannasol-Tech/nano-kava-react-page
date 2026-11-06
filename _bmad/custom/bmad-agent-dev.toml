@@ -1,0 +1,31 @@
+# Silverline BMAD conventions for the Dev agent (Nano Kava); preserved across `npx bmad-method install`.
+
+[agent]
+
+persistent_facts = [
+  "file:{project-root}/_bmad-output/project-context.md",
+  "file:{project-root}/docs/SOP/coding-style.md",
+  "file:{project-root}/docs/SOP/file-headers.md",
+  "file:{project-root}/docs/SOP/makefile-standard.md",
+  "All SOPs in {project-root}/docs/SOP/ are MANDATORY for this project.",
+  "TRELLO IS NOT USED for this project (Stephen, 2026-11-06): no cards to move, no Trello MCP call, no Trello-Card-ID field. Status lives in the story file and sprint-status.yaml only.",
+  "Acceptance feature files: test/acceptance/features/epic-<N>-<slug>.feature (one per epic) and test/acceptance/features/user_flows.feature. Steps: test/acceptance/steps/test_epic_<N>.py; steps shared by 2+ epics in test/acceptance/steps/common.py; fixtures and all-epic steps in test/acceptance/conftest.py.",
+  "Every scenario carries @FR_<EE><NN> AND @story_<epic>_<story>, with UNDERSCORES. Example: @FR_0103 @story_1_1. A hyphenated tag (@FR-0103) matches no gate and silently claims no coverage.",
+  "Every scenario carries exactly one tier tag, @e2e or @service. An @e2e scenario carries exactly one surface tag, @web. An @service scenario carries no surface tag.",
+  "Acceptance is end-to-end (Stephen, 2026-08-29): @service is only for a requirement nothing with a screen can observe, never a stand-in for an e2e scenario nobody has written yet.",
+  "Multiple @FR_ tags are allowed on one scenario when it validates several requirements.",
+  "user_flows.feature must exercise every path in _bmad-output/planning-artifacts/user-flows/user-flows.md; a story that changes a flow updates it.",
+  "FR mappings come from _bmad-output/planning-artifacts/PRD.md.",
+  "Stories live in _bmad-output/implementation-artifacts/epic-<num>/<epic>-<story>-<slug>.md.",
+  "Valid statuses: backlog, ready-for-dev, in-progress, blocked, review, done.",
+  "When blocked: Status blocked, Blocked true, and a non-empty Blocked-Reason, all three. When unblocking: Blocked false, clear Blocked-Reason, update Status.",
+  "The RTM is docs/REQUIREMENTS_TRACEABILITY_MATRIX.md; update it whenever a story adds or changes a scenario.",
+  "make test-acceptance runs the whole suite and is the only run that produces a functionality report; make test-acceptance FR=0101 runs one requirement and writes JUnit only, by design.",
+  "Release versioning follows docs/SOP/release-versioning.md: component frontend (repo root, manifest package.json, tag frontend/v) and component api (functions/, manifest functions/package.json, tag api/v).",
+  "HOURS-LOG GATE: _bmad-output/hours-log/config.json has enabled:true, so a story cannot reach done until /silverline-hours-log-review resolves its entry (Accept, a typed entry, or No entry needed). Run it as the final DoD step.",
+  "CRITICAL ACTION: after implementing a story, create or update its acceptance scenarios with the FR, story, tier and surface tags.",
+  "CRITICAL ACTION: check whether the story changes a user flow, and update user_flows.feature if it does.",
+  "CRITICAL ACTION: verify every Definition of Done item is checked before marking a story complete.",
+  "CRITICAL ACTION: on every status change, update the story file AND _bmad-output/implementation-artifacts/sprint-status.yaml in the same change.",
+  "CRITICAL ACTION: before setting a story to done, run /silverline-hours-log-review and require Accept or No entry needed.",
+]

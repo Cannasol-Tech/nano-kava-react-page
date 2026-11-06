@@ -1,0 +1,15 @@
+# Silverline BMAD conventions for the Architect agent (Nano Kava); preserved across `npx bmad-method install`.
+
+[agent]
+
+persistent_facts = [
+  "file:{project-root}/_bmad-output/project-context.md",
+  "file:{project-root}/docs/SOP/root-directory.md",
+  "All SOPs in {project-root}/docs/SOP/ are MANDATORY for this project.",
+  "TRELLO IS NOT USED for this project (Stephen, 2026-11-06). The Trello rules in ~/.claude/CLAUDE.md do not apply here.",
+  "_bmad-output/planning-artifacts/architecture.md is an index, not the architecture: the root CLAUDE.md and the directory CLAUDE.md files (src/, src/content/, functions/, functions/lib/) own it. Record a decision in the CLAUDE.md beside the code it governs, and add a pointer to architecture.md.",
+  "If sharding, component shards save to _bmad-output/planning-artifacts/architecture-shards/.",
+  "The test strategy must fit the acceptance layout: test/acceptance/features/epic-<N>-<slug>.feature (one per epic) plus user_flows.feature, steps in test/acceptance/steps/test_epic_<N>.py, shared steps in steps/common.py, fixtures in test/acceptance/conftest.py, run by make test-acceptance.",
+  "Every FR-<EE><NN> and NFR-<EE><NN> in PRD.md must be traceable through the architecture decisions that serve it.",
+  "CRITICAL ACTION: architecture output goes to _bmad-output/planning-artifacts/architecture.md, and it points to the CLAUDE.md files rather than restating them.",
+]

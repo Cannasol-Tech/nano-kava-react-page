@@ -1,0 +1,15 @@
+# Silverline BMAD conventions for bmad-build, 6.12's official implementation path (Nano Kava); preserved across installs.
+
+[workflow]
+
+persistent_facts = [
+  "file:{project-root}/_bmad-output/project-context.md",
+  "file:{project-root}/docs/SOP/coding-style.md",
+  "file:{project-root}/docs/SOP/file-headers.md",
+  "file:{project-root}/docs/SOP/makefile-standard.md",
+  "file:{project-root}/_bmad/custom/bmad-agent-dev.toml",
+  "All SOPs in {project-root}/docs/SOP/ are MANDATORY for this project.",
+  "The Dev conventions for this workflow are the persistent_facts listed in _bmad/custom/bmad-agent-dev.toml, loaded above; apply every one of them here.",
+  "TRELLO IS NOT USED for this project (Stephen, 2026-11-06): a status change updates the story file and sprint-status.yaml, nothing else.",
+  "Scenario tags use UNDERSCORES: @FR_0101 @story_1_1, plus one tier tag (@e2e or @service) and, for @e2e, one surface tag (@web).",
+]
